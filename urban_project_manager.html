@@ -89,7 +89,7 @@
             <img src="app_logo.png" alt="Logo" class="h-6 w-auto shrink-0">
             <div class="flex items-center gap-1 min-w-0">
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v10 (최신)</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v11 (최신)</span>
           </div>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
@@ -319,17 +319,19 @@
             <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">📥 접수</span>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 w-full overflow-x-auto">
-            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 pb-2 border-b">
-              <div class="text-rose-500">일 (Sun)</div>
-              <div>월 (Mon)</div>
-              <div>화 (Tue)</div>
-              <div>수 (Wed)</div>
-              <div>목 (Thu)</div>
-              <div>금 (Fri)</div>
-              <div class="text-blue-500">토 (Sat)</div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 w-full overflow-x-auto shadow-sm">
+            <div class="min-w-[720px]">
+              <div class="grid grid-cols-7 gap-1.5 text-center font-bold text-xs text-slate-500 pb-2.5 border-b border-slate-200">
+                <div class="text-rose-500 font-bold bg-rose-50/50 py-1 rounded-lg">일 (Sun)</div>
+                <div class="py-1">월 (Mon)</div>
+                <div class="py-1">화 (Tue)</div>
+                <div class="py-1">수 (Wed)</div>
+                <div class="py-1">목 (Thu)</div>
+                <div class="py-1">금 (Fri)</div>
+                <div class="text-blue-500 font-bold bg-blue-50/50 py-1 rounded-lg">토 (Sat)</div>
+              </div>
+              <div id="calendarGridBody" class="grid grid-cols-7 gap-1.5 pt-2.5"></div>
             </div>
-            <div id="calendarGridBody" class="grid grid-cols-7 gap-1.5 pt-2"></div>
           </div>
         </div>
 
@@ -1585,7 +1587,7 @@
         });
 
         grid.innerHTML += `
-          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[105px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group">
+          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[125px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group shadow-2xs">
             <div class="flex justify-between items-center font-mono font-bold text-xs text-slate-700">
               <span>${d}</span>
               <span class="text-[10px] text-purple-600 opacity-0 group-hover:opacity-100 font-normal">+추가</span>
@@ -1844,7 +1846,22 @@
       document.getElementById('summaryCareerLogs').innerText = `${careerCount} 건`;
     }
 
+    
+    function updateAllProjectDropdowns() {
+      const selects = ['calEventProjId', 'newTaskProjId', 'careerProjId', 'summaryProjectFilter'];
+      selects.forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const curVal = sel.value;
+        sel.innerHTML = id === 'summaryProjectFilter' ? '' : '<option value="">관련 없음 / 공통</option>';
+        (store.projects || []).forEach(p => {
+          sel.innerHTML += `<option value="${p.id}" ${p.id === curVal ? 'selected' : ''}>${p.name}</option>`;
+        });
+      });
+    }
+
     function renderAll() {
+      updateAllProjectDropdowns();
       renderSummaryHeader();
       renderMasterCards();
       renderDailyTasks();
