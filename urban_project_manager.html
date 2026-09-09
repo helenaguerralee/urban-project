@@ -896,6 +896,43 @@
     }
 
 
+    
+    function exportDataBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "urban_project_backup_" + new Date().toISOString().slice(0,10) + ".json");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importDataBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && Array.isArray(imported.projects)) {
+            store = imported;
+            store.lastLocalUpdate = Date.now();
+            localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+            if (isCloudSyncActive && fbDbRef) {
+              fbDbRef.set(store).catch(err => console.error("Firebase sync error", err));
+            }
+            renderAll();
+            alert("백업 파일에서 데이터가 성공적으로 복원되었습니다!");
+          } else {
+            alert("유효한 도시계획 백업 파일이 아닙니다.");
+          }
+        } catch(err) {
+          alert("파일 읽기 오류: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function loadStore() {
       const saved = localStorage.getItem('urban_clean_store_v11');
       if (saved) {
