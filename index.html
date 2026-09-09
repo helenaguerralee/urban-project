@@ -767,15 +767,18 @@
 
         fbDbRef.on('value', (snapshot) => {
           const remoteData = snapshot.val();
-          if (remoteData && remoteData.projects) {
+          if (remoteData && remoteData.projects && remoteData.projects.length > 0) {
             const remoteTs = remoteData.lastLocalUpdate || 0;
             const localTs = store.lastLocalUpdate || 0;
-            if (remoteTs > localTs || !localTs) {
+            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0) {
               store = remoteData;
               localStorage.setItem('urban_clean_store_v4', JSON.stringify(store));
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
             }
+          } else if (store.projects && store.projects.length > 0) {
+            // Push local non-empty store to Firebase if Firebase is empty
+            fbDbRef.set(store).catch(e => console.error("Cloud auto-seed failed:", e));
           }
         }, (err) => {
           console.error("Firebase sync error:", err);
@@ -906,6 +909,18 @@
         });
       }
 
+      if (!store.projects || store.projects.length === 0) {
+        // Fallback auto-restore if empty
+        store.projects = [yonginProj || {
+          id: "p_yongin_default",
+          name: "용인시 노후계획도시기본계획",
+          category: "기본계획",
+          progress: 35,
+          startDate: "'24.07.10",
+          endDate: "'27.06",
+          desc: yonginFullScheduleText
+        }];
+      }
       autoSyncCareerFromCompletedTasks();
     }
 
