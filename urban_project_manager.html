@@ -1285,13 +1285,18 @@
       const grid = document.getElementById('projectCardsGrid');
       grid.innerHTML = '';
 
-      if (store.projects.length === 0) {
+      if (!store.projects || store.projects.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-2 bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center space-y-3">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">🏙️</div>
-            <h4 class="font-bold text-slate-800 text-sm">등록된 프로젝트가 없습니다.</h4>
-            <p class="text-xs text-slate-400">상단의 [ + 신규 프로젝트 등록 ] 버튼을 눌러 관리할 사업 프로젝트를 직접 추가하세요!</p>
-            <button onclick="openAddProjectModal()" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md">+ 신규 프로젝트 등록</button>
+          <div class="col-span-2 bg-white border border-dashed border-emerald-300 rounded-2xl p-10 text-center space-y-3.5 shadow-sm">
+            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">🏙️</div>
+            <h4 class="font-bold text-slate-900 text-base">프로젝트 데이터 원상복구</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">아래 초록색 [ 🔄 기본 프로젝트 3개 즉시 복구 ] 버튼을 누르시면 용인시, 분당, 인천시 프로젝트와 모든 마일스톤 일정이 즉시 복원됩니다!</p>
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <button onclick="restoreDefaultProjectsData()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 🔄 기본 프로젝트 3개 즉시 복구
+              </button>
+              <button onclick="openAddProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition">+ 신규 등록</button>
+            </div>
           </div>
         `;
         return;
@@ -1971,6 +1976,10 @@
 
     document.getElementById('dailyLogDatePicker').value = new Date().toISOString().slice(0,10);
     loadStore();
+    if (!store.projects || store.projects.length === 0) {
+      store.projects = getInitialDefaultProjects();
+      saveStore();
+    }
     const savedFbUrl = localStorage.getItem('urban_firebase_url') || 'https://urban-project-ed906-default-rtdb.firebaseio.com/';
     initFirebaseSync(savedFbUrl);
     renderAll();
