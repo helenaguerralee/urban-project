@@ -889,12 +889,21 @@
       alert("기본 프로젝트 3개 및 모든 일정이 성공적으로 복구되었습니다!");
     }
 
-    function loadStore() {
+        function loadStore() {
       const saved = localStorage.getItem('urban_clean_store_v4') || localStorage.getItem('urban_clean_store_v3');
       if (saved) {
         try { store = JSON.parse(saved); } catch(e) {}
       }
-      if (!store.projects) store.projects = [];
+      if (!store || !store.projects || store.projects.length === 0) {
+        store = {
+          projects: getInitialDefaultProjects(),
+          dailyTasks: [],
+          calendarEvents: [],
+          careerLogs: [],
+          lastLocalUpdate: Date.now()
+        };
+        try { localStorage.setItem('urban_clean_store_v4', JSON.stringify(store)); } catch(e) {}
+      }
       if (!store.careerLogs) store.careerLogs = [];
 
       const yonginFullScheduleText = `∘착수 : '24.07.10.
@@ -979,12 +988,11 @@
         incheonProj.startDate = "'25.10";
         incheonProj.endDate = "'27.05";
         incheonProj.desc = incheonFullScheduleText;
-        delete incheonProj.milestones;
       } else {
         store.projects.push({
           id: "p_incheon_default",
           name: "인천시 계산역북측구역 재개발사업",
-          category: "재개발사업",
+          category: "정비사업(재개발)",
           progress: 30,
           startDate: "'25.10",
           endDate: "'27.05",
@@ -992,18 +1000,6 @@
         });
       }
 
-      if (!store.projects || store.projects.length === 0) {
-        store.projects = getInitialDefaultProjects();
-      }
-          id: "p_yongin_default",
-          name: "용인시 노후계획도시기본계획",
-          category: "기본계획",
-          progress: 35,
-          startDate: "'24.07.10",
-          endDate: "'27.06",
-          desc: yonginFullScheduleText
-        }];
-      }
       autoSyncCareerFromCompletedTasks();
     }
 
