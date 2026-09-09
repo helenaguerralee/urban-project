@@ -1,0 +1,1653 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도시계획 업무관리시스템 🗓️</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="icon" href="app_logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css">
+  <style>
+    @font-face {
+      font-family: 'Paperlogy';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Paperlogy';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Paperlogy';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2');
+      font-weight: 600;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Paperlogy';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Paperlogy';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2');
+      font-weight: 800;
+      font-display: swap;
+    }
+    * { font-family: 'Paperlogy', 'Paperozi', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .light-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+  </style>
+  <script>
+    (function initWindowBounds() {
+      try {
+        const targetW = 1180;
+        const targetH = 800;
+        const leftPos = Math.max(0, Math.floor((screen.availWidth - targetW) / 2));
+        const topPos = Math.max(0, Math.floor((screen.availHeight - targetH) / 2));
+        window.resizeTo(targetW, targetH);
+        window.moveTo(leftPos, topPos);
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+  <!-- MAIN CONTAINER -->
+  <div class="relative z-10 w-full max-w-[1700px] mx-auto px-4 sm:px-6 py-4 min-h-screen flex flex-col justify-between">
+    
+    <!-- Top Header Bar -->
+    <header class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 mb-4 light-card p-4 sm:p-5 rounded-2xl w-full">
+      <div class="flex items-center gap-3.5">
+        <div class="h-12 px-3.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0">
+          <img src="app_logo.png" alt="Kyong Ho . ENC" class="h-7 object-contain">
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
+            도시계획 업무관리시스템
+            <span class="text-xs font-semibold px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-full flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-rose-600"></i> ReportHelper 문서검수 모듈 통합
+            </span>
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">프로젝트 마스터, 일자별 To-Do, 프로젝트별 업무 정리, 출장 캘린더, 경력관리 및 리포트헬퍼 문서검수를 한곳에서 관리합니다.</p>
+        </div>
+      </div>
+
+      <!-- Quick Summary Badges & Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs shrink-0">
+        <div class="bg-slate-50 border border-slate-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
+          <span class="text-slate-400 block text-[10px] font-bold">등록 프로젝트</span>
+          <span id="summaryTotalProj" class="font-bold text-sm text-blue-600 font-mono">0 개</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
+          <span class="text-slate-400 block text-[10px] font-bold">전체 진행률</span>
+          <span id="summaryAvgProgress" class="font-bold text-sm text-emerald-600 font-mono">0 %</span>
+        </div>
+        <div class="bg-purple-50 border border-purple-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
+          <span class="text-purple-600 block text-[10px] font-bold">나의 출장 일정</span>
+          <span id="summaryMyTrips" class="font-bold text-sm text-purple-700 font-mono">0 건</span>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
+          <span class="text-amber-600 block text-[10px] font-bold">경력/이직 소스</span>
+          <span id="summaryCareerLogs" class="font-bold text-sm text-amber-700 font-mono">0 건</span>
+        </div>
+
+        <button onclick="openMobileModal()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl border border-blue-500 transition flex items-center gap-1.5 shadow-md">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> 📱 모바일 연결
+        </button>
+        <button onclick="exportDataJSON()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i> 백업 저장
+        </button>
+        <button onclick="clearAllData()" class="px-3.5 py-2 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-medium rounded-xl border border-slate-200 transition shadow-sm">
+          전체 초기화
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container with Left Vertical Sidebar Layout -->
+    <div class="light-card p-4 sm:p-6 rounded-3xl mb-6 flex flex-col md:flex-row gap-6 w-full flex-1 min-h-[calc(100vh-140px)]">
+      
+      <!-- LEFT VERTICAL SIDEBAR BANNER -->
+      <div class="w-64 shrink-0 space-y-2 border-r border-slate-200 pr-5">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 flex items-center gap-1.5">
+          <i data-lucide="menu" class="w-3.5 h-3.5"></i> 업무 관리 메뉴
+        </h3>
+
+        <button onclick="switchTab('master')" id="tab-master" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
+          <span class="flex items-center gap-2"><span>📌</span> 1. 프로젝트 마스터</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+
+        <button onclick="switchTab('daily')" id="tab-daily" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex items-center gap-2"><span>📅</span> 2. 일자별 업무 &amp; 체크</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+
+        <button onclick="switchTab('summary')" id="tab-summary" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex items-center gap-2"><span>📋</span> 3. 프로젝트별 업무 정리</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+
+        <button onclick="switchTab('calendar')" id="tab-calendar" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex items-center gap-2"><span>🗓️</span> 4. 월간 일정 캘린더</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+
+        <button onclick="switchTab('career')" id="tab-career" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex items-center gap-2"><span>💼</span> 5. 경력관리</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+
+        <button onclick="switchTab('reporthelper')" id="tab-reporthelper" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex items-center gap-2"><span>🛠️</span> 6. 업무 툴</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+      </div>
+
+      <!-- RIGHT MAIN CONTENT PANEL CONTAINER -->
+      <div class="flex-1 min-w-0 w-full flex flex-col justify-start">
+
+        <!-- TAB 1: PROJECT MASTER -->
+        <div id="panel-master" class="tab-panel space-y-5 w-full">
+          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                📌 프로젝트 마스터 관리
+              </h3>
+              <p class="text-slate-500 mt-0.5">내 사업 프로젝트를 직접 추가하고 공정률과 수치를 자유롭게 수정합니다.</p>
+            </div>
+            <button onclick="openAddProjectModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> + 신규 프로젝트 등록
+            </button>
+          </div>
+
+          <div id="projectCardsGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-5 w-full"></div>
+        </div>
+
+        <!-- TAB 2: DAILY TASK LOG & CHECKLIST -->
+        <div id="panel-daily" class="tab-panel hidden space-y-5 w-full">
+          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                📅 일자별 업무 작성 &amp; To-Do 체크리스트
+              </h3>
+              <p class="text-slate-500 mt-0.5">날짜별로 할 일을 등록하고 체크박스로 완료 여부를 기록합니다. (체크 시 5번 경력관리에 자동 기록! ⚡)</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="date" id="dailyLogDatePicker" onchange="renderDailyTasks()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-600">
+              <button onclick="openAddTaskModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-4 h-4"></i> + 업무 추가
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 w-full">
+            <h4 class="font-bold text-slate-800 text-xs flex items-center justify-between border-b pb-3">
+              <span id="dailyLogTitle">📅 일자별 세부 업무 리스트</span>
+              <span id="dailyLogProgressBadge" class="text-xs px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-semibold">0 / 0 완료</span>
+            </h4>
+            <div id="dailyTasksList" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- TAB 3: PROJECT SUMMARY BOARD -->
+        <div id="panel-summary" class="tab-panel hidden space-y-5 w-full">
+          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                📋 프로젝트별 업무 정리 보드
+              </h3>
+              <p class="text-slate-500 mt-0.5">체크 내역을 바탕으로 각 프로젝트에서 무엇을 했고(완료 내역), 무엇을 해야 하는지(예정 업무) 한눈에 정리됩니다.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-600 text-xs">프로젝트 선택:</span>
+              <select id="summaryProjectFilter" onchange="renderProjectSummaryBoard()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none">
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+            <div class="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-5 space-y-3">
+              <h4 class="font-bold text-emerald-900 text-xs flex items-center gap-2 border-b border-emerald-200 pb-3">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> ✅ 완료한 일 (수행 완료 이력)
+              </h4>
+              <div id="summaryDoneList" class="space-y-2.5"></div>
+            </div>
+
+            <div class="bg-blue-50/40 border border-blue-200 rounded-2xl p-5 space-y-3">
+              <h4 class="font-bold text-blue-900 text-xs flex items-center gap-2 border-b border-blue-200 pb-3">
+                <i data-lucide="clock" class="w-4 h-4 text-blue-600"></i> 📌 앞으로 해야 할 일 (잔여 업무)
+              </h4>
+              <div id="summaryTodoList" class="space-y-2.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: MONTHLY CALENDAR -->
+        <div id="panel-calendar" class="tab-panel hidden space-y-5 w-full">
+          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                🗓️ 월간 프로젝트 &amp; 일정 통합 캘린더
+              </h3>
+              <p class="text-slate-500 mt-0.5">출장(동행자 지정), 자료 요청, 자료송부, 접수 및 날짜별 업무를 캘린더에 표시합니다.</p>
+            </div>
+            <div class="flex items-center gap-3 font-bold">
+              <button onclick="openAddCalendarEventModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i> + 캘린더 일정 직접 추가
+              </button>
+              <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2 py-1">
+                <button onclick="changeCalendarMonth(-1)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-700">◀ 이전달</button>
+                <span id="calendarMonthTitle" class="text-sm px-2 text-slate-800 font-mono">2026년 9월</span>
+                <button onclick="changeCalendarMonth(1)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-700">다음달 ▶</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs font-semibold">
+            <span class="text-slate-500 font-bold">범례 안내:</span>
+            <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-bold shadow-sm">🚗 출장 (나 동행 - 강조)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">🚗 출장 (타인)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">📩 자료 요청</span>
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300">📤 자료송부</span>
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">📥 접수</span>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 w-full overflow-x-auto">
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-500 pb-2 border-b">
+              <div class="text-rose-500">일 (Sun)</div>
+              <div>월 (Mon)</div>
+              <div>화 (Tue)</div>
+              <div>수 (Wed)</div>
+              <div>목 (Thu)</div>
+              <div>금 (Fri)</div>
+              <div class="text-blue-500">토 (Sat)</div>
+            </div>
+            <div id="calendarGridBody" class="grid grid-cols-7 gap-1.5 pt-2"></div>
+          </div>
+        </div>
+
+        <!-- TAB 5: CAREER MANAGEMENT -->
+        <div id="panel-career" class="tab-panel hidden space-y-5 w-full">
+          <div class="flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-2xl border border-amber-200 text-xs">
+            <div>
+              <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
+                💼 경력관리 &amp; 이직 자기소개서 / 면접 소스 보관함
+                <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⚡ 업무 완료(체크) 시 실시간 자동 기록</span>
+              </h3>
+              <p class="text-amber-700 mt-0.5">2번 탭에서 할 일을 체크(완료)할 때마다 이곳에 수행 실적과 자소서 소스가 자동으로 생성됩니다.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="copyAllCareerSummary()" class="px-3.5 py-2.5 bg-white hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-300 shadow-sm transition flex items-center gap-1.5">
+                <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> 경력 요약 텍스트 전체 복사
+              </button>
+              <button onclick="openAddCareerModal()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> + 수동 소스 추가
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 bg-white p-3 rounded-xl border border-slate-200 text-xs font-bold">
+            <span class="text-slate-400 mr-1">분류 필터:</span>
+            <button onclick="filterCareerLogs('all')" class="career-filter-btn px-3 py-1.5 rounded-lg bg-amber-600 text-white shadow-sm" data-cat="all">전체 보기</button>
+            <button onclick="filterCareerLogs('주요 성과')" class="career-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-cat="주요 성과">🏆 주요 성과 / 실적</button>
+            <button onclick="filterCareerLogs('경력기술서')" class="career-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-cat="경력기술서">📝 경력기술서 요약</button>
+            <button onclick="filterCareerLogs('STAR 에피소드')" class="career-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-cat="STAR 에피소드">💡 STAR 문제해결 경험</button>
+            <button onclick="filterCareerLogs('면접/자소서 소스')" class="career-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-cat="면접/자소서 소스">🗣️ 면접 Q&amp;A / 자소서 문구</button>
+          </div>
+
+          <div id="careerLogsGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-5 w-full"></div>
+        </div>
+
+        <!-- TAB 6: REPORT HELPER INTEGRATION -->
+        <div id="panel-reporthelper" class="tab-panel hidden space-y-4 w-full">
+          <div class="flex justify-between items-center bg-gradient-to-r from-rose-50 to-indigo-50 p-4 rounded-2xl border border-rose-200 text-xs">
+            <div>
+              <h3 class="font-bold text-rose-900 text-sm flex items-center gap-2">
+                🛠️ 업무 툴 - 리포트헬퍼 (ReportHelper) 윤문 &amp; 문서 검수 모듈
+              </h3>
+              <p class="text-rose-700 mt-0.5">보고서 윤문, 3가지 버전 생성, 엑셀 수치 분석, 문장 정밀 검수, 고화질 도면 변환 및 50p 단위 도서 수치/오타 딥스캔이 통합 실행됩니다.</p>
+            </div>
+            <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2.5 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="external-link" class="w-4 h-4 text-rose-600"></i> ReportHelper 단독 새창 열기
+            </button>
+          </div>
+
+          <div class="w-full h-[calc(100vh-210px)] min-h-[750px] bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <iframe src="report_helper.html" class="w-full h-full border-0"></iframe>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODALS -->
+  <div id="addProjectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">📌 신규 프로젝트 직접 등록</h3>
+        <button onclick="closeAddProjectModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">프로젝트명</label>
+          <input type="text" id="newProjName" placeholder="예: 미금역세권 (분당 47·S7구역)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">구분/카테고리</label>
+            <input type="text" id="newProjCategory" placeholder="예: 노후계획도시 정비구역" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">초기 공정률 (%)</label>
+            <input type="number" id="newProjProgress" min="0" max="100" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-blue-600">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-600 mb-1">시작일 (예: '26.09)</label>
+            <input type="text" id="newProjStart" placeholder="예: '26.09" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+          <div>
+            <label class="block text-slate-600 mb-1">목표 완료일 (예: '27.06)</label>
+            <input type="text" id="newProjEnd" placeholder="예: '27.06" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-600 mb-1">비고 및 세부 추진 일정</label>
+          <textarea id="newProjDesc" rows="4" placeholder="∘최종보고 : '26.09.&#10;∘주민공람 : '26.10.(14일간) ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-xs leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveNewProject()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">저장 및 프로젝트 등록</button>
+        <button onclick="closeAddProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROJECT MODAL -->
+  <div id="editProjectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">✏️ 프로젝트 및 세부 일정 수정</h3>
+        <button onclick="closeEditProjectModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="editProjId">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">프로젝트명</label>
+          <input type="text" id="editProjName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">구분/카테고리</label>
+            <input type="text" id="editProjCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">공정률 (%)</label>
+            <input type="number" id="editProjProgress" min="0" max="100" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-blue-600">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">시작일 (예: '26.09)</label>
+            <input type="text" id="editProjStart" placeholder="'26.09" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">목표 완료일 (예: '27.06)</label>
+            <input type="text" id="editProjEnd" placeholder="'27.06" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">세부 추진 일정 &amp; 비고 (여러 줄 작성 가능)</label>
+          <textarea id="editProjDesc" rows="8" placeholder="∘최종보고 : '26.09.&#10;∘주민공람 : '26.10.(14일간) ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-xs leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveEditProject()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">수정사항 저장</button>
+        <button onclick="closeEditProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addTaskModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">📅 일자별 업무 직접 등록</h3>
+        <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">관련 프로젝트 선택</label>
+          <select id="newTaskProjId" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold"></select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">업무 날짜</label>
+          <input type="date" id="newTaskDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">수행할 업무 내용 (To-Do)</label>
+          <input type="text" id="newTaskTitle" placeholder="예: 조치계획서 p.14 수치 검수 및 오타 수정" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveNewTask()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition">업무 추가 및 등록</button>
+        <button onclick="closeAddTaskModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addCalendarEventModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">🗓️ 캘린더 일정 및 출장 동행자 직접 등록</h3>
+        <button onclick="closeAddCalendarEventModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">일정 제목 / 목적</label>
+          <input type="text" id="calEventTitle" placeholder="예: 성남시청 도시계획과 자문 회의 출장" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-900">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">일정 날짜</label>
+            <input type="date" id="calEventDate" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">일정 종류 (구분)</label>
+            <select id="calEventType" onchange="toggleAttendeesBox(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-purple-700">
+              <option value="출장" selected>🚗 출장</option>
+              <option value="자료 요청">📩 자료 요청</option>
+              <option value="자료송부">📤 자료송부</option>
+              <option value="접수">📥 접수</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-600 mb-1">관련 프로젝트 (선택)</label>
+          <select id="calEventProjId" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold"></select>
+        </div>
+
+        <div id="attendeesBox" class="bg-purple-50/60 p-3.5 rounded-2xl border border-purple-200 space-y-2">
+          <label class="font-bold text-purple-900 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4 text-purple-600"></i> 같이 가는 사람 (동행자 선택):</span>
+            <span class="text-[10px] text-purple-700 font-bold">'나' 포함 시 보라색으로 캘린더 강조 표시!</span>
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-purple-900 cursor-pointer font-bold shadow-sm">
+              <input type="checkbox" id="att_me" value="나" checked class="w-4 h-4 text-purple-600 rounded">
+              <span>👤 나 (본인)</span>
+            </label>
+            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
+              <input type="checkbox" id="att_kim" value="김아현 이사님" class="w-4 h-4 text-purple-600 rounded">
+              <span>김아현 이사님</span>
+            </label>
+            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
+              <input type="checkbox" id="att_jang" value="장민선 과장님" class="w-4 h-4 text-purple-600 rounded">
+              <span>장민선 과장님</span>
+            </label>
+            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
+              <input type="checkbox" id="att_choi" value="최지율 주임님" class="w-4 h-4 text-purple-600 rounded">
+              <span>최지율 주임님</span>
+            </label>
+            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
+              <input type="checkbox" id="att_lee" value="이상호 주임님" class="w-4 h-4 text-purple-600 rounded">
+              <span>이상호 주임님</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-600 mb-1">장소 / 세부 설명</label>
+          <input type="text" id="calEventDesc" placeholder="예: 성남시청 4층 회의실 / 자료 전달 및 과업 범위 논의" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveCalendarEvent()" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition">일정 캘린더 등록</button>
+        <button onclick="closeAddCalendarEventModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addCareerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">💼 경력기술서 &amp; 이직/면접 소스 수동 기록</h3>
+        <button onclick="closeAddCareerModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">관련 프로젝트</label>
+            <select id="careerProjId" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-900"></select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">소재 분류</label>
+            <select id="careerCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-amber-700">
+              <option value="주요 성과" selected>🏆 주요 성과 / 실적</option>
+              <option value="경력기술서">📝 경력기술서 요약</option>
+              <option value="STAR 에피소드">💡 STAR 문제해결 경험</option>
+              <option value="면접/자소서 소스">🗣️ 면접 Q&amp;A / 자소서 문구</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">수행 역할 및 제목 (요약)</label>
+          <input type="text" id="careerRole" placeholder="예: 미금역세권 정비구역 수립 총괄 및 수치 검수 프로세스 구축" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-900">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">핵심 정량적 성과 / 대표 수치 (자소서 핵심지표)</label>
+          <input type="text" id="careerMetric" placeholder="예: 구역면적 81,198.3㎡, 1,515세대 수립, 기획 2개월 단축" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-amber-700">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">상세 내용 및 이직 문구 (STAR: 상황-과제-행동-성과 / 자소서 문장)</label>
+          <textarea id="careerContent" rows="4" placeholder="[상황/과제] 노후도시 정비구역 수립 시 구적 면적 및 세대수 정밀 검수 필요&#10;[행동/해결] GIS 연동 및 엑셀 자동 검수 로직 구축하여 오류율 0% 달성&#10;[성과/결과] 자문 회의 원안 통과 및 이직 시 정량 성과 어필 소스로 활용" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed focus:outline-none focus:border-amber-500 font-sans"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveCareerLog()" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition">경력 소스 저장</button>
+        <button onclick="closeAddCareerModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+  <!-- MOBILE ACCESS MODAL -->
+  <div id="mobileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
+      <div class="flex justify-between items-center border-b pb-3 text-left">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">📱 스마트폰 실시간 연결 &amp; 연동</h3>
+        <button onclick="closeMobileModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3.5">
+        <p class="text-xs text-slate-600 font-semibold">스마트폰 카메라로 아래 **QR 코드**를 스캔하시면 동일한 Wi-Fi 환경에서 핸드폰으로 즉시 접속하실 수 있습니다!</p>
+        
+        <div class="w-56 h-56 mx-auto bg-slate-50 border-2 border-dashed border-blue-200 p-2.5 rounded-2xl flex items-center justify-center shadow-inner">
+          <img src="data:image/png;base64,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" alt="Mobile QR Code" class="w-full h-full object-contain rounded-xl">
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-left space-y-1">
+          <span class="text-[10px] font-bold text-slate-400 block">🌐 직통 모바일 접속 주소</span>
+          <input type="text" readonly value="https://helenaguerralee.github.io/urban-project/" onclick="this.select()" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-blue-700">
+        </div>
+
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-left text-xs space-y-1 text-blue-900">
+          <span class="font-bold flex items-center gap-1">💡 핸드폰 앱처럼 바로가기 만드는 방법:</span>
+          <p class="text-[11px] leading-relaxed text-blue-800">• 아이폰: Safari 접속 ➔ 하단 [공유] 버튼 ➔ [홈 화면에 추가]<br>• 갤럭시: Chrome/삼성인터넷 ➔ 우측 상단 [⋮] 메뉴 ➔ [홈 화면에 추가]</p>
+        </div>
+      </div>
+
+      <div class="pt-1">
+        <button onclick="closeMobileModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS SCRIPT ENGINE -->
+  <script>
+    function openMobileModal() { document.getElementById('mobileModal').classList.remove('hidden'); lucide.createIcons(); }
+    function closeMobileModal() { document.getElementById('mobileModal').classList.add('hidden'); }
+    let store = {
+      projects: [],
+      dailyTasks: [],
+      calendarEvents: [],
+      careerLogs: []
+    };
+
+    let calendarCurrentDate = new Date();
+    let currentCareerFilter = 'all';
+
+    function loadStore() {
+      const saved = localStorage.getItem('urban_clean_store_v4') || localStorage.getItem('urban_clean_store_v3');
+      if (saved) {
+        try { store = JSON.parse(saved); } catch(e) {}
+      }
+      if (!store.projects) store.projects = [];
+      if (!store.careerLogs) store.careerLogs = [];
+
+      const yonginFullScheduleText = `∘착수 : '24.07.10.
+∘착수보고 : '24.08.13.
+∘주민설문조사 : '25.03~04.
+∘주민설문조사 : '25.10.~11.
+∘국장보고 : '26.02 ~ 매월
+∘중간보고 : '26.07
+∘관련기관(부서)협의 : '26.07~'26.08.
+∘최종보고 : '26.09.
+∘주민공람 : '26.10.(14일간)
+∘시의회의견청취 : '26.11.
+∘용인시 심의 : '26.12.
+∘도 승인신청 : '27.01.
+∘도 관련기관(부서)협의 : '27.02.
+∘경기도 심의 : '27.04.
+∘국토교통부 협의 : '27.05.
+∘도 승인 및 고시 : '27.06.
+ (준공목표 : '27.06.)`;
+
+      let yonginProj = store.projects.find(p => p.name && p.name.includes("용인시"));
+      if (yonginProj) {
+        yonginProj.startDate = "'24.07.10";
+        yonginProj.endDate = "'27.06";
+        yonginProj.desc = yonginFullScheduleText;
+      } else {
+        store.projects.push({
+          id: "p_yongin_default",
+          name: "용인시 노후계획도시기본계획",
+          category: "기본계획",
+          progress: 35,
+          startDate: "'24.07.10",
+          endDate: "'27.06",
+          desc: yonginFullScheduleText
+        });
+      }
+
+      const bundangFullScheduleText = `∘착수 : '25.09
+∘접수 : '26.7.1.~7.10.
+∘자문 및 결과통보 : '26.7.
+∘제안서 본안 접수 : '26.9.1.
+∘수용여부 결정 : '26.10.
+∘주민공람·공고 : '26.10.
+∘시의회의견청취 : '26.10.
+∘경기도협의 : '26.11.
+∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.
+∘국토부 보고 : '26.12.`;
+
+      let bundangProj = store.projects.find(p => p.name && (p.name.includes("분당") || p.name.includes("47구역") || p.name.includes("까치마을")));
+      if (bundangProj) {
+        bundangProj.startDate = "'25.09";
+        bundangProj.endDate = "'26.12";
+        bundangProj.desc = bundangFullScheduleText;
+      } else {
+        store.projects.push({
+          id: "p_bundang_default",
+          name: "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
+          category: "노후계획도시 특별정비사업",
+          progress: 8,
+          startDate: "'25.09",
+          endDate: "'26.12",
+          desc: bundangFullScheduleText
+        });
+      }
+
+      const incheonFullScheduleText = `∘착수 : '25.10.
+∘사전검토신청 : '26.3.16.
+∘관련기관(부서)1차 협의 : '26.3.~'26.7.15
+∘관련기관(부서)2차 협의 : '26.7.~'26.9.
+∘자문단컨설팅 : '26.10.
+∘주민제안서 접수 : '26.11.
+∘관련기관(부서)협의 : '26.11.~12.
+∘주민공람 : '27.01.
+∘주민설명회 : '27.01.
+∘의회의견청취 : '27.02.
+∘시 결정신청 : '27.03.
+∘시 도시경관공동위원회 : '27.04.
+∘고시 : '27.05.`;
+
+      let incheonProj = store.projects.find(p => p.name && (p.name.includes("계산역") || p.name.includes("인천시")));
+      if (incheonProj) {
+        incheonProj.startDate = "'25.10";
+        incheonProj.endDate = "'27.05";
+        incheonProj.desc = incheonFullScheduleText;
+        delete incheonProj.milestones;
+      } else {
+        store.projects.push({
+          id: "p_incheon_default",
+          name: "인천시 계산역북측구역 재개발사업",
+          category: "재개발사업",
+          progress: 30,
+          startDate: "'25.10",
+          endDate: "'27.05",
+          desc: incheonFullScheduleText
+        });
+      }
+
+      autoSyncCareerFromCompletedTasks();
+    }
+
+    function saveStore() {
+      localStorage.setItem('urban_clean_store_v4', JSON.stringify(store));
+      renderAll();
+    }
+
+    function autoSyncCareerFromCompletedTasks() {
+      if (!store.careerLogs) store.careerLogs = [];
+      const completedTasks = store.dailyTasks.filter(t => t.completed);
+
+      completedTasks.forEach(t => {
+        const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
+        if (!exists) {
+          const proj = store.projects.find(p => p.id === t.projId);
+          const projName = proj ? proj.name : '일반 수행 업무';
+
+          const autoLog = {
+            id: "c_auto_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
+            autoTaskId: t.id,
+            projId: t.projId || '',
+            category: "주요 성과",
+            role: `[수행 실적] ${t.title}`,
+            metric: `완료일: ${t.date} (${projName})`,
+            content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
+            date: t.date,
+            isAuto: true
+          };
+          store.careerLogs.unshift(autoLog);
+        }
+      });
+    }
+
+    function clearAllData() {
+      if (confirm("정말로 모든 프로젝트, 일정, 출장 및 경력 관리 이력을 초기화하시겠습니까?")) {
+        store = { projects: [], dailyTasks: [], calendarEvents: [], careerLogs: [] };
+        saveStore();
+      }
+    }
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `도시계획_경력업무백업_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900';
+        const c = b.querySelector('.lucide-chevron-right');
+        if (c) c.classList.add('opacity-0');
+      });
+
+      document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+      const btn = document.getElementById(`tab-${tabId}`);
+      if (btn) {
+        btn.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md';
+        const c = btn.querySelector('.lucide-chevron-right');
+        if (c) c.classList.remove('opacity-0');
+      }
+      lucide.createIcons();
+    }
+
+    function getMilestoneEffectiveStatus(item) {
+      if (item.status) return item.status;
+
+      const dateStr = item.date || '';
+      if (!dateStr) return 'todo';
+
+      const today = new Date();
+      const curYear = today.getFullYear();
+      const curMonth = today.getMonth() + 1;
+      const curDay = today.getDate();
+
+      let yrMatch = dateStr.match(/'?(\d{2,4})/);
+      if (!yrMatch) return 'todo';
+
+      let yr = parseInt(yrMatch[1]);
+      if (yr < 100) yr += 2000;
+
+      if (yr < curYear) return 'done';
+      if (yr > curYear) return 'todo';
+
+      let nums = dateStr.replace(/[^0-9.]/g, ' ').trim().split(/\s+/);
+      let mo = null;
+      let dy = null;
+
+      for (let n of nums) {
+        let parts = n.split('.').filter(Boolean);
+        if (parts.length >= 1) {
+          let candidateMo = parseInt(parts[0]);
+          if (candidateMo >= 1 && candidateMo <= 12) {
+            mo = candidateMo;
+            if (parts.length >= 2) {
+              let candidateDy = parseInt(parts[1]);
+              if (candidateDy >= 1 && candidateDy <= 31) dy = candidateDy;
+            }
+            break;
+          }
+        }
+      }
+
+      if (mo !== null) {
+        if (mo < curMonth) return 'done';
+        if (mo > curMonth) return 'todo';
+
+        if (dy !== null) {
+          if (dy < curDay) return 'done';
+          if (dy > curDay) return 'todo';
+          return 'in_progress';
+        }
+        return 'in_progress';
+      }
+
+      return 'in_progress';
+    }
+
+    function getOrParseMilestones(p) {
+      const desc = p.desc || '';
+      const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
+      const existing = p.milestones || [];
+      const items = [];
+
+      lines.forEach((line, idx) => {
+        if (line.startsWith('∘') || line.startsWith('•') || line.startsWith('-')) {
+          const clean = line.replace(/^[∘•-]\s*/, '');
+          const cIdx = clean.indexOf(':');
+          if (cIdx !== -1) {
+            const title = clean.substring(0, cIdx).trim();
+            const date = clean.substring(cIdx + 1).trim();
+            const matchOld = existing.find(m => m.title === title && m.date === date);
+            items.push({
+              id: 'm_' + idx,
+              title: title,
+              date: date,
+              status: matchOld ? matchOld.status : null
+            });
+          } else {
+            items.push({ id: 'm_' + idx, title: clean, date: '', status: null });
+          }
+        }
+      });
+      p.milestones = items;
+      return items;
+    }
+
+    function toggleMilestoneStatus(projId, mIdx) {
+      const p = store.projects.find(x => x.id === projId);
+      if (!p) return;
+
+      const milestones = getOrParseMilestones(p);
+      if (!milestones[mIdx]) return;
+
+      const curStatus = getMilestoneEffectiveStatus(milestones[mIdx]);
+      const statusCycle = {
+        'done': 'in_progress',
+        'in_progress': 'todo',
+        'todo': 'done'
+      };
+
+      milestones[mIdx].status = statusCycle[curStatus] || 'done';
+      p.milestones = milestones;
+
+      const doneCount = milestones.filter(m => getMilestoneEffectiveStatus(m) === 'done').length;
+      if (milestones.length > 0) {
+        p.progress = Math.round((doneCount / milestones.length) * 100);
+      }
+
+      saveStore();
+    }
+
+    function formatProjectScheduleUI(p) {
+      const desc = p.desc || '';
+      const milestones = getOrParseMilestones(p);
+
+      const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
+      let noteText = '';
+      lines.forEach(line => {
+        if (line.includes('준공목표') || (line.startsWith('(') && !line.startsWith('∘'))) {
+          noteText = line;
+        }
+      });
+
+      if (milestones.length === 0) {
+        return `<p class="text-xs text-slate-700 font-mono whitespace-pre-line leading-relaxed">${desc || '등록된 세부 일정이 없습니다.'}</p>`;
+      }
+
+      let html = `<div class="space-y-2 mt-1.5">`;
+      html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">`;
+
+      milestones.forEach((item, idx) => {
+        const status = getMilestoneEffectiveStatus(item);
+
+        let borderStyle = "border-slate-200 bg-slate-50/70 text-slate-800 hover:border-slate-300";
+        let badgeStyle = "bg-slate-200/80 text-slate-700 font-mono";
+        let statusBadge = "<span class='text-[10px] text-slate-500 font-bold'>📌 예정</span>";
+        let icon = "📌";
+
+        if (status === 'done') {
+          borderStyle = "border-emerald-200 bg-emerald-50/60 text-emerald-950 font-medium hover:border-emerald-300";
+          badgeStyle = "bg-emerald-600 text-white font-bold font-mono";
+          statusBadge = "<span class='text-[10px] text-emerald-700 font-bold'>✅ 완료</span>";
+          icon = "✅";
+        } else if (status === 'in_progress') {
+          borderStyle = "border-blue-400 bg-blue-50/90 text-blue-950 font-bold shadow-xs hover:border-blue-500";
+          badgeStyle = "bg-blue-600 text-white font-bold font-mono shadow-xs";
+          statusBadge = "<span class='text-[10px] text-blue-700 font-bold'>🚀 진행중</span>";
+          icon = "🚀";
+        }
+
+        html += `
+          <div onclick="toggleMilestoneStatus('${p.id}', ${idx})" 
+               class="p-2.5 rounded-xl border ${borderStyle} flex items-center justify-between gap-2 shadow-2xs hover:shadow-xs transition transform active:scale-95 cursor-pointer select-none" 
+               title="클릭 시 상태 전환: 완료(✅) ➔ 진행중(🚀) ➔ 예정(📌)">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-xs shrink-0">${icon}</span>
+              <span class="font-bold truncate text-[11px]">${item.title}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              ${statusBadge}
+              <span class="text-[10px] px-2 py-0.5 rounded-md ${badgeStyle}">${item.date}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      if (noteText) {
+        html += `
+          <div class="mt-2 text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200 p-2.5 rounded-xl flex items-center justify-center gap-2 shadow-2xs">
+            <span class="text-sm">🏁</span>
+            <span>${noteText}</span>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    // 1. MASTER PROJECTS
+    function renderMasterCards() {
+      const grid = document.getElementById('projectCardsGrid');
+      grid.innerHTML = '';
+
+      if (store.projects.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-2 bg-white border border-dashed border-slate-300 rounded-2xl p-12 text-center space-y-3">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">🏙️</div>
+            <h4 class="font-bold text-slate-800 text-sm">등록된 프로젝트가 없습니다.</h4>
+            <p class="text-xs text-slate-400">상단의 [ + 신규 프로젝트 등록 ] 버튼을 눌러 관리할 사업 프로젝트를 직접 추가하세요!</p>
+            <button onclick="openAddProjectModal()" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md">+ 신규 프로젝트 등록</button>
+          </div>
+        `;
+        return;
+      }
+
+      store.projects.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${p.category || '기본'}</span>
+              <h4 class="font-bold text-slate-900 text-sm mt-1">${p.name}</h4>
+              <p class="text-xs text-blue-700 font-semibold mt-0.5 flex items-center gap-1">
+                <span>🗓️</span> ${p.startDate || '미정'} ~ ${p.endDate || '미정'}
+              </p>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="openEditProjectModal('${p.id}')" class="text-slate-500 hover:text-blue-600 text-xs px-2 py-1 flex items-center gap-1 font-semibold border border-slate-200 rounded-lg hover:bg-slate-50 transition" title="프로젝트 일정/설명 수정">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
+              </button>
+              <button onclick="deleteProject('${p.id}')" class="text-slate-400 hover:text-rose-600 text-xs px-1.5 py-1" title="삭제">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 bg-blue-50/40 p-3 rounded-xl border border-blue-100">
+            <div class="flex justify-between items-center text-xs font-bold">
+              <span class="text-slate-700">공정률 직접 조절:</span>
+              <div class="flex items-center gap-1">
+                <input type="number" min="0" max="100" value="${p.progress}" onchange="updateProjectProgress('${p.id}', this.value)" class="w-14 bg-white border border-blue-300 rounded px-1.5 py-0.5 text-center font-bold text-blue-600 font-mono text-xs">
+                <span class="text-blue-700 font-bold">%</span>
+              </div>
+            </div>
+            <input type="range" min="0" max="100" value="${p.progress}" oninput="updateProjectProgress('${p.id}', this.value)" class="w-full accent-blue-600 cursor-pointer">
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-300">
+              <div class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${p.progress}%"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                <span>📋</span> 사업 추진 로드맵 및 주요 단계별 일정
+              </span>
+              <span class="text-[10px] text-slate-400 font-medium">💡 마일스톤 클릭 시 [완료 ➔ 진행 ➔ 예정] 수동 체크</span>
+            </div>
+            ${formatProjectScheduleUI(p)}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openEditProjectModal(id) {
+      const p = store.projects.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('editProjId').value = p.id;
+      document.getElementById('editProjName').value = p.name;
+      document.getElementById('editProjCategory').value = p.category || '';
+      document.getElementById('editProjProgress').value = p.progress || 0;
+      document.getElementById('editProjStart').value = p.startDate || '';
+      document.getElementById('editProjEnd').value = p.endDate || '';
+      document.getElementById('editProjDesc').value = p.desc || '';
+      document.getElementById('editProjectModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById('editProjectModal').classList.add('hidden');
+    }
+
+    function saveEditProject() {
+      const id = document.getElementById('editProjId').value;
+      const p = store.projects.find(x => x.id === id);
+      if (!p) return;
+
+      p.name = document.getElementById('editProjName').value.trim() || p.name;
+      p.category = document.getElementById('editProjCategory').value.trim() || '기본';
+      p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
+      p.startDate = document.getElementById('editProjStart').value.trim();
+      p.endDate = document.getElementById('editProjEnd').value.trim();
+      p.desc = document.getElementById('editProjDesc').value.trim();
+      p.milestones = null; // force re-parse from new desc
+
+      saveStore();
+      closeEditProjectModal();
+    }
+
+    function openEditProjectModal(id) {
+      const p = store.projects.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('editProjId').value = p.id;
+      document.getElementById('editProjName').value = p.name;
+      document.getElementById('editProjCategory').value = p.category || '';
+      document.getElementById('editProjProgress').value = p.progress || 0;
+      document.getElementById('editProjStart').value = p.startDate || '';
+      document.getElementById('editProjEnd').value = p.endDate || '';
+      document.getElementById('editProjDesc').value = p.desc || '';
+      document.getElementById('editProjectModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById('editProjectModal').classList.add('hidden');
+    }
+
+    function saveEditProject() {
+      const id = document.getElementById('editProjId').value;
+      const p = store.projects.find(x => x.id === id);
+      if (!p) return;
+
+      p.name = document.getElementById('editProjName').value.trim() || p.name;
+      p.category = document.getElementById('editProjCategory').value.trim() || '기본';
+      p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
+      p.startDate = document.getElementById('editProjStart').value.trim();
+      p.endDate = document.getElementById('editProjEnd').value.trim();
+      p.desc = document.getElementById('editProjDesc').value.trim();
+
+      saveStore();
+      closeEditProjectModal();
+    }
+
+    function updateProjectProgress(id, val) {
+      const p = store.projects.find(x => x.id === id);
+      if (p) {
+        p.progress = Math.min(100, Math.max(0, parseInt(val) || 0));
+        saveStore();
+      }
+    }
+
+    function deleteProject(id) {
+      if (confirm("이 프로젝트를 삭제하시겠습니까?")) {
+        store.projects = store.projects.filter(p => p.id !== id);
+        store.dailyTasks = store.dailyTasks.filter(t => t.projId !== id);
+        store.calendarEvents = store.calendarEvents.filter(e => e.projId !== id);
+        saveStore();
+      }
+    }
+
+    function openAddProjectModal() { document.getElementById('addProjectModal').classList.remove('hidden'); }
+    function closeAddProjectModal() { document.getElementById('addProjectModal').classList.add('hidden'); }
+    function saveNewProject() {
+      const name = document.getElementById('newProjName').value.trim();
+      if (!name) { alert("프로젝트명을 입력해 주세요."); return; }
+
+      const newP = {
+        id: "p_" + Date.now(),
+        name: name,
+        category: document.getElementById('newProjCategory').value || "일반",
+        progress: parseInt(document.getElementById('newProjProgress').value) || 0,
+        startDate: document.getElementById('newProjStart').value,
+        endDate: document.getElementById('newProjEnd').value,
+        desc: document.getElementById('newProjDesc').value
+      };
+
+      store.projects.push(newP);
+      saveStore();
+      closeAddProjectModal();
+      document.getElementById('newProjName').value = '';
+    }
+
+    // 2. DAILY TASKS
+    function renderDailyTasks() {
+      const dateVal = document.getElementById('dailyLogDatePicker').value;
+      const list = document.getElementById('dailyTasksList');
+      list.innerHTML = '';
+
+      document.getElementById('dailyLogTitle').innerText = `📅 ${dateVal} 세부 업무 리스트`;
+      const tasks = store.dailyTasks.filter(t => t.date === dateVal);
+      const completedCount = tasks.filter(t => t.completed).length;
+
+      document.getElementById('dailyLogProgressBadge').innerText = `${completedCount} / ${tasks.length} 완료`;
+
+      if (tasks.length === 0) {
+        list.innerHTML = `<div class="text-xs text-slate-400 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">해당 날짜에 등록된 업무가 없습니다. [+ 업무 추가] 버튼으로 추가하세요!</div>`;
+        return;
+      }
+
+      tasks.forEach(t => {
+        const proj = store.projects.find(p => p.id === t.projId);
+        const item = document.createElement('div');
+        item.className = `p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs transition ${t.completed ? 'bg-amber-50/30 border-amber-200' : 'bg-white border-slate-300 shadow-sm'}`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskDone('${t.id}')" class="w-4.5 h-4.5 text-emerald-600 rounded cursor-pointer">
+            <div class="${t.completed ? 'line-through text-slate-400' : 'text-slate-800 font-semibold'}">
+              <span>${t.title}</span>
+              ${proj ? `<span class="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">${proj.name}</span>` : ''}
+              ${t.completed ? `<span class="ml-1.5 text-[9.5px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">⚡ 5번 경력관리 자동기록됨</span>` : ''}
+            </div>
+          </div>
+          <button onclick="deleteTask('${t.id}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function toggleTaskDone(id) {
+      const t = store.dailyTasks.find(x => x.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        if (!store.careerLogs) store.careerLogs = [];
+
+        if (t.completed) {
+          const proj = store.projects.find(p => p.id === t.projId);
+          const projName = proj ? proj.name : '일반 수행 업무';
+
+          const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
+          if (!exists) {
+            const autoLog = {
+              id: "c_auto_" + Date.now(),
+              autoTaskId: t.id,
+              projId: t.projId || '',
+              category: "주요 성과",
+              role: `[수행 실적] ${t.title}`,
+              metric: `완료일: ${t.date} (${projName})`,
+              content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
+              date: t.date,
+              isAuto: true
+            };
+            store.careerLogs.unshift(autoLog);
+          }
+        } else {
+          store.careerLogs = store.careerLogs.filter(c => c.autoTaskId !== t.id);
+        }
+
+        saveStore();
+      }
+    }
+
+    function deleteTask(id) {
+      const t = store.dailyTasks.find(x => x.id === id);
+      if (t && t.completed) {
+        store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== id);
+      }
+      store.dailyTasks = store.dailyTasks.filter(x => x.id !== id);
+      saveStore();
+    }
+
+    function openAddTaskModal() {
+      const sel = document.getElementById('newTaskProjId');
+      sel.innerHTML = '';
+      if (store.projects.length === 0) {
+        alert("먼저 [ 1. 프로젝트 마스터 ] 탭에서 프로젝트를 등록해 주세요!");
+        switchTab('master');
+        return;
+      }
+      store.projects.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+      document.getElementById('newTaskDate').value = document.getElementById('dailyLogDatePicker').value;
+      document.getElementById('addTaskModal').classList.remove('hidden');
+    }
+    function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
+    function saveNewTask() {
+      const title = document.getElementById('newTaskTitle').value.trim();
+      if (!title) { alert("업무 내용을 입력해 주세요."); return; }
+
+      const newTask = {
+        id: "t_" + Date.now(),
+        projId: document.getElementById('newTaskProjId').value,
+        date: document.getElementById('newTaskDate').value,
+        title: title,
+        completed: false
+      };
+
+      store.dailyTasks.push(newTask);
+      saveStore();
+      closeAddTaskModal();
+      document.getElementById('newTaskTitle').value = '';
+    }
+
+    // 3. PROJECT SUMMARY BOARD
+    function renderProjectSummaryBoard() {
+      const sel = document.getElementById('summaryProjectFilter');
+      const curVal = sel.value;
+      sel.innerHTML = '';
+
+      if (store.projects.length === 0) {
+        document.getElementById('summaryDoneList').innerHTML = `<div class="text-xs text-slate-400 p-4">등록된 프로젝트가 없습니다.</div>`;
+        document.getElementById('summaryTodoList').innerHTML = `<div class="text-xs text-slate-400 p-4">등록된 프로젝트가 없습니다.</div>`;
+        return;
+      }
+
+      store.projects.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}" ${p.id === curVal ? 'selected' : ''}>${p.name}</option>`;
+      });
+
+      const activeProjId = sel.value || (store.projects[0] && store.projects[0].id);
+
+      const doneList = document.getElementById('summaryDoneList');
+      const todoList = document.getElementById('summaryTodoList');
+      doneList.innerHTML = '';
+      todoList.innerHTML = '';
+
+      const projTasks = store.dailyTasks.filter(t => t.projId === activeProjId);
+      const doneTasks = projTasks.filter(t => t.completed);
+      const todoTasks = projTasks.filter(t => !t.completed);
+
+      if (doneTasks.length === 0) {
+        doneList.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center bg-white rounded-xl">완료된 업무 내역이 아직 없습니다.</div>`;
+      } else {
+        doneTasks.forEach(t => {
+          doneList.innerHTML += `
+            <div class="p-3 bg-white border border-emerald-200 rounded-xl text-xs flex justify-between items-center">
+              <span class="font-semibold text-slate-800">✅ ${t.title}</span>
+              <span class="text-[10px] text-emerald-700 font-mono font-bold">${t.date}</span>
+            </div>
+          `;
+        });
+      }
+
+      if (todoTasks.length === 0) {
+        todoList.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center bg-white rounded-xl">앞으로 해야 할 남은 업무가 없습니다! (100% 진행)</div>`;
+      } else {
+        todoTasks.forEach(t => {
+          todoList.innerHTML += `
+            <div class="p-3 bg-white border border-blue-200 rounded-xl text-xs flex justify-between items-center">
+              <span class="font-semibold text-slate-800">📌 ${t.title}</span>
+              <span class="text-[10px] text-blue-700 font-mono font-bold">${t.date} 예정</span>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // 4. MONTHLY CALENDAR
+    function renderCalendar() {
+      const year = calendarCurrentDate.getFullYear();
+      const month = calendarCurrentDate.getMonth();
+      document.getElementById('calendarMonthTitle').innerText = `${year}년 ${month + 1}월`;
+
+      const grid = document.getElementById('calendarGridBody');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="min-h-[105px] bg-slate-50/50 border border-slate-100 rounded-xl"></div>`;
+      }
+
+      for (let d = 1; d <= lastDate; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayTasks = store.dailyTasks.filter(t => t.date === dateStr);
+        const dayEvents = (store.calendarEvents || []).filter(e => e.date === dateStr);
+        const dayProjects = store.projects.filter(p => p.endDate === dateStr);
+
+        let badgesHtml = '';
+
+        dayEvents.forEach(e => {
+          let isMyTrip = e.type === '출장' && (e.attendees || []).includes('나');
+          let colorClass = 'bg-slate-100 text-slate-800';
+
+          if (e.type === '출장') {
+            colorClass = isMyTrip 
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md ring-1 ring-purple-400' 
+              : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold';
+          } else if (e.type === '자료 요청') {
+            colorClass = 'bg-blue-100 text-blue-900 border border-blue-300 font-semibold';
+          } else if (e.type === '자료송부') {
+            colorClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-semibold';
+          } else if (e.type === '접수') {
+            colorClass = 'bg-indigo-100 text-indigo-900 border border-indigo-300 font-semibold';
+          }
+
+          let icon = e.type === '출장' ? '🚗' : e.type === '자료 요청' ? '📩' : e.type === '자료송부' ? '📤' : '📥';
+          let attStr = (e.attendees && e.attendees.length > 0) ? ` (${e.attendees.join(', ')})` : '';
+
+          badgesHtml += `
+            <div title="${e.title}${attStr}" class="text-[9.5px] truncate px-1.5 py-0.5 rounded-lg ${colorClass}">
+              ${icon} ${e.title}${attStr}
+            </div>
+          `;
+        });
+
+        dayTasks.forEach(t => {
+          badgesHtml += `
+            <div title="${t.title}" class="text-[9px] truncate px-1.5 py-0.5 rounded ${t.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-slate-100 text-slate-800 border border-slate-200'}">
+              ☑ ${t.title}
+            </div>
+          `;
+        });
+
+        dayProjects.forEach(p => {
+          badgesHtml += `<div class="text-[9px] truncate px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-300">🏁 마감: ${p.name}</div>`;
+        });
+
+        grid.innerHTML += `
+          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[105px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group">
+            <div class="flex justify-between items-center font-mono font-bold text-xs text-slate-700">
+              <span>${d}</span>
+              <span class="text-[10px] text-purple-600 opacity-0 group-hover:opacity-100 font-normal">+추가</span>
+            </div>
+            <div class="space-y-1 overflow-hidden flex-1">${badgesHtml}</div>
+          </div>
+        `;
+      }
+    }
+
+    function changeCalendarMonth(delta) {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function clickCalendarCell(dateStr) {
+      document.getElementById('calEventDate').value = dateStr;
+      openAddCalendarEventModal();
+    }
+
+    function openAddCalendarEventModal() {
+      const sel = document.getElementById('calEventProjId');
+      sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
+      store.projects.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+      if (!document.getElementById('calEventDate').value) {
+        document.getElementById('calEventDate').value = new Date().toISOString().slice(0,10);
+      }
+      document.getElementById('addCalendarEventModal').classList.remove('hidden');
+    }
+
+    function closeAddCalendarEventModal() {
+      document.getElementById('addCalendarEventModal').classList.add('hidden');
+    }
+
+    function toggleAttendeesBox(typeVal) {
+      const box = document.getElementById('attendeesBox');
+      if (typeVal === '출장') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function saveCalendarEvent() {
+      const title = document.getElementById('calEventTitle').value.trim();
+      if (!title) { alert("일정 제목을 입력해 주세요."); return; }
+
+      const type = document.getElementById('calEventType').value;
+      let selectedAttendees = [];
+
+      if (type === '출장') {
+        if (document.getElementById('att_me').checked) selectedAttendees.push('나');
+        if (document.getElementById('att_kim').checked) selectedAttendees.push('김아현 이사님');
+        if (document.getElementById('att_jang').checked) selectedAttendees.push('장민선 과장님');
+        if (document.getElementById('att_choi').checked) selectedAttendees.push('최지율 주임님');
+        if (document.getElementById('att_lee').checked) selectedAttendees.push('이상호 주임님');
+      }
+
+      const newEv = {
+        id: "e_" + Date.now(),
+        title: title,
+        date: document.getElementById('calEventDate').value,
+        type: type,
+        projId: document.getElementById('calEventProjId').value,
+        attendees: selectedAttendees,
+        desc: document.getElementById('calEventDesc').value
+      };
+
+      if (!store.calendarEvents) store.calendarEvents = [];
+      store.calendarEvents.push(newEv);
+      saveStore();
+      closeAddCalendarEventModal();
+      document.getElementById('calEventTitle').value = '';
+      document.getElementById('calEventDesc').value = '';
+    }
+
+    // 5. CAREER MANAGEMENT LOGS & RESUME SOURCES
+    function filterCareerLogs(cat) {
+      currentCareerFilter = cat;
+      document.querySelectorAll('.career-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = 'career-filter-btn px-3 py-1.5 rounded-lg bg-amber-600 text-white shadow-sm font-bold';
+        } else {
+          btn.className = 'career-filter-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold';
+        }
+      });
+      renderCareerLogs();
+    }
+
+    function renderCareerLogs() {
+      const grid = document.getElementById('careerLogsGrid');
+      grid.innerHTML = '';
+
+      let logs = store.careerLogs || [];
+      if (currentCareerFilter !== 'all') {
+        logs = logs.filter(l => l.category === currentCareerFilter);
+      }
+
+      if (logs.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-2 bg-white border border-dashed border-amber-300 rounded-2xl p-12 text-center space-y-3">
+            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl">💼</div>
+            <h4 class="font-bold text-slate-800 text-sm">등록된 경력 &amp; 자소서 소스가 없습니다.</h4>
+            <p class="text-xs text-slate-400">2번 탭에서 일자별 업무를 [체크 완료]하거나, 상단 [+ 수동 소스 추가] 버튼을 누르면 실적이 자동으로 추가됩니다!</p>
+            <button onclick="openAddCareerModal()" class="px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md">+ 수동 경력 소스 추가</button>
+          </div>
+        `;
+        return;
+      }
+
+      logs.forEach(l => {
+        const proj = store.projects.find(p => p.id === l.projId);
+        const projName = proj ? proj.name : '공통 / 개인 경력';
+
+        let catBadgeColor = 'bg-amber-100 text-amber-900 border-amber-300';
+        if (l.category === '주요 성과') catBadgeColor = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+        else if (l.category === '경력기술서') catBadgeColor = 'bg-blue-100 text-blue-900 border-blue-300';
+        else if (l.category === 'STAR 에피소드') catBadgeColor = 'bg-purple-100 text-purple-900 border-purple-300';
+
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition flex flex-col justify-between';
+
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${catBadgeColor}">${l.category}</span>
+                ${l.isAuto ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">⚡ 업무체크 자동생성</span>` : ''}
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">${projName}</span>
+            </div>
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+              <span>💼</span> ${l.role}
+            </h4>
+            ${l.metric ? `
+              <div class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 text-xs font-semibold text-amber-900 flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                <span>성과지표: <strong class="font-mono text-amber-700">${l.metric}</strong></span>
+              </div>
+            ` : ''}
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+              ${l.content}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+            <span class="text-[10px] text-slate-400 font-mono">${l.date || ''}</span>
+            <div class="flex items-center gap-2">
+              <button onclick="copyCareerLogText('${l.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> 텍스트 복사
+              </button>
+              <button onclick="deleteCareerLog('${l.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openAddCareerModal() {
+      const sel = document.getElementById('careerProjId');
+      sel.innerHTML = '<option value="">공통 / 개인 경력</option>';
+      store.projects.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+      document.getElementById('addCareerModal').classList.remove('hidden');
+    }
+
+    function closeAddCareerModal() {
+      document.getElementById('addCareerModal').classList.add('hidden');
+    }
+
+    function saveCareerLog() {
+      const role = document.getElementById('careerRole').value.trim();
+      const content = document.getElementById('careerContent').value.trim();
+      if (!role) { alert("수행 역할 및 제목을 입력해 주세요."); return; }
+      if (!content) { alert("상세 내용 또는 자소서 문구를 입력해 주세요."); return; }
+
+      const newLog = {
+        id: "c_" + Date.now(),
+        projId: document.getElementById('careerProjId').value,
+        category: document.getElementById('careerCategory').value,
+        role: role,
+        metric: document.getElementById('careerMetric').value.trim(),
+        content: content,
+        date: new Date().toISOString().slice(0,10),
+        isAuto: false
+      };
+
+      if (!store.careerLogs) store.careerLogs = [];
+      store.careerLogs.unshift(newLog);
+      saveStore();
+      closeAddCareerModal();
+
+      document.getElementById('careerRole').value = '';
+      document.getElementById('careerMetric').value = '';
+      document.getElementById('careerContent').value = '';
+    }
+
+    function deleteCareerLog(id) {
+      if (confirm("이 경력 소스를 삭제하시겠습니까?")) {
+        store.careerLogs = store.careerLogs.filter(x => x.id !== id);
+        saveStore();
+      }
+    }
+
+    function copyCareerLogText(id) {
+      const log = (store.careerLogs || []).find(x => x.id === id);
+      if (!log) return;
+      const proj = store.projects.find(p => p.id === log.projId);
+      const textToCopy = `[${log.category}] ${log.role}\n- 관련 프로젝트: ${proj ? proj.name : '공통'}\n${log.metric ? '- 핵심 성과: ' + log.metric + '\n' : ''}- 상세 내용:\n${log.content}`;
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("선택하신 경력 소스 텍스트가 클립보드에 복사되었습니다!\n(자기소개서나 이력서에 붙여넣어 활용하세요)");
+      }).catch(err => {
+        prompt("아래 텍스트를 복사하세요:", textToCopy);
+      });
+    }
+
+    function copyAllCareerSummary() {
+      if (!store.careerLogs || store.careerLogs.length === 0) {
+        alert("등록된 경력 소스가 없습니다. 업무를 체크하거나 소스를 추가해 주세요!");
+        return;
+      }
+
+      let summaryText = "========================================\n";
+      summaryText += "💼 [도시계획 경력기술서 & 자기소개서/면접 소스 전체 요약]\n";
+      summaryText += "========================================\n\n";
+
+      store.careerLogs.forEach((log, idx) => {
+        const proj = store.projects.find(p => p.id === log.projId);
+        summaryText += `${idx + 1}. [${log.category}] ${log.role} ${log.isAuto ? '(업무체크 자동생성)' : ''}\n`;
+        summaryText += `   • 관련 프로젝트: ${proj ? proj.name : '공통/개인'}\n`;
+        if (log.metric) summaryText += `   • 주요 성과지표: ${log.metric}\n`;
+        summaryText += `   • 세부 설명/자소서 문구:\n${log.content}\n\n`;
+      });
+
+      navigator.clipboard.writeText(summaryText).then(() => {
+        alert("전체 경력 기술서 요약 텍스트가 클립보드에 복사되었습니다!");
+      }).catch(err => {
+        prompt("아래 전체 텍스트를 복사하세요:", summaryText);
+      });
+    }
+
+    function renderSummaryHeader() {
+      document.getElementById('summaryTotalProj').innerText = `${store.projects.length} 개`;
+      const avg = store.projects.length > 0 ? Math.round(store.projects.reduce((acc, p) => acc + p.progress, 0) / store.projects.length) : 0;
+      document.getElementById('summaryAvgProgress').innerText = `${avg} %`;
+
+      const myTripsCount = (store.calendarEvents || []).filter(e => e.type === '출장' && (e.attendees || []).includes('나')).length;
+      document.getElementById('summaryMyTrips').innerText = `${myTripsCount} 건`;
+
+      const careerCount = (store.careerLogs || []).length;
+      document.getElementById('summaryCareerLogs').innerText = `${careerCount} 건`;
+    }
+
+    function renderAll() {
+      renderSummaryHeader();
+      renderMasterCards();
+      renderDailyTasks();
+      renderProjectSummaryBoard();
+      renderCalendar();
+      renderCareerLogs();
+      lucide.createIcons();
+    }
+
+    document.getElementById('dailyLogDatePicker').value = new Date().toISOString().slice(0,10);
+    loadStore();
+    renderAll();
+  </script>
+</body>
+</html>
