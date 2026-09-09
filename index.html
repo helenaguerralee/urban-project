@@ -61,6 +61,9 @@
       } catch(e) {}
     })();
   </script>
+  <!-- Firebase Realtime DB SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
@@ -103,6 +106,11 @@
           <span id="summaryCareerLogs" class="font-bold text-sm text-amber-700 font-mono">0 건</span>
         </div>
 
+                <button onclick="openCloudSyncModal()" id="cloudSyncBadge" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-semibold border border-indigo-200 transition shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-slate-400" id="syncStatusDot"></span>
+          <i data-lucide="cloud-lightning" class="w-3.5 h-3.5"></i>
+          <span id="syncStatusText">실시간 동기화 설정</span>
+        </button>
         <button onclick="openMobileModal()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl border border-blue-500 transition flex items-center gap-1.5 shadow-md">
           <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> 📱 모바일 연결
         </button>
@@ -575,6 +583,44 @@
       <div class="flex gap-2 pt-2">
         <button onclick="saveCareerLog()" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition">경력 소스 저장</button>
         <button onclick="closeAddCareerModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+  
+  <!-- CLOUD SYNC MODAL -->
+  <div id="cloudSyncModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-left">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">⚡ PC ⇄ 모바일 실시간 동기화 설정</h3>
+        <button onclick="closeCloudSyncModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-600 leading-relaxed font-semibold">
+          구글 파이어베이스(Firebase Realtime DB) 주소를 연결하면 **스마트폰과 PC에서 수정하는 내용이 0.1초 만에 자동 상호 동기화**됩니다!
+        </p>
+
+        <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 space-y-2">
+          <label class="text-[11px] font-bold text-indigo-900 block">🌐 Firebase Database URL 또는 Config JSON</label>
+          <input type="text" id="firebaseUrlInput" placeholder="https://urban-project-default-rtdb.firebaseio.com" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs font-mono text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1 text-[11px] text-slate-600">
+          <span class="font-bold text-slate-800 flex items-center gap-1">💡 1분 무료 Firebase 주소 만드는 법:</span>
+          <ol class="list-decimal list-inside space-y-0.5 text-slate-600">
+            <li><a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 underline font-bold">Firebase 콘솔</a> 접속 ➔ [프로젝트 추가]</li>
+            <li>[Build] ➔ [Realtime Database] ➔ [데이터베이스 만들기]</li>
+            <li>생성된 <code>https://...firebaseio.com</code> 주소를 위 입력란에 붙여넣기만 하면 끝!</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeCloudSyncModal()" class="w-1/3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition">취소</button>
+        <button onclick="saveFirebaseConfig()" class="w-2/3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1">
+          <i data-lucide="check" class="w-4 h-4"></i> 연동 및 실시간 시작
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MOBILE ACCESS MODAL -->
   <div id="mobileModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
@@ -620,6 +666,81 @@
 
     let calendarCurrentDate = new Date();
     let currentCareerFilter = 'all';
+
+    
+    // FIREBASE REALTIME SYNC ENGINE
+    let isCloudSyncActive = false;
+    let fbDbRef = null;
+
+    function openCloudSyncModal() {
+      document.getElementById('cloudSyncModal').classList.remove('hidden');
+      const savedUrl = localStorage.getItem('urban_firebase_url') || '';
+      document.getElementById('firebaseUrlInput').value = savedUrl;
+      lucide.createIcons();
+    }
+    function closeCloudSyncModal() {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    }
+
+    function saveFirebaseConfig() {
+      const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
+      if (!inputUrl) {
+        alert("Firebase Database URL을 입력해 주세요!");
+        return;
+      }
+      localStorage.setItem('urban_firebase_url', inputUrl);
+      closeCloudSyncModal();
+      initFirebaseSync(inputUrl);
+    }
+
+    function initFirebaseSync(dbUrl) {
+      if (!dbUrl || typeof firebase === 'undefined') return;
+      try {
+        let cleanUrl = dbUrl.trim();
+        if (cleanUrl.startsWith('{')) {
+          const cfg = JSON.parse(cleanUrl);
+          if (!firebase.apps.length) firebase.initializeApp(cfg);
+        } else {
+          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
+          if (!firebase.apps.length) firebase.initializeApp({ databaseURL: cleanUrl });
+        }
+
+        const db = firebase.database();
+        fbDbRef = db.ref('urban_project_store');
+
+        fbDbRef.on('value', (snapshot) => {
+          const remoteData = snapshot.val();
+          if (remoteData && remoteData.projects) {
+            const remoteTs = remoteData.lastLocalUpdate || 0;
+            const localTs = store.lastLocalUpdate || 0;
+            if (remoteTs > localTs || !localTs) {
+              store = remoteData;
+              localStorage.setItem('urban_clean_store_v4', JSON.stringify(store));
+              renderAll();
+              updateSyncStatusUI(true, "실시간 연동 중");
+            }
+          }
+        }, (err) => {
+          console.error("Firebase sync error:", err);
+          updateSyncStatusUI(false, "연동 오류");
+        });
+
+        isCloudSyncActive = true;
+        updateSyncStatusUI(true, "실시간 연동 중");
+      } catch(e) {
+        console.error("Firebase init failed:", e);
+        updateSyncStatusUI(false, "설정 오류");
+      }
+    }
+
+    function updateSyncStatusUI(active, text) {
+      const dot = document.getElementById('syncStatusDot');
+      const txt = document.getElementById('syncStatusText');
+      if (dot && txt) {
+        dot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
+        txt.innerText = text;
+      }
+    }
 
     function loadStore() {
       const saved = localStorage.getItem('urban_clean_store_v4') || localStorage.getItem('urban_clean_store_v3');
@@ -728,8 +849,12 @@
     }
 
     function saveStore() {
+      store.lastLocalUpdate = Date.now();
       localStorage.setItem('urban_clean_store_v4', JSON.stringify(store));
       renderAll();
+      if (isCloudSyncActive && fbDbRef) {
+        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
+      }
     }
 
     function autoSyncCareerFromCompletedTasks() {
@@ -1647,6 +1772,8 @@
 
     document.getElementById('dailyLogDatePicker').value = new Date().toISOString().slice(0,10);
     loadStore();
+    const savedFbUrl = localStorage.getItem('urban_firebase_url');
+    if (savedFbUrl) initFirebaseSync(savedFbUrl);
     renderAll();
   </script>
 </body>
