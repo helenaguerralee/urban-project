@@ -279,20 +279,20 @@
         <!-- TAB 4: MONTHLY CALENDAR -->
         <div id="panel-calendar" class="tab-panel hidden space-y-5 w-full">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200 text-xs w-full">
-            <div>
+            <div class="w-full sm:w-auto">
               <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                 🗓️ 월간 프로젝트 &amp; 일정 통합 캘린더
               </h3>
-              <p class="text-slate-500 mt-0.5">출장(동행자 지정), 자료 요청, 자료송부, 접수 및 날짜별 업무를 캘린더에 표시합니다.</p>
+              <p class="text-slate-500 mt-0.5 leading-relaxed">출장(동행자 지정), 자료 요청, 자료송부, 접수 및 날짜별 업무를 캘린더에 표시합니다.</p>
             </div>
-            <div class="flex items-center gap-3 font-bold">
-              <button onclick="openAddCalendarEventModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 font-bold w-full sm:w-auto shrink-0">
+              <button onclick="openAddCalendarEventModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1 w-full sm:w-auto text-xs">
                 <i data-lucide="plus" class="w-4 h-4"></i> + 캘린더 일정 직접 추가
               </button>
-              <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2 py-1">
-                <button onclick="changeCalendarMonth(-1)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-700">◀ 이전달</button>
-                <span id="calendarMonthTitle" class="text-sm px-2 text-slate-800 font-mono">2026년 9월</span>
-                <button onclick="changeCalendarMonth(1)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-700">다음달 ▶</button>
+              <div class="flex items-center justify-between gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 w-full sm:w-auto">
+                <button onclick="changeCalendarMonth(-1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 text-xs">◀ 이전달</button>
+                <span id="calendarMonthTitle" class="text-xs sm:text-sm px-2 text-slate-800 font-mono font-bold">2026년 9월</span>
+                <button onclick="changeCalendarMonth(1)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-700 text-xs">다음달 ▶</button>
               </div>
             </div>
           </div>
@@ -322,19 +322,19 @@
 
         <!-- TAB 5: CAREER MANAGEMENT -->
         <div id="panel-career" class="tab-panel hidden space-y-5 w-full">
-          <div class="flex justify-between items-center bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-2xl border border-amber-200 text-xs">
-            <div>
-              <h3 class="font-bold text-amber-900 text-sm flex items-center gap-2">
-                💼 경력관리 &amp; 이직 자기소개서 / 면접 소스 보관함
-                <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⚡ 업무 완료(체크) 시 실시간 자동 기록</span>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 p-3.5 sm:p-4 rounded-2xl border border-amber-200 text-xs w-full">
+            <div class="w-full sm:w-auto">
+              <h3 class="font-bold text-amber-900 text-sm flex flex-wrap items-center gap-2">
+                💼 경력관리 &amp; 이직 소스 보관함
+                <span class="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">⚡ 체크 시 자동기록</span>
               </h3>
-              <p class="text-amber-700 mt-0.5">2번 탭에서 할 일을 체크(완료)할 때마다 이곳에 수행 실적과 자소서 소스가 자동으로 생성됩니다.</p>
+              <p class="text-amber-700 mt-0.5 leading-relaxed">2번 탭에서 할 일을 체크(완료)할 때마다 이곳에 수행 실적과 자소서 소스가 자동으로 생성됩니다.</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-              <button onclick="copyAllCareerSummary()" class="px-3.5 py-2.5 bg-white hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-300 shadow-sm transition flex items-center gap-1.5">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
+              <button onclick="copyAllCareerSummary()" class="px-3.5 py-2 bg-white hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-300 shadow-sm transition flex items-center justify-center gap-1.5 text-xs w-full sm:w-auto">
                 <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> 경력 요약 텍스트 전체 복사
               </button>
-              <button onclick="openAddCareerModal()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+              <button onclick="openAddCareerModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 text-xs w-full sm:w-auto">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> + 수동 소스 추가
               </button>
             </div>
@@ -354,14 +354,14 @@
 
         <!-- TAB 6: REPORT HELPER INTEGRATION -->
         <div id="panel-reporthelper" class="tab-panel hidden space-y-4 w-full">
-          <div class="flex justify-between items-center bg-gradient-to-r from-rose-50 to-indigo-50 p-4 rounded-2xl border border-rose-200 text-xs">
-            <div>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-rose-50 to-indigo-50 p-3.5 sm:p-4 rounded-2xl border border-rose-200 text-xs w-full">
+            <div class="w-full sm:w-auto">
               <h3 class="font-bold text-rose-900 text-sm flex items-center gap-2">
-                🛠️ 업무 툴 - 리포트헬퍼 (ReportHelper) 윤문 &amp; 문서 검수 모듈
+                🛠️ 업무 툴 - 리포트헬퍼 문서 검수 모듈
               </h3>
-              <p class="text-rose-700 mt-0.5">보고서 윤문, 3가지 버전 생성, 엑셀 수치 분석, 문장 정밀 검수, 고화질 도면 변환 및 50p 단위 도서 수치/오타 딥스캔이 통합 실행됩니다.</p>
+              <p class="text-rose-700 mt-0.5 leading-relaxed">보고서 윤문, 3가지 버전 생성, 엑셀 수치 분석, 문장 정밀 검수, 고화질 도면 변환 및 50p 단위 도서 수치/오타 딥스캔이 통합 실행됩니다.</p>
             </div>
-            <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2.5 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center gap-1.5">
+            <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center justify-center gap-1.5 text-xs w-full sm:w-auto shrink-0">
               <i data-lucide="external-link" class="w-4 h-4 text-rose-600"></i> ReportHelper 단독 새창 열기
             </button>
           </div>
@@ -946,22 +946,47 @@
       document.body.removeChild(a);
     }
 
-    function switchTab(tabId) {
+        function switchTab(tabKey) {
+      if (!tabKey) return;
+
+      // 1. Panel Show/Hide
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const targetPanel = document.getElementById('panel-' + tabKey);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+
+      // 2. Desktop Left Sidebar Active State (.mode-btn)
       document.querySelectorAll('.mode-btn').forEach(b => {
         b.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900';
-        const c = b.querySelector('.lucide-chevron-right');
+        const c = b.querySelector('[data-lucide="chevron-right"]') || b.querySelector('.lucide-chevron-right');
         if (c) c.classList.add('opacity-0');
       });
-
-      document.getElementById(`panel-${tabId}`).classList.remove('hidden');
-      const btn = document.getElementById(`tab-${tabId}`);
-      if (btn) {
-        btn.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md';
-        const c = btn.querySelector('.lucide-chevron-right');
+      const desktopBtn = document.getElementById('tab-' + tabKey);
+      if (desktopBtn) {
+        desktopBtn.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md';
+        const c = desktopBtn.querySelector('[data-lucide="chevron-right"]') || desktopBtn.querySelector('.lucide-chevron-right');
         if (c) c.classList.remove('opacity-0');
       }
-      lucide.createIcons();
+
+      // 3. Mobile Top Scrollable Tabs (.mob-top-tab)
+      document.querySelectorAll('.mob-top-tab').forEach(tbtn => {
+        tbtn.className = 'mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 border border-slate-200 shrink-0';
+      });
+      const activeTopBtn = document.getElementById('mob-top-' + tabKey);
+      if (activeTopBtn) {
+        activeTopBtn.className = 'mob-top-tab px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 text-white shadow-md border border-blue-600 shrink-0';
+        try { activeTopBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch(e) {}
+      }
+
+      // 4. Mobile Bottom Navigation Bar (.mob-nav-btn)
+      document.querySelectorAll('.mob-nav-btn').forEach(mbtn => {
+        mbtn.className = 'mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition';
+      });
+      const activeMobBtn = document.getElementById('mob-tab-' + tabKey);
+      if (activeMobBtn) {
+        activeMobBtn.className = 'mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-blue-600 font-bold bg-blue-50/70 transition scale-105';
+      }
+
+      if (window.lucide) lucide.createIcons();
     }
 
     function getMilestoneEffectiveStatus(item) {
