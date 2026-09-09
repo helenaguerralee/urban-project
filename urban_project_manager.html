@@ -1791,35 +1791,20 @@
 
 
         fbDbRef.on('value', (snapshot) => {
-
           const remoteData = snapshot.val();
-
-          if (remoteData && remoteData.projects && remoteData.projects.length > 0) {
-
-            const remoteTs = remoteData.lastLocalUpdate || 0;
-
+          if (remoteData && remoteData.projects) {
+            const cleanRemote = sanitizeStore(remoteData);
+            const remoteTs = cleanRemote.lastLocalUpdate || 0;
             const localTs = store.lastLocalUpdate || 0;
-
             if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0) {
-
-              store = remoteData;
-
+              store = cleanRemote;
               localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-
               renderAll();
-
               updateSyncStatusUI(true, "실시간 연동 중");
-
             }
-
           } else if (store.projects && store.projects.length > 0) {
-
-            // Push local non-empty store to Firebase if Firebase is empty
-
-            fbDbRef.set(store).catch(e => console.error("Cloud auto-seed failed:", e));
-
+            fbDbRef.set(sanitizeStore(store)).catch(e => console.error("Cloud auto-seed failed:", e));
           }
-
         }, (err) => {
 
           console.error("Firebase sync error", err);
@@ -2287,6 +2272,17 @@
     }
 
 
+    
+    function sanitizeStore(s) {
+      if (!s || typeof s !== 'object') s = {};
+      if (!Array.isArray(s.projects)) s.projects = s.projects ? Object.values(s.projects) : getInitialDefaultProjects();
+      if (!Array.isArray(s.calendarEvents)) s.calendarEvents = s.calendarEvents ? Object.values(s.calendarEvents) : getInitialDefaultEvents();
+      if (!Array.isArray(s.dailyTasks)) s.dailyTasks = s.dailyTasks ? Object.values(s.dailyTasks) : [];
+      if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
+      if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
+      return s;
+    }
+  
     function loadStore() {
       const saved = localStorage.getItem('urban_clean_store_v11') || localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v9');
       if (saved) {
@@ -2306,6 +2302,7 @@
       if (!store.calendarEvents) store.calendarEvents = getInitialDefaultEvents();
       if (!store.dailyTasks) store.dailyTasks = [];
       if (!store.careerLogs) store.careerLogs = [];
+      store = sanitizeStore(store);
 
       try {
         localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
@@ -2315,19 +2312,13 @@
     }
 
     function saveStore() {
-
+      store = sanitizeStore(store);
       store.lastLocalUpdate = Date.now();
-
       localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-
       renderAll();
-
       if (isCloudSyncActive && fbDbRef) {
-
         fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
-
       }
-
     }
 
 
@@ -3249,7 +3240,7 @@
 
       if (tasks.length === 0) {
 
-        list.innerHTML = `<div class="text-xs text-slate-400 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">해당 날짜에 등록된 업무가 없습니다. [+ 업무 추가] 버튼으로 추가하세요!</div>`;
+        list.innerHTML = `<div class="text-xs text-slate-400 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">선택하신 날짜(${dateVal})에 등록된 업무가 없습니다. [+ 업무 추가] 버튼으로 추가하세요!</div>`;
 
         return;
 
@@ -3354,19 +3345,15 @@
 
 
     function deleteTask(id) {
-
+      if (!confirm("해당 업무를 삭제하시겠습니까?")) return;
+      store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
-
       if (t && t.completed) {
-
         store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== id);
-
       }
-
       store.dailyTasks = store.dailyTasks.filter(x => x.id !== id);
-
       saveStore();
-
+      renderDailyTasks();
     }
 
 
@@ -3404,24 +3391,44 @@
     function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
 
     function saveNewTask() {
-      const theme = document.getElementById('newTaskTheme') ? document.getElementById('newTaskTheme').value.trim() : '';
-      const title = document.getElementById('newTaskTitle').value.trim();
-      if (!title) { alert("수행할 세부 내용을 입력해 주세요."); return; }
+      store = sanitizeStore(store);
+      const themeEl = document.getElementById('newTaskTheme');
+      const titleEl = document.getElementById('newTaskTitle');
+      const dateEl = document.getElementById('newTaskDate');
+      const projEl = document.getElementById('newTaskProjId');
+
+      const theme = themeEl ? themeEl.value.trim() : '';
+      const title = titleEl ? titleEl.value.trim() : '';
+      if (!title) {
+        alert("수행할 세부 내용을 입력해 주세요.");
+        if (titleEl) titleEl.focus();
+        return;
+      }
+
+      const taskDate = (dateEl && dateEl.value) ? dateEl.value : (document.getElementById('dailyLogDatePicker').value || new Date().toISOString().slice(0, 10));
+      const projId = (projEl && projEl.value) ? projEl.value : (store.projects[0] ? store.projects[0].id : '');
 
       const newTask = {
-        id: "t_" + Date.now(),
-        projId: document.getElementById('newTaskProjId').value,
-        date: document.getElementById('newTaskDate').value,
+        id: "t_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+        projId: projId,
+        date: taskDate,
         theme: theme,
         title: title,
         completed: false
       };
 
       store.dailyTasks.push(newTask);
+
+      // Automatically switch the dailyLogDatePicker to the new task's date so user sees it right away!
+      const picker = document.getElementById('dailyLogDatePicker');
+      if (picker) {
+        picker.value = taskDate;
+      }
+
       saveStore();
       closeAddTaskModal();
-      if (document.getElementById('newTaskTheme')) document.getElementById('newTaskTheme').value = '';
-      document.getElementById('newTaskTitle').value = '';
+      if (themeEl) themeEl.value = '';
+      if (titleEl) titleEl.value = '';
       renderDailyTasks();
     }
 
