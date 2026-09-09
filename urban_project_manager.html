@@ -3296,7 +3296,10 @@
               <div class="text-xs break-words leading-relaxed whitespace-pre-wrap">${t.title}</div>
             </div>
           </div>
-          <button onclick="deleteTask('${t.id}')" class="text-slate-300 hover:text-rose-500 shrink-0 p-1"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="openEditTaskModal('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition" title="업무 내용 및 체크 수정"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+            <button onclick="deleteTask('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1 rounded-lg hover:bg-slate-100 transition" title="업무 삭제"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
         `;
 
         list.appendChild(item);
@@ -3416,6 +3419,79 @@
 
     }
 
+    
+    function openEditTaskModal(id) {
+      store = sanitizeStore(store);
+      const t = store.dailyTasks.find(x => x.id === id);
+      if (!t) return;
+
+      const sel = document.getElementById('editTaskProjId');
+      if (sel) {
+        sel.innerHTML = '';
+        store.projects.forEach(p => {
+          sel.innerHTML += `<option value="${p.id}" ${p.id === t.projId ? 'selected' : ''}>${p.name}</option>`;
+        });
+      }
+
+      document.getElementById('editTaskId').value = t.id;
+      document.getElementById('editTaskDate').value = t.date || '';
+      document.getElementById('editTaskTheme').value = t.theme || '';
+      document.getElementById('editTaskTitle').value = t.title || '';
+      document.getElementById('editTaskCompleted').value = t.completed ? 'true' : 'false';
+
+      document.getElementById('editTaskModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeEditTaskModal() {
+      const modal = document.getElementById('editTaskModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveEditTask() {
+      store = sanitizeStore(store);
+      const id = document.getElementById('editTaskId').value;
+      const t = store.dailyTasks.find(x => x.id === id);
+      if (!t) return;
+
+      const titleEl = document.getElementById('editTaskTitle');
+      const title = titleEl ? titleEl.value.trim() : '';
+      if (!title) {
+        alert("수행할 세부 내용을 입력해 주세요.");
+        if (titleEl) titleEl.focus();
+        return;
+      }
+
+      const projEl = document.getElementById('editTaskProjId');
+      const dateEl = document.getElementById('editTaskDate');
+      const themeEl = document.getElementById('editTaskTheme');
+      const completedEl = document.getElementById('editTaskCompleted');
+
+      t.projId = projEl ? projEl.value : t.projId;
+      t.date = dateEl && dateEl.value ? dateEl.value : t.date;
+      t.theme = themeEl ? themeEl.value.trim() : '';
+      t.title = title;
+      const wasCompleted = t.completed;
+      t.completed = completedEl ? (completedEl.value === 'true') : t.completed;
+
+      // Sync career if marked completed
+      if (!wasCompleted && t.completed) {
+        autoSyncCareerFromCompletedTasks();
+      }
+
+      // If date changed, set date picker to updated date
+      const picker = document.getElementById('dailyLogDatePicker');
+      if (picker && t.date) {
+        picker.value = t.date;
+      }
+
+      saveStore();
+      closeEditTaskModal();
+      renderDailyTasks();
+      renderProjectSummaryBoard();
+      alert("업무 수정이 성공적으로 저장되었습니다!");
+    }
+
     function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
 
     function saveNewTask() {
@@ -3533,7 +3609,11 @@
                   <span class="flex-1 min-w-0">${t.title}</span>
                 </div>
               </div>
-              <span class="text-[10px] text-emerald-700 font-mono font-bold shrink-0 mt-0.5 whitespace-nowrap">${t.date}</span>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[10px] text-emerald-700 font-mono font-bold whitespace-nowrap">${t.date}</span>
+                <button onclick="openEditTaskModal('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition" title="수정"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>
+                <button onclick="toggleTaskDone('${t.id}')" class="text-[10.5px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md font-bold transition" title="체크 해제">체크 해제</button>
+              </div>
             </div>
           `;
 
@@ -3560,7 +3640,11 @@
                   <span class="flex-1 min-w-0">${t.title}</span>
                 </div>
               </div>
-              <span class="text-[10px] text-blue-700 font-mono font-bold shrink-0 mt-0.5 whitespace-nowrap">${t.date} 예정</span>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[10px] text-blue-700 font-mono font-bold whitespace-nowrap">${t.date} 예정</span>
+                <button onclick="openEditTaskModal('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition" title="수정"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i></button>
+                <button onclick="toggleTaskDone('${t.id}')" class="text-[10.5px] px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-md font-bold transition" title="완료 체크">체크 완료 ✓</button>
+              </div>
             </div>
           `;
 
