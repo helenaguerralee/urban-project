@@ -585,7 +585,7 @@
         <button onclick="closeAddCareerModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
   
   <!-- CLOUD SYNC MODAL -->
-  <div id="cloudSyncModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div id="cloudSyncModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden" style="display: none;">
     <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-left">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">⚡ PC ⇄ 모바일 실시간 동기화 설정</h3>
@@ -673,13 +673,21 @@
     let fbDbRef = null;
 
     function openCloudSyncModal() {
-      document.getElementById('cloudSyncModal').classList.remove('hidden');
-      const savedUrl = localStorage.getItem('urban_firebase_url') || '';
-      document.getElementById('firebaseUrlInput').value = savedUrl;
-      lucide.createIcons();
+      const modal = document.getElementById('cloudSyncModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        const savedUrl = localStorage.getItem('urban_firebase_url') || '';
+        document.getElementById('firebaseUrlInput').value = savedUrl;
+        if (window.lucide) lucide.createIcons();
+      }
     }
     function closeCloudSyncModal() {
-      document.getElementById('cloudSyncModal').classList.add('hidden');
+      const modal = document.getElementById('cloudSyncModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
     }
 
     function saveFirebaseConfig() {
