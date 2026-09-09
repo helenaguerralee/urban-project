@@ -100,6 +100,7 @@
             <button onclick="window.location.reload(true)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold border border-slate-300 flex items-center gap-1">
               🔄 새로고침
             </button>
+            <button onclick="restoreDefaultProjectsData()" class="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-bold shadow-sm">🔄 복구</button>
             <button onclick="openAddProjectModal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-sm">+ 등록</button>
           </div>
         </div>
@@ -806,6 +807,88 @@
       }
     }
 
+    
+    function getInitialDefaultProjects() {
+      const yonginFullScheduleText = `∘착수 : '24.07.10.
+∘착수보고 : '24.08.13.
+∘주민설문조사 : '25.03~04.
+∘주민설문조사 : '25.10.~11.
+∘국장보고 : '26.02 ~ 매월
+∘중간보고 : '26.07
+∘관련기관(부서)협의 : '26.07~'26.08.
+∘최종보고 : '26.09.
+∘주민공람 : '26.10.(14일간)
+∘시의회의견청취 : '26.11.
+∘용인시 심의 : '26.12.
+∘도 승인신청 : '27.01.
+∘도 관련기관(부서)협의 : '27.02.
+∘경기도 심의 : '27.04.
+∘국토교통부 협의 : '27.05.
+∘도 승인 및 고시 : '27.06.
+ (준공목표 : '27.06.)`;
+
+      const bundangFullScheduleText = `∘착수 : '25.09
+∘접수 : '26.7.1.~7.10.
+∘자문 및 결과통보 : '26.7.
+∘제안서 본안 접수 : '26.9.1.
+∘수용여부 결정 : '26.10.
+∘주민공람·공고 : '26.10.
+∘시의회의견청취 : '26.10.
+∘경기도협의 : '26.11.
+∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.
+∘국토부 보고 : '26.12.`;
+
+      const incheonFullScheduleText = `∘착수 : '25.10.
+∘사전검토신청 : '26.3.16.
+∘관련기관(부서)1차 협의 : '26.3.~'26.7.15
+∘관련기관(부서)2차 협의 : '26.7.~'26.9.
+∘자문단컨설팅 : '26.10.
+∘주민제안서 접수 : '26.11.
+∘관련기관(부서)협의 : '26.11.~12.
+∘주민공람 : '27.01.
+∘주민설명회 : '27.01.
+∘의회의견청취 : '27.02.
+∘시 결정신청 : '27.03.
+∘시 도시경관공동위원회 : '27.04.
+∘고시 : '27.05.`;
+
+      return [
+        {
+          id: "p_yongin_default",
+          name: "용인시 노후계획도시기본계획",
+          category: "기본계획",
+          progress: 35,
+          startDate: "'24.07.10",
+          endDate: "'27.06",
+          desc: yonginFullScheduleText
+        },
+        {
+          id: "p_bundang_default",
+          name: "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
+          category: "노후계획도시 특별정비사업",
+          progress: 8,
+          startDate: "'25.09",
+          endDate: "'26.12",
+          desc: bundangFullScheduleText
+        },
+        {
+          id: "p_incheon_default",
+          name: "인천시 계산역북측구역 재개발사업",
+          category: "정비사업(재개발)",
+          progress: 30,
+          startDate: "'25.10",
+          endDate: "'27.05",
+          desc: incheonFullScheduleText
+        }
+      ];
+    }
+
+    function restoreDefaultProjectsData() {
+      store.projects = getInitialDefaultProjects();
+      saveStore();
+      alert("기본 프로젝트 3개 및 모든 일정이 성공적으로 복구되었습니다!");
+    }
+
     function loadStore() {
       const saved = localStorage.getItem('urban_clean_store_v4') || localStorage.getItem('urban_clean_store_v3');
       if (saved) {
@@ -910,8 +993,8 @@
       }
 
       if (!store.projects || store.projects.length === 0) {
-        // Fallback auto-restore if empty
-        store.projects = [yonginProj || {
+        store.projects = getInitialDefaultProjects();
+      }
           id: "p_yongin_default",
           name: "용인시 노후계획도시기본계획",
           category: "기본계획",
