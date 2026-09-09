@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>퇴근 카운트다운 &amp; 월급루팡 쉼터 🚀</title>
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+    
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .glow-text {
+      text-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+    }
+
+    .bubble {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bubble.popped {
+      transform: scale(0.85);
+      background: #0f172a !important;
+      border-color: #334155 !important;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+  <!-- Background Ambient Glow -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- ONBOARDING WELCOME MODAL (FIRST TIME OPEN) -->
+  <div id="onboardingModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900/90 border border-blue-500/30 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-blue-500/10">
+      
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/30 animate-bounce">
+          <i data-lucide="rocket" class="w-7 h-7 text-white"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-white">반갑습니다! 👋</h2>
+        <p class="text-xs text-slate-400">맞춤형 퇴근 카운트다운을 시작하기 위해<br>출퇴근 시간과 월급을 설정해 주세요.</p>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i> 출근 시간
+          </label>
+          <input type="time" id="initStartTime" value="09:00" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="moon" class="w-4 h-4 text-indigo-400"></i> 퇴근 시간
+          </label>
+          <input type="time" id="initEndTime" value="18:00" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><i data-lucide="wallet" class="w-4 h-4 text-emerald-400"></i> 월 실수령액 (원)</span>
+            <span class="text-[10px] text-slate-400">실시간 급여 계산용</span>
+          </label>
+          <input type="number" id="initSalary" value="3000000" step="50000" placeholder="예: 3000000" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono">
+          <p class="text-[11px] text-slate-500 mt-1">입력된 정보는 오직 본인 브라우저(로컬)에만 안전하게 저장됩니다.</p>
+        </div>
+      </div>
+
+      <button onclick="startApp()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2">
+        <span>퇴근 카운트다운 시작하기</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div id="mainApp" class="relative z-10 container mx-auto px-4 py-6 max-w-5xl">
+    
+    <!-- Top Navigation / Header -->
+    <header class="flex flex-wrap items-center justify-between gap-4 mb-6 glass-card p-4 rounded-2xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <i data-lucide="rocket" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">퇴근 카운트다운 &amp; 루팡 쉼터</h1>
+          <p class="text-xs text-slate-400">오늘도 무사히 칼퇴하는 그날까지!</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openSettingsModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition border border-slate-700">
+          <i data-lucide="settings" class="w-4 h-4"></i> 근무설정
+        </button>
+        <button onclick="activateBossMode()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition shadow-lg shadow-red-600/20 animate-pulse">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i> 상사 감지 [ESC]
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Left Column: Big Countdown Timer & Salary Ticker -->
+      <div class="md:col-span-2 space-y-6">
+
+        <!-- Countdown Hero Card -->
+        <div class="glass-card p-6 rounded-3xl relative overflow-hidden">
+          <div class="flex justify-between items-start mb-4">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+              <i data-lucide="clock" class="w-3.5 h-3.5"></i> <span id="workStatusText">근무 진행 중</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono" id="todayDate">2026-09-02</span>
+          </div>
+
+          <!-- Digital Clock Display -->
+          <div class="text-center py-6">
+            <div class="text-5xl sm:text-6xl font-extrabold font-mono tracking-tight text-white glow-text mb-2" id="countdownDisplay">
+              00:00:00.<span class="text-3xl text-blue-400" id="milliDisplay">00</span>
+            </div>
+            <p class="text-sm text-slate-400" id="targetTimeLabel">목표 퇴근 시간까지 남은 시간</p>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs text-slate-400 font-medium">
+              <span>출근 (<span id="startTimeLabel">09:00</span>)</span>
+              <span class="text-blue-400 font-bold" id="progressPercent">0% 완료</span>
+              <span>퇴근 (<span id="endTimeLabel">18:00</span>)</span>
+            </div>
+            <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+              <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Realtime Salary Ticker Card -->
+        <div class="glass-card p-6 rounded-3xl relative">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                <i data-lucide="coins" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-200">실시간 루팡 수익 게이지 💸</h3>
+                <p class="text-xs text-slate-400">오늘 출근 후 지금까지 벌어들인 금액</p>
+              </div>
+            </div>
+            <button onclick="openSettingsModal()" class="text-xs text-slate-400 hover:text-emerald-400 underline">수정하기</button>
+          </div>
+
+          <div class="flex items-baseline justify-center gap-2 py-3 bg-slate-900/60 rounded-2xl border border-slate-800">
+            <span class="text-4xl font-extrabold font-mono text-emerald-400 tracking-tight" id="earnedToday">0</span>
+            <span class="text-lg font-bold text-emerald-500">원</span>
+          </div>
+
+          <div class="mt-3 flex justify-between text-xs text-slate-400 px-1">
+            <span>초당 수익: <strong id="perSecondPay" class="text-slate-200 font-mono">0.0</strong>원</span>
+            <span>분당 수익: <strong id="perMinutePay" class="text-slate-200 font-mono">0.0</strong>원</span>
+          </div>
+        </div>
+
+        <!-- Tabbed Time Killer Tools -->
+        <div class="glass-card p-6 rounded-3xl">
+          <!-- Tabs -->
+          <div class="flex border-b border-slate-800 gap-4 mb-4 pb-2 text-sm font-medium">
+            <button onclick="switchTab('bubble')" id="tab-bubble" class="tab-btn text-blue-400 border-b-2 border-blue-400 pb-2 px-1 flex items-center gap-1.5 font-bold">
+              <i data-lucide="circle-dot" class="w-4 h-4"></i> 무한 뽁뽁이
+            </button>
+            <button onclick="switchTab('fortune')" id="tab-fortune" class="tab-btn text-slate-400 hover:text-slate-200 pb-2 px-1 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> 운세 &amp; 핑계
+            </button>
+            <button onclick="switchTab('typer')" id="tab-typer" class="tab-btn text-slate-400 hover:text-slate-200 pb-2 px-1 flex items-center gap-1.5">
+              <i data-lucide="terminal" class="w-4 h-4"></i> 해커 타자기
+            </button>
+            <button onclick="switchTab('fire')" id="tab-fire" class="tab-btn text-slate-400 hover:text-slate-200 pb-2 px-1 flex items-center gap-1.5">
+              <i data-lucide="flame" class="w-4 h-4"></i> 불멍 / 우주
+            </button>
+          </div>
+
+          <!-- Tab Content 1: Bubble Wrap -->
+          <div id="content-bubble" class="tab-content">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-xs text-slate-400">터뜨린 뽁뽁이: <strong id="popCount" class="text-blue-400 font-mono">0</strong>개</span>
+              <button onclick="resetBubbles()" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">새 뽁뽁이 채우기</button>
+            </div>
+            <div id="bubbleGrid" class="grid grid-cols-8 sm:grid-cols-10 gap-2 p-3 bg-slate-900/80 rounded-2xl border border-slate-800 max-h-56 overflow-y-auto"></div>
+          </div>
+
+          <!-- Tab Content 2: Fortune & Excuses -->
+          <div id="content-fortune" class="tab-content hidden space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-center flex flex-col justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">오늘의 칼퇴 운세</h4>
+                  <p id="fortuneText" class="text-sm text-slate-200 min-h-[48px] flex items-center justify-center">버튼을 눌러 오늘 운세를 확인하세요!</p>
+                </div>
+                <button onclick="getFortune()" class="mt-3 w-full py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-medium text-xs rounded-xl border border-purple-500/30 transition">
+                  🔮 포츈쿠키 뽑기
+                </button>
+              </div>
+
+              <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 text-center flex flex-col justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">사이다 퇴근 핑계 생성기</h4>
+                  <p id="excuseText" class="text-sm text-slate-200 min-h-[48px] flex items-center justify-center">자연스러운 칼퇴 명분이 필요하신가요?</p>
+                </div>
+                <button onclick="getExcuse()" class="mt-3 w-full py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 font-medium text-xs rounded-xl border border-amber-500/30 transition">
+                  💡 핑계 생성하기
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content 3: Hacker Typer -->
+          <div id="content-typer" class="tab-content hidden">
+            <p class="text-xs text-slate-400 mb-2">키보드를 막 쳐보세요! 남들이 보면 엄청 집중해서 코딩하는 것처럼 보입니다. 😎</p>
+            <div id="typerWindow" class="bg-black/90 p-4 rounded-2xl border border-emerald-500/30 font-mono text-xs text-emerald-400 h-48 overflow-y-auto leading-relaxed whitespace-pre-wrap select-none"></div>
+          </div>
+
+          <!-- Tab Content 4: Fire/Space Ambient Canvas -->
+          <div id="content-fire" class="tab-content hidden">
+            <div class="relative rounded-2xl overflow-hidden border border-slate-800">
+              <canvas id="ambientCanvas" class="w-full h-52 bg-slate-950 block"></canvas>
+              <div class="absolute bottom-3 left-3 text-xs text-slate-400 pointer-events-none bg-slate-900/70 backdrop-blur px-2.5 py-1 rounded-lg">
+                마우스를 움직이면 별빛 파티클이 따라옵니다 ✨
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Column: Weekly Grid & Tips -->
+      <div class="space-y-6">
+
+        <!-- Mini Calendar Widget -->
+        <div class="glass-card p-5 rounded-3xl">
+          <h3 class="text-sm font-bold text-slate-200 mb-3 flex items-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i> 이번 주 출석현황
+          </h3>
+          <div class="grid grid-cols-5 gap-2 text-center text-xs" id="weekGrid"></div>
+        </div>
+
+        <!-- Lupang Quotes Card -->
+        <div class="glass-card p-5 rounded-3xl space-y-4">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <i data-lucide="quote" class="w-4 h-4 text-indigo-400"></i> 월급루팡의 명언
+          </h3>
+          <blockquote class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 italic leading-relaxed" id="lupangQuote">
+            "일찍 일어나는 새가 피곤하다. 열심히 일하면 남 좋은 일 시킨다."
+          </blockquote>
+          <button onclick="nextQuote()" class="w-full py-2 text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 rounded-xl transition border border-slate-700/50">
+            🎲 다른 명언 보기
+          </button>
+        </div>
+
+        <!-- Workplace Stealth Shortcuts Info -->
+        <div class="glass-card p-5 rounded-3xl bg-gradient-to-b from-blue-900/20 to-slate-900/40 border-blue-500/20">
+          <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-4 h-4"></i> 안심 생존 꿀팁
+          </h3>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-baseline gap-2">
+              <span class="px-1.5 py-0.5 bg-slate-800 font-mono text-[10px] rounded text-slate-300">ESC</span>
+              <span>누르면 즉시 엑셀 화면으로 위장됩니다.</span>
+            </li>
+            <li class="flex items-baseline gap-2">
+              <span class="px-1.5 py-0.5 bg-slate-800 font-mono text-[10px] rounded text-slate-300">Alt+Tab</span>
+              <span>항상 업무창 하나를 뒤에 띄워두세요.</span>
+            </li>
+            <li class="flex items-baseline gap-2">
+              <span class="px-1.5 py-0.5 bg-slate-800 font-mono text-[10px] rounded text-slate-300">Tip</span>
+              <span>모니터 각도는 상사 시선 반대편으로!</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer class="mt-8 text-center text-xs text-slate-500 py-4">
+      <p>퇴근 카운트다운 &amp; 루팡 쉼터 v2.0 | 칼퇴는 지능순입니다 🏃‍♂️💨</p>
+    </footer>
+
+  </div>
+
+  <!-- FAKE BOSS EXCEL CAMOUFLAGE OVERLAY -->
+  <div id="bossModeOverlay" class="fixed inset-0 z-50 bg-white text-slate-900 hidden font-sans select-none overflow-auto">
+    <div class="bg-[#107c41] text-white px-4 py-2 flex items-center justify-between text-xs font-semibold shadow">
+      <div class="flex items-center gap-3">
+        <span>Microsoft Excel - 2026_Q3_Financial_Analysis_Report_v4.2.xlsx</span>
+      </div>
+      <div class="text-[11px] bg-emerald-800 px-2 py-0.5 rounded cursor-pointer" onclick="deactivateBossMode()">
+        [복귀하려면 클릭 또는 ESC]
+      </div>
+    </div>
+    <div class="bg-[#f3f2f1] border-b border-slate-300 px-4 py-1.5 flex gap-4 text-xs text-slate-700 border-b">
+      <span>파일</span><span class="font-bold text-[#107c41] border-b-2 border-[#107c41]">홈</span><span>삽입</span><span>페이지 레이아웃</span><span>수식</span><span>데이터</span><span>검토</span><span>보기</span>
+    </div>
+    <div class="bg-white border-b border-slate-300 px-3 py-1 flex items-center gap-2 text-xs font-mono">
+      <span class="font-bold text-slate-500">C14</span>
+      <span class="text-slate-400">|</span>
+      <span class="text-slate-800">=SUM(B2:B13) * 1.15</span>
+    </div>
+    <div class="p-2 overflow-x-auto">
+      <table class="w-full border-collapse text-xs font-mono">
+        <thead>
+          <tr class="bg-slate-100 text-slate-600 text-center border-b">
+            <th class="border border-slate-300 w-10 py-1"></th>
+            <th class="border border-slate-300 px-4 py-1">A (분기)</th>
+            <th class="border border-slate-300 px-4 py-1">B (매출액)</th>
+            <th class="border border-slate-300 px-4 py-1">C (영업이익)</th>
+            <th class="border border-slate-300 px-4 py-1">D (달성률)</th>
+            <th class="border border-slate-300 px-4 py-1">E (비고)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="bg-slate-100 text-center border border-slate-300 text-slate-500">1</td><td class="border border-slate-300 px-3 py-1">2026 Q1</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 142,500,000</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 28,500,000</td><td class="border border-slate-300 px-3 py-1 text-right">104.2%</td><td class="border border-slate-300 px-3 py-1">목표 달성 완료</td></tr>
+          <tr><td class="bg-slate-100 text-center border border-slate-300 text-slate-500">2</td><td class="border border-slate-300 px-3 py-1">2026 Q2</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 168,000,000</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 33,600,000</td><td class="border border-slate-300 px-3 py-1 text-right">112.0%</td><td class="border border-slate-300 px-3 py-1">신규 프로젝트 반영</td></tr>
+          <tr><td class="bg-slate-100 text-center border border-slate-300 text-slate-500">3</td><td class="border border-slate-300 px-3 py-1">2026 Q3 (예상)</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 185,200,000</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 37,040,000</td><td class="border border-slate-300 px-3 py-1 text-right">98.5%</td><td class="border border-slate-300 px-3 py-1">진행 중</td></tr>
+          <tr class="bg-emerald-50 font-bold"><td class="bg-slate-100 text-center border border-slate-300 text-slate-500">4</td><td class="border border-slate-300 px-3 py-1">합계 / 평균</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 495,700,000</td><td class="border border-slate-300 px-3 py-1 text-right">₩ 99,140,000</td><td class="border border-slate-300 px-3 py-1 text-right">104.9%</td><td class="border border-slate-300 px-3 py-1">정상 진행 중</td></tr>
+        </tbody>
+      </table>
+      <div class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded text-slate-700 text-xs leading-relaxed">
+        <p class="font-bold mb-1">■ 2026년 하반기 경영 전략 검토 보고서 요약</p>
+        <p>글로벌 시장 변동성 확대에 대응하기 위해 핵심 사업부문의 원가 구조 개선 및 고부가가치 제품군 비중 확대를 지속 추진함. 데이터 기반 성과 관리 체계를 강화하고 업무 효율성을 극대화하여 분기 목표 달성에 전력을 다하고 있음.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let config = {
+      startTime: "09:00",
+      endTime: "18:00",
+      monthlySalary: 3000000
+    };
+
+    function checkFirstTimeUser() {
+      const saved = localStorage.getItem('lupang_user_setup');
+      if (saved) {
+        try {
+          config = JSON.parse(saved);
+          document.getElementById('onboardingModal').classList.add('hidden');
+        } catch(e) {
+          document.getElementById('onboardingModal').classList.remove('hidden');
+        }
+      } else {
+        document.getElementById('onboardingModal').classList.remove('hidden');
+      }
+    }
+
+    function startApp() {
+      const s = document.getElementById('initStartTime').value || "09:00";
+      const e = document.getElementById('initEndTime').value || "18:00";
+      const sal = Number(document.getElementById('initSalary').value) || 3000000;
+
+      config = { startTime: s, endTime: e, monthlySalary: sal };
+      localStorage.setItem('lupang_user_setup', JSON.stringify(config));
+
+      document.getElementById('onboardingModal').classList.add('hidden');
+      updateDashboard();
+    }
+
+    function openSettingsModal() {
+      document.getElementById('initStartTime').value = config.startTime;
+      document.getElementById('initEndTime').value = config.endTime;
+      document.getElementById('initSalary').value = config.monthlySalary;
+      document.getElementById('onboardingModal').classList.remove('hidden');
+    }
+
+    function updateDashboard() {
+      const now = new Date();
+      
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const date = String(now.getDate()).padStart(2, '0');
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      document.getElementById('todayDate').innerText = `${year}-${month}-${date} (${dayNames[now.getDay()]})`;
+
+      const [startH, startM] = config.startTime.split(':').map(Number);
+      const [endH, endM] = config.endTime.split(':').map(Number);
+
+      const startTimeToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM, 0);
+      const endTimeToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM, 0);
+
+      document.getElementById('startTimeLabel').innerText = config.startTime;
+      document.getElementById('endTimeLabel').innerText = config.endTime;
+      document.getElementById('targetTimeLabel').innerText = `목표 퇴근 시간 (${config.endTime})까지 남은 시간`;
+
+      const totalWorkMs = endTimeToday - startTimeToday;
+      const elapsedMs = now - startTimeToday;
+      const remainingMs = endTimeToday - now;
+
+      if (now < startTimeToday) {
+        document.getElementById('workStatusText').innerText = "출근 전 😴";
+        document.getElementById('countdownDisplay').innerHTML = `00:00:00.<span class="text-3xl text-blue-400">00</span>`;
+        document.getElementById('progressBar').style.width = "0%";
+        document.getElementById('progressPercent').innerText = "0% 완료";
+        document.getElementById('earnedToday').innerText = "0";
+      } else if (now >= endTimeToday) {
+        document.getElementById('workStatusText').innerText = "🎉 야호! 칼퇴 시간입니다!";
+        document.getElementById('countdownDisplay').innerHTML = `<span class="text-emerald-400">퇴근 성공!</span>`;
+        document.getElementById('progressBar').style.width = "100%";
+        document.getElementById('progressPercent').innerText = "100% 완료";
+        
+        const perSec = config.monthlySalary / (209 * 3600);
+        const workSecs = totalWorkMs / 1000;
+        document.getElementById('earnedToday').innerText = Math.floor(workSecs * perSec).toLocaleString();
+      } else {
+        document.getElementById('workStatusText').innerText = "근무 진행 중 💻";
+
+        const hrs = String(Math.floor(remainingMs / (1000 * 60 * 60))).padStart(2, '0');
+        const mins = String(Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        const secs = String(Math.floor((remainingMs % (1000 * 60)) / 1000)).padStart(2, '0');
+        const millis = String(Math.floor((remainingMs % 1000) / 10)).padStart(2, '0');
+
+        document.getElementById('countdownDisplay').innerHTML = `${hrs}:${mins}:${secs}.<span class="text-3xl text-blue-400" id="milliDisplay">${millis}</span>`;
+
+        const pct = Math.min(100, Math.max(0, (elapsedMs / totalWorkMs) * 100));
+        document.getElementById('progressBar').style.width = `${pct.toFixed(1)}%`;
+        document.getElementById('progressPercent').innerText = `${pct.toFixed(1)}% 완료`;
+
+        const perSecond = config.monthlySalary / (209 * 3600);
+        const perMinute = perSecond * 60;
+        const secondsWorkedToday = elapsedMs / 1000;
+        const earned = Math.max(0, Math.floor(secondsWorkedToday * perSecond));
+
+        document.getElementById('earnedToday').innerText = earned.toLocaleString();
+        document.getElementById('perSecondPay').innerText = perSecond.toFixed(2);
+        document.getElementById('perMinutePay').innerText = perMinute.toFixed(1);
+      }
+    }
+
+    setInterval(updateDashboard, 50);
+
+    function renderWeekGrid() {
+      const grid = document.getElementById('weekGrid');
+      grid.innerHTML = '';
+      const days = ['월', '화', '수', '목', '금'];
+      const now = new Date();
+      let currentDayIdx = now.getDay() - 1;
+      if (currentDayIdx < 0 || currentDayIdx > 4) currentDayIdx = 4;
+
+      days.forEach((day, idx) => {
+        const box = document.createElement('div');
+        box.className = `p-2 rounded-xl border flex flex-col items-center gap-1 ${
+          idx < currentDayIdx
+            ? 'bg-slate-800/80 border-slate-700 text-slate-400'
+            : idx === currentDayIdx
+            ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 font-bold shadow-lg shadow-blue-500/10'
+            : 'bg-slate-900/40 border-slate-800 text-slate-600'
+        }`;
+        box.innerHTML = `
+          <span>${day}</span>
+          <span class="text-xs">${idx < currentDayIdx ? '✅' : idx === currentDayIdx ? '🏃' : '⏳'}</span>
+        `;
+        grid.appendChild(box);
+      });
+    }
+    renderWeekGrid();
+
+    let popCount = 0;
+    let audioCtx = null;
+    function playPopSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80 + Math.random() * 50, audioCtx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.06);
+      } catch(e){}
+    }
+
+    function resetBubbles() {
+      const grid = document.getElementById('bubbleGrid');
+      grid.innerHTML = '';
+      popCount = 0;
+      document.getElementById('popCount').innerText = popCount;
+
+      for (let i = 0; i < 40; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble h-9 w-9 rounded-full bg-blue-500/20 border border-blue-400/40 cursor-pointer shadow-sm flex items-center justify-center hover:scale-105 active:scale-95';
+        b.onclick = function() {
+          if (!b.classList.contains('popped')) {
+            b.classList.add('popped');
+            playPopSound();
+            popCount++;
+            document.getElementById('popCount').innerText = popCount;
+          }
+        };
+        grid.appendChild(b);
+      }
+    }
+    resetBubbles();
+
+    const fortunes = [
+      "오늘 상사는 기분이 좋습니다. 칼퇴 직전 시비 걸릴 확률 5%!",
+      "오늘 17:59분에 메일이 하나 올 운세입니다. 읽지 말고 내일 여세요.",
+      "오늘은 아메리카노를 마시면 집중력이 상승하여 30분 조기 마감이 가능합니다.",
+      "오후 4시에 당 충전을 하면 칼퇴 에너지가 200% 충전됩니다.",
+      "오늘 당신의 칼퇴를 방해하는 기운은 없습니다. 무사 무탈한 하루!"
+    ];
+
+    const excuses = [
+      "팀장님, 오늘 집 수리 기사님이 6시 반에 방문하기로 해서 먼저 일어서겠습니다!",
+      "오늘 동네 본가에 부모님과 저녁 약속이 있어서 칼퇴해보겠습니다!",
+      "오늘 개인 건강검진 재검 결과 확인 차 병원 예약이 되어있어 일찍 퇴근합니다.",
+      "오늘 배관 문제로 집 상태를 확인하러 일찍 들어가봐야 할 것 같습니다!",
+      "오늘 저녁에 중요한 자기계발 세미나 수강이 있어 먼저 가보겠습니다!"
+    ];
+
+    const quotes = [
+      "\"일찍 일어나는 새가 피곤하다. 열심히 일하면 남 좋은 일 시킨다.\"",
+      "\"칼퇴는 권리가 아니라 능력이다.\"",
+      "\"내일 할 수 있는 일을 오늘 할 필요는 없다.\"",
+      "\"월급은 일한 대가가 아니라, 참은 대가다.\"",
+      "\"퇴근길 공기가 세상에서 가장 달콤하다.\""
+    ];
+
+    let quoteIdx = 0;
+    function getFortune() {
+      document.getElementById('fortuneText').innerText = fortunes[Math.floor(Math.random() * fortunes.length)];
+    }
+    function getExcuse() {
+      document.getElementById('excuseText').innerText = excuses[Math.floor(Math.random() * excuses.length)];
+    }
+    function nextQuote() {
+      quoteIdx = (quoteIdx + 1) % quotes.length;
+      document.getElementById('lupangQuote').innerText = quotes[quoteIdx];
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn text-slate-400 hover:text-slate-200 pb-2 px-1 flex items-center gap-1.5';
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      activeBtn.className = 'tab-btn text-blue-400 border-b-2 border-blue-400 pb-2 px-1 flex items-center gap-1.5 font-bold';
+      document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+      if (tabName === 'fire') initAmbientCanvas();
+    }
+
+    const fakeCode = `// Core Work Optimization Module v4.2
+function optimizeWorkflow(employeeId, energyLevel) {
+    if (energyLevel < 0.3) {
+        return { status: "COFFEE_BREAK_REQUIRED", duration: "20m" };
+    }
+    const tasks = fetchPendingJiraTasks();
+    tasks.filter(t => t.priority === 'CRITICAL').forEach(task => {
+        executeAutomatedScript(task);
+    });
+    return { leavingTime: "18:00:00", morale: "MAXIMUM" };
+}
+
+// Automatic Salary Accumulator Thread
+async function monitorWorkplaceEnvironment() {
+    while (true) {
+        const bossDistance = await scanBossProximity();
+        if (bossDistance < 2.0) {
+            triggerCamouflageOverlay();
+        }
+        await sleep(500);
+    }
+}
+`;
+    let typerIdx = 0;
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleBossMode();
+        return;
+      }
+      const typerWin = document.getElementById('typerWindow');
+      if (document.getElementById('content-typer') && !document.getElementById('content-typer').classList.contains('hidden')) {
+        typerIdx += 8;
+        if (typerIdx > fakeCode.length) typerIdx = fakeCode.length;
+        typerWin.innerText = fakeCode.substring(0, typerIdx);
+        typerWin.scrollTop = typerWin.scrollHeight;
+      }
+    });
+
+    let isBossMode = false;
+    function toggleBossMode() {
+      if (isBossMode) deactivateBossMode();
+      else activateBossMode();
+    }
+    function activateBossMode() {
+      isBossMode = true;
+      document.getElementById('bossModeOverlay').classList.remove('hidden');
+    }
+    function deactivateBossMode() {
+      isBossMode = false;
+      document.getElementById('bossModeOverlay').classList.add('hidden');
+    }
+
+    let canvasAnimId = null;
+    function initAmbientCanvas() {
+      const canvas = document.getElementById('ambientCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+
+      const particles = [];
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: -Math.random() * 0.8 - 0.2,
+          alpha: Math.random()
+        });
+      }
+
+      let mouseX = canvas.width / 2;
+      let mouseY = canvas.height / 2;
+      canvas.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+      };
+
+      function render() {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          if (p.y < 0) {
+            p.y = canvas.height;
+            p.x = Math.random() * canvas.width;
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius || 2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(147, 197, 253, ${p.alpha})`;
+          ctx.fill();
+        });
+
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 15, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.3)';
+        ctx.fill();
+
+        canvasAnimId = requestAnimationFrame(render);
+      }
+
+      if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+      render();
+    }
+
+    checkFirstTimeUser();
+  </script>
+</body>
+</html>

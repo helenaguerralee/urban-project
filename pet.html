@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사무실 미니 픽셀 다마고치 &amp; 힐링 쉼터 🐱🐶</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+
+    /* Pixel art style font & rendering */
+    .pixel-art {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    
+    .glass-card {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Floating speech bubble */
+    .speech-bubble {
+      position: relative;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: .4em;
+    }
+    .speech-bubble:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border: 8px solid transparent;
+      border-top-color: #ffffff;
+      border-bottom: 0;
+      margin-left: -8px;
+      margin-bottom: -8px;
+    }
+
+    @keyframes bounce-gentle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .animate-pet {
+      animation: bounce-gentle 1.8s infinite ease-in-out;
+    }
+
+    @keyframes heart-float {
+      0% { transform: translateY(0) scale(0.8); opacity: 1; }
+      100% { transform: translateY(-30px) scale(1.3); opacity: 0; }
+    }
+    .floating-heart {
+      position: absolute;
+      animation: heart-float 1s forwards ease-out;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden flex flex-col justify-between selection:bg-pink-500 selection:text-white">
+
+  <!-- Background Ambient Glow -->
+  <div class="fixed top-0 left-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- PET SELECTION / ONBOARDING MODAL -->
+  <div id="petSelectModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900/90 border border-pink-500/30 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl shadow-pink-500/10">
+      
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-400 to-purple-500 flex items-center justify-center shadow-lg shadow-pink-500/30 animate-bounce">
+          <span class="text-3xl">🐾</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white">사무실 미니 픽셀 펫 쉼터</h2>
+        <p class="text-xs text-slate-400">함께 일터를 버텨낼 나만의 픽셀 친구를 골라주세요!</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">1. 펫 종류 선택</label>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <button onclick="selectPetType('cat')" id="btn-cat" class="pet-type-btn p-3 bg-pink-500/20 border-2 border-pink-500 rounded-2xl flex flex-col items-center gap-1 transition">
+              <span class="text-3xl">🐱</span>
+              <span class="font-bold text-pink-300">야옹이</span>
+            </button>
+            <button onclick="selectPetType('dog')" id="btn-dog" class="pet-type-btn p-3 bg-slate-800/80 border border-slate-700 rounded-2xl flex flex-col items-center gap-1 transition opacity-70">
+              <span class="text-3xl">🐶</span>
+              <span class="font-bold text-slate-300">멍멍이</span>
+            </button>
+            <button onclick="selectPetType('hamster')" id="btn-hamster" class="pet-type-btn p-3 bg-slate-800/80 border border-slate-700 rounded-2xl flex flex-col items-center gap-1 transition opacity-70">
+              <span class="text-3xl">🐹</span>
+              <span class="font-bold text-slate-300">햄찌</span>
+            </button>
+            <button onclick="selectPetType('duck')" id="btn-duck" class="pet-type-btn p-3 bg-slate-800/80 border border-slate-700 rounded-2xl flex flex-col items-center gap-1 transition opacity-70">
+              <span class="text-3xl">🐥</span>
+              <span class="font-bold text-slate-300">오리</span>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">2. 친구 이름 지어주기</label>
+          <input type="text" id="petNameInput" value="루팡이" maxlength="8" placeholder="예: 나비, 뽀삐, 루팡이" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-pink-500 font-medium">
+        </div>
+      </div>
+
+      <button onclick="confirmPetChoice()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-pink-500/30 transition flex items-center justify-center gap-2">
+        <span>키우기 시작하기 💖</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="mainApp" class="relative z-10 container mx-auto px-4 py-6 max-w-4xl">
+    
+    <!-- Top Header -->
+    <header class="flex items-center justify-between gap-4 mb-6 glass-card p-4 rounded-2xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+          <span class="text-xl" id="headerPetIcon">🐱</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-r from-pink-400 via-rose-300 to-purple-400 bg-clip-text text-transparent flex items-center gap-2">
+            <span id="petNameDisplay">루팡이</span>의 픽셀 쉼터
+            <span class="text-xs font-semibold px-2 py-0.5 bg-pink-500/20 text-pink-300 rounded-full border border-pink-500/30" id="petLevelDisplay">Lv.1</span>
+          </h1>
+          <p class="text-xs text-slate-400">힘든 직장 생활, 픽셀 친구와 함께 힐링하세요!</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="resetPet()" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition border border-slate-700">
+          새 친구 변경
+        </button>
+        <button onclick="activateBossMode()" class="px-3 py-1.5 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition shadow-lg shadow-red-600/20 animate-pulse flex items-center gap-1">
+          <i data-lucide="shield-alert" class="w-4 h-4"></i> 상사 감지 [ESC]
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Pet Playground & Controls Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- Left 2 Cols: Pet Room Playground -->
+      <div class="md:col-span-2 space-y-6">
+
+        <!-- Pet Playground Stage -->
+        <div class="glass-card p-6 rounded-3xl relative overflow-hidden flex flex-col items-center justify-between min-h-[340px] bg-slate-900/80 border border-slate-800">
+          
+          <!-- Top Speech Bubble -->
+          <div class="w-full flex justify-center mb-2 z-20">
+            <div id="speechBubble" class="speech-bubble px-4 py-2 text-xs font-bold shadow-lg animate-bounce">
+              주인님! 오늘도 칼퇴까지 힘내라냥! 🐾
+            </div>
+          </div>
+
+          <!-- Pet Stage Playground Area -->
+          <div class="relative w-full h-48 flex items-center justify-center cursor-pointer" onclick="clickPet(event)">
+            <!-- Floating particles / hearts container -->
+            <div id="effectContainer" class="absolute inset-0 pointer-events-none"></div>
+
+            <!-- Pet Character -->
+            <div id="petCharContainer" class="animate-pet relative flex flex-col items-center transition-all duration-300">
+              <span id="petEmoji" class="text-7xl sm:text-8xl select-none filter drop-shadow-lg">🐱</span>
+              <div class="w-16 h-3 bg-black/40 rounded-full blur-sm mt-1"></div>
+            </div>
+          </div>
+
+          <!-- Quick Stat Gauges -->
+          <div class="w-full grid grid-cols-3 gap-3 text-xs bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800">
+            <!-- Hunger -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-amber-400 font-semibold">🍔 배부름</span>
+                <span id="valHunger" class="font-mono">80%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="barHunger" class="h-full bg-amber-400 transition-all duration-300 w-[80%]"></div>
+              </div>
+            </div>
+
+            <!-- Happiness -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-pink-400 font-semibold">❤️ 행복도</span>
+                <span id="valHappiness" class="font-mono">90%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="barHappiness" class="h-full bg-pink-500 transition-all duration-300 w-[90%]"></div>
+              </div>
+            </div>
+
+            <!-- Energy -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-blue-400 font-semibold">⚡ 체력</span>
+                <span id="valEnergy" class="font-mono">70%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="barEnergy" class="h-full bg-blue-400 transition-all duration-300 w-[70%]"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="glass-card p-5 rounded-3xl">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">돌보기 액션 🎮</h3>
+          <div class="grid grid-cols-4 gap-3">
+            
+            <button onclick="feedPet()" class="py-3 px-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95">
+              <span class="text-2xl">🐟</span>
+              <span class="text-xs font-bold text-amber-300">밥 주기</span>
+            </button>
+
+            <button onclick="playPet()" class="py-3 px-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95">
+              <span class="text-2xl">🎾</span>
+              <span class="text-xs font-bold text-pink-300">놀아주기</span>
+            </button>
+
+            <button onclick="sleepPet()" class="py-3 px-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95">
+              <span class="text-2xl">💤</span>
+              <span class="text-xs font-bold text-blue-300">재우기</span>
+            </button>
+
+            <button onclick="cleanPet()" class="py-3 px-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-2xl flex flex-col items-center gap-1.5 transition active:scale-95">
+              <span class="text-2xl">🧼</span>
+              <span class="text-xs font-bold text-purple-300">목욕시키기</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right 1 Col: Pet Stats & Diary -->
+      <div class="space-y-6">
+
+        <!-- Exp & Level Card -->
+        <div class="glass-card p-5 rounded-3xl space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-bold text-slate-200">친밀도 경험치</span>
+            <span class="text-purple-400 font-mono font-bold" id="expText">0 / 100 EXP</span>
+          </div>
+          <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div id="expBar" class="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all duration-300 w-0"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            펫을 자주 돌봐주고 쓰다듬어 주면 경험치가 올라 레벨업합니다!
+          </p>
+        </div>
+
+        <!-- Pet Diary / Status Log -->
+        <div class="glass-card p-5 rounded-3xl space-y-3">
+          <h3 class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <i data-lucide="book-open" class="w-4 h-4 text-pink-400"></i> 성장 일지
+          </h3>
+          <div id="petLog" class="bg-slate-900/70 p-3 rounded-2xl border border-slate-800 text-[11px] text-slate-300 space-y-1.5 max-h-48 overflow-y-auto">
+            <p class="text-slate-400">🐾 루팡이가 쉼터에 입주했습니다!</p>
+          </div>
+        </div>
+
+        <!-- Workplace Stealth Info -->
+        <div class="glass-card p-5 rounded-3xl bg-gradient-to-b from-rose-900/20 to-slate-900/40 border-rose-500/20">
+          <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-4 h-4"></i> 비밀 힐링 수칙
+          </h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            상사나 팀장이 다가오면 즉시 <span class="px-1.5 py-0.5 bg-slate-800 font-mono text-[10px] rounded text-white">ESC</span> 키를 누르세요. 1초 만에 서버 모니터링 화면으로 위장됩니다!
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer class="mt-8 text-center text-xs text-slate-500 py-4">
+      <p>사무실 미니 픽셀 다마고치 v1.0 | 오늘 하루도 무사히 칼퇴하세요! 🐾</p>
+    </footer>
+
+  </div>
+
+  <!-- FAKE MONITORING DASHBOARD (BOSS MODE CAMOUFLAGE) -->
+  <div id="bossModeOverlay" class="fixed inset-0 z-50 bg-slate-950 text-slate-100 hidden font-mono select-none overflow-auto p-6">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-6">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+        <h2 class="text-sm font-bold text-emerald-400">SYSTEM MONITORING DASHBOARD v4.8 (PRODUCTION-KR-01)</h2>
+      </div>
+      <button onclick="deactivateBossMode()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded border border-slate-700 text-slate-300">
+        [복귀하기 - ESC]
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs mb-6">
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <div class="text-slate-400 mb-1">CPU Load</div>
+        <div class="text-2xl font-bold text-emerald-400">14.2%</div>
+      </div>
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <div class="text-slate-400 mb-1">Memory Usage</div>
+        <div class="text-2xl font-bold text-blue-400">6.4 GB / 32 GB</div>
+      </div>
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <div class="text-slate-400 mb-1">Active Requests</div>
+        <div class="text-2xl font-bold text-purple-400">1,420 req/s</div>
+      </div>
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <div class="text-slate-400 mb-1">Error Rate</div>
+        <div class="text-2xl font-bold text-emerald-400">0.001%</div>
+      </div>
+    </div>
+
+    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed font-mono">
+      <p class="text-emerald-400 mb-2">[15:23:40 INFO] Cluster status HEALTHY. All 12 nodes responding normally.</p>
+      <p class="text-slate-400">[15:23:41 DEBUG] Garbage collection completed in 14ms.</p>
+      <p class="text-slate-400">[15:23:42 INFO] Database connection pool: 24 active, 96 idle.</p>
+      <p class="text-slate-400">[15:23:43 INFO] Auto-scaling group check: no action required.</p>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Pet Data Models
+    const petConfig = {
+      cat: { emoji: '🐱', name: '야옹이', sound: '야옹~', msgs: ['주인님, 츄르 하나만 주라냥! 🐾', '오늘도 칼퇴 가자냥!', '골골송 부르는 중... 🎵', '심심하다냥, 쓰다듬어달라냥!'] },
+      dog: { emoji: '🐶', name: '멍멍이', sound: '멍멍!', msgs: ['주인님! 간식 줄 시간이다 멍!', '산책 가고 싶다 멍!', '꼬리 흔드는 중! 🐕', '오늘도 힘내라 멍!'] },
+      hamster: { emoji: '🐹', name: '햄찌', sound: '찍찍!', msgs: ['해바라기씨 주세요 찍!', '챗바퀴 돌리는 중 🐹', '볼에 음식을 저장했다 찍!', '오늘도 행복하자 찍!'] },
+      duck: { emoji: '🐥', name: '오리', sound: '꽥꽥!', msgs: ['꽥꽥! 칼퇴 축하한다 꽥!', '둥둥 물에 뜨는 중 🦆', '맛있는 벌레 사달라 꽥!', '기분 최고 꽥!'] }
+    };
+
+    let selectedType = 'cat';
+    let petState = {
+      type: 'cat',
+      name: '루팡이',
+      hunger: 80,
+      happiness: 90,
+      energy: 70,
+      level: 1,
+      exp: 0
+    };
+
+    // Load saved pet
+    function initPet() {
+      const saved = localStorage.getItem('pixel_pet_data');
+      if (saved) {
+        try {
+          petState = JSON.parse(saved);
+          document.getElementById('petSelectModal').classList.add('hidden');
+        } catch(e) {
+          document.getElementById('petSelectModal').classList.remove('hidden');
+        }
+      } else {
+        document.getElementById('petSelectModal').classList.remove('hidden');
+      }
+      updateUI();
+    }
+
+    function selectPetType(type) {
+      selectedType = type;
+      document.querySelectorAll('.pet-type-btn').forEach(btn => {
+        btn.className = 'pet-type-btn p-3 bg-slate-800/80 border border-slate-700 rounded-2xl flex flex-col items-center gap-1 transition opacity-70';
+      });
+      const active = document.getElementById(`btn-${type}`);
+      active.className = 'pet-type-btn p-3 bg-pink-500/20 border-2 border-pink-500 rounded-2xl flex flex-col items-center gap-1 transition';
+    }
+
+    function confirmPetChoice() {
+      const name = document.getElementById('petNameInput').value.trim() || petConfig[selectedType].name;
+      petState = {
+        type: selectedType,
+        name: name,
+        hunger: 80,
+        happiness: 90,
+        energy: 70,
+        level: 1,
+        exp: 0
+      };
+      savePet();
+      document.getElementById('petSelectModal').classList.add('hidden');
+      addLog(`🎉 새로운 친구 [${petState.name}]와(과) 함께합니다!`);
+      updateUI();
+    }
+
+    function resetPet() {
+      document.getElementById('petSelectModal').classList.remove('hidden');
+    }
+
+    function savePet() {
+      localStorage.setItem('pixel_pet_data', JSON.stringify(petState));
+    }
+
+    function updateUI() {
+      const cfg = petConfig[petState.type] || petConfig.cat;
+      document.getElementById('petEmoji').innerText = cfg.emoji;
+      document.getElementById('headerPetIcon').innerText = cfg.emoji;
+      document.getElementById('petNameDisplay').innerText = petState.name;
+      document.getElementById('petLevelDisplay').innerText = `Lv.${petState.level}`;
+
+      // Gauges
+      document.getElementById('valHunger').innerText = `${Math.round(petState.hunger)}%`;
+      document.getElementById('barHunger').style.width = `${Math.max(0, Math.min(100, petState.hunger))}%`;
+
+      document.getElementById('valHappiness').innerText = `${Math.round(petState.happiness)}%`;
+      document.getElementById('barHappiness').style.width = `${Math.max(0, Math.min(100, petState.happiness))}%`;
+
+      document.getElementById('valEnergy').innerText = `${Math.round(petState.energy)}%`;
+      document.getElementById('barEnergy').style.width = `${Math.max(0, Math.min(100, petState.energy))}%`;
+
+      // Exp
+      const maxExp = petState.level * 100;
+      document.getElementById('expText').innerText = `${petState.exp} / ${maxExp} EXP`;
+      const expPct = Math.min(100, (petState.exp / maxExp) * 100);
+      document.getElementById('expBar').style.width = `${expPct}%`;
+    }
+
+    function addExp(amount) {
+      petState.exp += amount;
+      const maxExp = petState.level * 100;
+      if (petState.exp >= maxExp) {
+        petState.exp -= maxExp;
+        petState.level += 1;
+        addLog(`🌟 축하합니다! [${petState.name}]이(가) Lv.${petState.level} 로 레벨업했습니다!`);
+        say(`우와! 레벨업이다! 더 커졌다냥/멍! 🎉`);
+      }
+      savePet();
+      updateUI();
+    }
+
+    function say(msg) {
+      const b = document.getElementById('speechBubble');
+      b.innerText = msg;
+      b.classList.remove('animate-bounce');
+      void b.offsetWidth; // trigger reflow
+      b.classList.add('animate-bounce');
+    }
+
+    function addLog(text) {
+      const log = document.getElementById('petLog');
+      const p = document.createElement('p');
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      p.innerText = `[${time}] ${text}`;
+      log.prepend(p);
+    }
+
+    // ACTIONS
+    function feedPet() {
+      if (petState.hunger >= 100) {
+        say("배가 가득 차서 더 이상 못 먹어요!");
+        return;
+      }
+      petState.hunger = Math.min(100, petState.hunger + 25);
+      petState.happiness = Math.min(100, petState.happiness + 10);
+      addExp(20);
+      say(`냠냠! 맛있는 사료/츄르를 먹었습니다! 🐟`);
+      addLog(`🐟 [${petState.name}]에게 밥을 주었습니다 (+20 EXP)`);
+      createHeartEffect();
+    }
+
+    function playPet() {
+      if (petState.energy < 15) {
+        say("피곤해서 힘이 없어요... zZZ");
+        return;
+      }
+      petState.happiness = Math.min(100, petState.happiness + 25);
+      petState.energy = Math.max(0, petState.energy - 15);
+      petState.hunger = Math.max(0, petState.hunger - 10);
+      addExp(25);
+      say(`신나게 장난감 갖고 놀았습니다! 🎾`);
+      addLog(`🎾 [${petState.name}]와(과) 신나게 놀아주었습니다 (+25 EXP)`);
+      createHeartEffect();
+    }
+
+    function sleepPet() {
+      petState.energy = Math.min(100, petState.energy + 40);
+      petState.hunger = Math.max(0, petState.hunger - 15);
+      addExp(15);
+      say(`쿨쿨... 푹 자고 체력을 회복했습니다 💤`);
+      addLog(`💤 [${petState.name}]이(가) 푹 자고 일어났습니다 (+15 EXP)`);
+    }
+
+    function cleanPet() {
+      petState.happiness = Math.min(100, petState.happiness + 20);
+      addExp(20);
+      say(`뽀송뽀송 깨끗하게 목욕을 마쳤습니다 🧼`);
+      addLog(`🧼 [${petState.name}]을(를) 깨끗하게 목욕시켰습니다 (+20 EXP)`);
+      createHeartEffect();
+    }
+
+    function clickPet(e) {
+      petState.happiness = Math.min(100, petState.happiness + 5);
+      addExp(5);
+      const cfg = petConfig[petState.type] || petConfig.cat;
+      const randMsg = cfg.msgs[Math.floor(Math.random() * cfg.msgs.length)];
+      say(randMsg);
+      createHeartEffect(e);
+    }
+
+    function createHeartEffect(e) {
+      const container = document.getElementById('effectContainer');
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart text-2xl';
+      heart.innerText = '💖';
+      
+      const x = e ? e.offsetX : Math.random() * 200 + 50;
+      const y = e ? e.offsetY : 100;
+      
+      heart.style.left = `${x}px`;
+      heart.style.top = `${y}px`;
+      
+      container.appendChild(heart);
+      setTimeout(() => heart.remove(), 1000);
+    }
+
+    // Natural decay tick over time
+    setInterval(() => {
+      petState.hunger = Math.max(0, petState.hunger - 0.5);
+      petState.happiness = Math.max(0, petState.happiness - 0.3);
+      petState.energy = Math.max(0, petState.energy - 0.2);
+      savePet();
+      updateUI();
+    }, 10000);
+
+    // BOSS STEALTH MODE
+    let isBossMode = false;
+    function activateBossMode() {
+      isBossMode = true;
+      document.getElementById('bossModeOverlay').classList.remove('hidden');
+    }
+    function deactivateBossMode() {
+      isBossMode = false;
+      document.getElementById('bossModeOverlay').classList.add('hidden');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (isBossMode) deactivateBossMode();
+        else activateBossMode();
+      }
+    });
+
+    initPet();
+  </script>
+</body>
+</html>
