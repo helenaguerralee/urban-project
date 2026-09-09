@@ -2014,43 +2014,43 @@
         "id": "m_0",
         "title": "착수",
         "date": "'24.07.10.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_1",
         "title": "착수보고",
         "date": "'24.08.13.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_2",
         "title": "주민설문조사",
         "date": "'25.03~04.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_3",
         "title": "주민설문조사",
         "date": "'25.10.~11.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_4",
         "title": "국장보고",
         "date": "'26.02 ~ 매월",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_5",
         "title": "중간보고",
         "date": "'26.07",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_6",
         "title": "관련기관(부서)협의",
         "date": "'26.07~'26.08.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_7",
@@ -2080,31 +2080,31 @@
         "id": "m_11",
         "title": "도 승인신청",
         "date": "'27.01.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_12",
         "title": "도 관련기관(부서)협의",
         "date": "'27.02.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_13",
         "title": "경기도 심의",
         "date": "'27.04.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_14",
         "title": "국토교통부 협의",
         "date": "'27.05.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_15",
         "title": "도 승인 및 고시",
         "date": "'27.06.",
-        "status": null
+        "status": "todo"
       }
     ]
   },
@@ -2121,13 +2121,13 @@
         "id": "m_0",
         "title": "착수",
         "date": "'25.09",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_1",
         "title": "접수",
         "date": "'26.7.1.~7.10.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_2",
@@ -2192,7 +2192,7 @@
         "id": "m_0",
         "title": "착수",
         "date": "'25.10.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_1",
@@ -2210,7 +2210,7 @@
         "id": "m_3",
         "title": "관련기관(부서)2차 협의",
         "date": "'26.7.~'26.9.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_4",
@@ -2228,43 +2228,43 @@
         "id": "m_6",
         "title": "관련기관(부서)협의",
         "date": "'26.11.~12.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_7",
         "title": "주민공람",
         "date": "'27.01.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_8",
         "title": "주민설명회",
         "date": "'27.01.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_9",
         "title": "의회의견청취",
         "date": "'27.02.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_10",
         "title": "시 결정신청",
         "date": "'27.03.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_11",
         "title": "시 도시경관공동위원회",
         "date": "'27.04.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_12",
         "title": "고시",
         "date": "'27.05.",
-        "status": null
+        "status": "todo"
       }
     ]
   },
@@ -2287,7 +2287,7 @@
         "id": "m_1",
         "title": "접수",
         "date": "`26.9.",
-        "status": null
+        "status": "todo"
       }
     ]
   },
@@ -2304,19 +2304,19 @@
         "id": "m_0",
         "title": "사전검토신청",
         "date": "`25.05.30",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_1",
         "title": "관련기관(부서)협의",
         "date": "`25.6.~8.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_2",
         "title": "인천시 사전컨설팅",
         "date": "`25.10.",
-        "status": null
+        "status": "todo"
       },
       {
         "id": "m_3",
@@ -2364,7 +2364,7 @@
         "id": "m_10",
         "title": "고시",
         "date": "`27.1.",
-        "status": null
+        "status": "todo"
       }
     ]
   }
@@ -2407,14 +2407,32 @@
     function sanitizeStore(s) {
       if (!s || typeof s !== 'object') s = {};
       if (!Array.isArray(s.projects)) s.projects = s.projects ? Object.values(s.projects) : getInitialDefaultProjects();
+      s.projects.forEach((p, pIdx) => {
+        if (!p.id) p.id = 'p_' + pIdx;
+        if (!p.name) p.name = '무제 사업';
+        if (typeof p.progress !== 'number') p.progress = 0;
+        if (!Array.isArray(p.milestones)) p.milestones = [];
+        p.milestones.forEach((m, idx) => {
+          if (!m.id) m.id = 'm_' + idx;
+          if (m.status === undefined || m.status === null) m.status = 'todo';
+          if (!m.title) m.title = '';
+          if (!m.date) m.date = '';
+        });
+      });
       if (!Array.isArray(s.calendarEvents)) s.calendarEvents = s.calendarEvents ? Object.values(s.calendarEvents) : getInitialDefaultEvents();
+      s.calendarEvents.forEach((e, eIdx) => {
+        if (!e.id) e.id = 'e_' + eIdx;
+        if (!e.title) e.title = '';
+        if (!e.date) e.date = '';
+      });
       if (!Array.isArray(s.dailyTasks)) s.dailyTasks = s.dailyTasks ? Object.values(s.dailyTasks) : [];
       if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
       if (!Array.isArray(s.weeklyReports)) {
         s.weeklyReports = s.weeklyReport ? [s.weeklyReport] : [];
       }
+      delete s.weeklyReport;
       if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
-      return s;
+      return JSON.parse(JSON.stringify(s));
     }
   
     function loadStore() {
@@ -2448,10 +2466,11 @@
     function saveStore() {
       store = sanitizeStore(store);
       store.lastLocalUpdate = Date.now();
-      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+      const cleanStore = JSON.parse(JSON.stringify(store));
+      localStorage.setItem('urban_clean_store_v11', JSON.stringify(cleanStore));
       renderAll();
       if (isCloudSyncActive && fbDbRef) {
-        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
+        fbDbRef.set(cleanStore).catch(e => console.error("Cloud push failed:", e));
       }
     }
 
