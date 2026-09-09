@@ -1971,6 +1971,31 @@
     }
 
     document.getElementById('dailyLogDatePicker').value = new Date().toISOString().slice(0,10);
+        function getInitialDefaultEvents() {
+      return [
+      {
+            "id": "e_user_11",
+            "title": "조치계획 접수",
+            "date": "2026-09-11",
+            "type": "접수",
+            "attendees": [],
+            "desc": "모바일 직접 등록"
+      },
+      {
+            "id": "e_user_14",
+            "title": "교통연구원 출장",
+            "date": "2026-09-14",
+            "type": "출장",
+            "attendees": [
+                  "나"
+            ],
+            "desc": "PC 직접 등록"
+      }
+];
+    }
+    function getInitialDefaultTasks() {
+      return [];
+    }
     loadStore();
     if (!store.projects || store.projects.length === 0) {
       store.projects = getInitialDefaultProjects();
