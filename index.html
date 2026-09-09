@@ -166,32 +166,32 @@
         </h3>
 
         <button onclick="switchTab('master')" id="tab-master" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-          <span class="flex items-center gap-2"><span>📌</span> 1. 프로젝트 마스터</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📌</span> 1. 프로젝트 마스터</span>
           <i data-lucide="chevron-right" class="w-4 h-4"></i>
         </button>
 
         <button onclick="switchTab('daily')" id="tab-daily" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex items-center gap-2"><span>📅</span> 2. 일자별 업무 &amp; 체크</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📅</span> 2. 일자별 업무 &amp; 체크</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
         <button onclick="switchTab('summary')" id="tab-summary" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex items-center gap-2"><span>📋</span> 3. 프로젝트별 업무 정리</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📋</span> 3. 프로젝트별 업무 정리</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
         <button onclick="switchTab('calendar')" id="tab-calendar" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex items-center gap-2"><span>🗓️</span> 4. 월간 일정 캘린더</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🗓️</span> 4. 월간 일정 캘린더</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
         <button onclick="switchTab('career')" id="tab-career" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex items-center gap-2"><span>💼</span> 5. 경력관리</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>💼</span> 5. 경력관리</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
         <button onclick="switchTab('reporthelper')" id="tab-reporthelper" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex items-center gap-2"><span>🛠️</span> 6. 업무 툴</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🛠️</span> 6. 업무 툴</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
       </div>
@@ -202,7 +202,7 @@
 
         <!-- TAB 1: PROJECT MASTER -->
         <div id="panel-master" class="tab-panel space-y-5 w-full">
-          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200 text-xs w-full">
             <div>
               <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                 📌 프로젝트 마스터 관리
@@ -219,14 +219,14 @@
 
         <!-- TAB 2: DAILY TASK LOG & CHECKLIST -->
         <div id="panel-daily" class="tab-panel hidden space-y-5 w-full">
-          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200 text-xs w-full">
             <div>
               <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                 📅 일자별 업무 작성 &amp; To-Do 체크리스트
               </h3>
               <p class="text-slate-500 mt-0.5">날짜별로 할 일을 등록하고 체크박스로 완료 여부를 기록합니다. (체크 시 5번 경력관리에 자동 기록! ⚡)</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <input type="date" id="dailyLogDatePicker" onchange="renderDailyTasks()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-600">
               <button onclick="openAddTaskModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
                 <i data-lucide="plus" class="w-4 h-4"></i> + 업무 추가
@@ -245,16 +245,16 @@
 
         <!-- TAB 3: PROJECT SUMMARY BOARD -->
         <div id="panel-summary" class="tab-panel hidden space-y-5 w-full">
-          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200 text-xs w-full">
             <div>
               <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                 📋 프로젝트별 업무 정리 보드
               </h3>
               <p class="text-slate-500 mt-0.5">체크 내역을 바탕으로 각 프로젝트에서 무엇을 했고(완료 내역), 무엇을 해야 하는지(예정 업무) 한눈에 정리됩니다.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <span class="font-bold text-slate-600 text-xs">프로젝트 선택:</span>
-              <select id="summaryProjectFilter" onchange="renderProjectSummaryBoard()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none">
+              <select id="summaryProjectFilter" onchange="renderProjectSummaryBoard()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none w-full sm:w-auto max-w-full truncate">
               </select>
             </div>
           </div>
@@ -278,7 +278,7 @@
 
         <!-- TAB 4: MONTHLY CALENDAR -->
         <div id="panel-calendar" class="tab-panel hidden space-y-5 w-full">
-          <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200 text-xs w-full">
             <div>
               <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                 🗓️ 월간 프로젝트 &amp; 일정 통합 캘린더
@@ -330,7 +330,7 @@
               </h3>
               <p class="text-amber-700 mt-0.5">2번 탭에서 할 일을 체크(완료)할 때마다 이곳에 수행 실적과 자소서 소스가 자동으로 생성됩니다.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <button onclick="copyAllCareerSummary()" class="px-3.5 py-2.5 bg-white hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-300 shadow-sm transition flex items-center gap-1.5">
                 <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> 경력 요약 텍스트 전체 복사
               </button>
@@ -1697,7 +1697,7 @@
 
           <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
             <span class="text-[10px] text-slate-400 font-mono">${l.date || ''}</span>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <button onclick="copyCareerLogText('${l.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
                 <i data-lucide="copy" class="w-3.5 h-3.5"></i> 텍스트 복사
               </button>
