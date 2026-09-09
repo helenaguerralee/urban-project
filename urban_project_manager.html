@@ -773,7 +773,7 @@
             const localTs = store.lastLocalUpdate || 0;
             if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0) {
               store = remoteData;
-              localStorage.setItem('urban_clean_store_v10', JSON.stringify(store));
+              localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
             }
@@ -809,6 +809,7 @@
 
     
                     
+    
     
     
     function getInitialDefaultProjects() {
@@ -896,11 +897,13 @@
 
 
     function loadStore() {
-      const saved = localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v4');
+      const saved = localStorage.getItem('urban_clean_store_v11');
       if (saved) {
         try { store = JSON.parse(saved); } catch(e) {}
       }
-      if (!store || !store.projects || store.projects.length < 5) {
+      const hasBadProject = store && store.projects && store.projects.some(p => p.id === 'p_suji_default' || p.id === 'p_daejeon_default');
+      const hasGwangmyeong = store && store.projects && store.projects.some(p => p.id === 'p_gwangmyeong');
+      if (!store || !store.projects || store.projects.length < 5 || hasBadProject || !hasGwangmyeong) {
         store = {
           projects: getInitialDefaultProjects(),
           dailyTasks: getInitialDefaultTasks(),
@@ -914,13 +917,16 @@
       }
       if (!store.dailyTasks) store.dailyTasks = [];
       if (!store.careerLogs) store.careerLogs = [];
-      try { localStorage.setItem('urban_clean_store_v10', JSON.stringify(store)); } catch(e) {}
+      try {
+        localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+        ['urban_clean_store_v11', 'urban_clean_store_v9', 'urban_clean_store_v8', 'urban_clean_store_v4'].forEach(k => localStorage.removeItem(k));
+      } catch(e) {}
       autoSyncCareerFromCompletedTasks();
     }
 
     function saveStore() {
       store.lastLocalUpdate = Date.now();
-      localStorage.setItem('urban_clean_store_v10', JSON.stringify(store));
+      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
       renderAll();
       if (isCloudSyncActive && fbDbRef) {
         fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
