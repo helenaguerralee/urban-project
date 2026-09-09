@@ -68,7 +68,7 @@
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
   <!-- MAIN CONTAINER -->
-  <div class="relative z-10 w-full max-w-[1700px] mx-auto px-4 sm:px-6 py-4 min-h-screen flex flex-col justify-between">
+  <div class="relative z-10 w-full max-w-[1700px] mx-auto px-3 sm:px-6 py-3 sm:py-4 pb-24 md:pb-6 min-h-screen flex flex-col justify-between">
     
     <!-- Top Header Bar -->
     <header class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 mb-4 light-card p-4 sm:p-5 rounded-2xl w-full">
@@ -127,7 +127,7 @@
     <div class="light-card p-4 sm:p-6 rounded-3xl mb-6 flex flex-col md:flex-row gap-6 w-full flex-1 min-h-[calc(100vh-140px)]">
       
       <!-- LEFT VERTICAL SIDEBAR BANNER -->
-      <div class="w-64 shrink-0 space-y-2 border-r border-slate-200 pr-5">
+      <div class="hidden md:block w-64 shrink-0 space-y-2 border-r border-slate-200 pr-5">
         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 flex items-center gap-1.5">
           <i data-lucide="menu" class="w-3.5 h-3.5"></i> 업무 관리 메뉴
         </h3>
@@ -1784,5 +1784,34 @@
     initFirebaseSync(savedFbUrl);
     renderAll();
   </script>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-1 py-1.5 flex justify-around items-center">
+    <button onclick="switchTab('master'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-master" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-blue-600 font-bold transition">
+      <span class="text-base">📌</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">프로젝트</span>
+    </button>
+    
+    <button onclick="switchTab('daily'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-daily" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition">
+      <span class="text-base">📅</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">오늘할일</span>
+    </button>
+
+    <button onclick="switchTab('calendar'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-calendar" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition">
+      <span class="text-base">🗓️</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">캘린더</span>
+    </button>
+
+    <button onclick="switchTab('career'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-career" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition">
+      <span class="text-base">💼</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">경력관리</span>
+    </button>
+
+    <button onclick="switchTab('reporthelper'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-reporthelper" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition">
+      <span class="text-base">🛠️</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">검수/툴</span>
+    </button>
+  </nav>
+
 </body>
 </html>
