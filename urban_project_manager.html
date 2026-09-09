@@ -20,7 +20,7 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="pdf.min.js"></script>
 
   <link rel="icon" href="app_logo.png">
 
@@ -4414,7 +4414,7 @@
       });
 
       if (typeof pdfjsLib !== 'undefined') {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
       }
     }
 
@@ -4425,7 +4425,6 @@
       }
     }
 
-    // Backwards compatibility alias
     function handleHwpxFileInput(e) {
       handleWeeklyFileInput(e);
     }
@@ -4457,31 +4456,37 @@
         // Prepend new report (newest first!)
         store.weeklyReports.unshift(matchResult);
 
-        // Automatically update progress and milestones in store.projects
-        matchResult.matched.forEach(m => {
-          const targetProj = store.projects.find(p => p.id === m.projId);
-          if (targetProj) {
-            if (m.newProgress !== null && typeof m.newProgress === 'number') {
-              targetProj.progress = m.newProgress;
+        // Automatically update progress and milestones in store.projects for matched
+        if (matchResult.matched && matchResult.matched.length > 0) {
+          matchResult.matched.forEach(m => {
+            const targetProj = store.projects.find(p => p.id === m.projId);
+            if (targetProj) {
+              if (m.newProgress !== null && typeof m.newProgress === 'number') {
+                targetProj.progress = m.newProgress;
+              }
+              if (m.newDesc) {
+                targetProj.desc = m.newDesc;
+              }
+              if (m.newMilestones && m.newMilestones.length > 0) {
+                targetProj.milestones = m.newMilestones;
+              }
             }
-            if (m.newDesc) {
-              targetProj.desc = m.newDesc;
-            }
-            if (m.newMilestones && m.newMilestones.length > 0) {
-              targetProj.milestones = m.newMilestones;
-            }
-          }
-        });
+          });
+        }
 
         saveStore();
         renderWeeklyPanel();
         renderAll();
 
-        alert(`📑 주간업무 PDF 분석 완료!\n• 최신 주간업무로 상단에 펼침 등록되었습니다.\n• 수동 등록 사업 반영: ${matchResult.matched.length}건 (1번 마스터 자동 연동)\n• 미등록 사업: ${matchResult.skipped.length}건 안전하게 스킵됨`);
+        if (matchResult.matched.length > 0) {
+          alert(`📑 주간업무 분석 완료!\n• 수동 등록 사업 반영: ${matchResult.matched.length}건 (1번 마스터 자동 연동)\n• 미등록 사업: ${matchResult.skipped.length}건 안전하게 스킵됨`);
+        } else {
+          alert(`📑 주간업무 PDF 분석이 완료되었습니다.\n문서 내 텍스트는 정상 추출되었으나 [1. 프로젝트 마스터]에 등록된 사업명과 일치하는 항목이 없어, 규칙에 따라 마스터 변경 없이 원문 및 스킵 목록만 정리되었습니다.\n(자세한 내용은 [Markdown 원문] 버튼을 눌러 확인하세요)`);
+        }
 
       } catch (err) {
         console.error("Weekly file parsing failed:", err);
-        alert("파일 분석 중 오류가 발생했습니다: " + err.message);
+        alert("파일 분석 중 오류가 발생했습니다:\n" + (err.message || err));
       } finally {
         if (loader) loader.classList.add('hidden');
         const input = document.getElementById('weeklyFileInput') || document.getElementById('hwpxFileInput');
@@ -4489,14 +4494,23 @@
       }
     }
 
-    // PDF Parser using PDF.js
+    // PDF Parser using local PDF.js and worker
     async function parsePdfToMarkdown(file) {
       if (typeof pdfjsLib === 'undefined') {
-        throw new Error("PDF.js 라이브러리가 로드되지 않았습니다.");
+        throw new Error("PDF.js 라이브러리를 찾을 수 없습니다. 브라우저를 새로고침해 주세요.");
+      }
+
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+      } catch(e) {
+        console.warn("Could not set local worker:", e);
       }
 
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = pdfjsLib.getDocument({
+        data: arrayBuffer,
+        cMapPacked: true
+      });
       const pdf = await loadingTask.promise;
 
       let fullText = '';
@@ -4507,35 +4521,37 @@
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
 
-        // Extract text items with coordinates
-        const items = textContent.items.map(item => ({
-          text: item.str,
-          x: item.transform[4],
-          y: item.transform[5]
-        }));
+        if (!textContent || !textContent.items) continue;
 
-        // Sort: top to bottom, left to right
+        const items = [];
+        textContent.items.forEach(item => {
+          if (!item || !item.str) return;
+          const text = item.str.trim();
+          if (!text) return;
+          const x = (item.transform && item.transform.length > 4) ? item.transform[4] : 0;
+          const y = (item.transform && item.transform.length > 5) ? item.transform[5] : 0;
+          items.push({ text: text, x: x, y: y });
+        });
+
+        // Sort: top to bottom (descending y), then left to right (ascending x)
         items.sort((a, b) => {
           const yDiff = Math.abs(a.y - b.y);
-          if (yDiff <= 4) return a.x - b.x;
+          if (yDiff <= 5) return a.x - b.x;
           return b.y - a.y;
         });
 
-        // Group into rows/lines
+        // Group into lines/rows
         let currentLineY = null;
         let currentLine = [];
         const pageRows = [];
 
         items.forEach(item => {
-          const str = item.text.trim();
-          if (!str) return;
-
-          if (currentLineY === null || Math.abs(item.y - currentLineY) <= 4) {
-            currentLine.push(str);
+          if (currentLineY === null || Math.abs(item.y - currentLineY) <= 5) {
+            currentLine.push(item.text);
             currentLineY = item.y;
           } else {
             if (currentLine.length > 0) pageRows.push(currentLine);
-            currentLine = [str];
+            currentLine = [item.text];
             currentLineY = item.y;
           }
         });
@@ -4554,6 +4570,10 @@
             }
           });
         }
+      }
+
+      if (!fullText || fullText.trim().length === 0) {
+        throw new Error("PDF 문서에서 텍스트를 추출하지 못했습니다. 스캔 이미지 전용 PDF이거나 암호화된 파일일 수 있습니다.");
       }
 
       return {
@@ -4594,6 +4614,423 @@
       return parseHwpxXmlToMarkdown(fullXmlText);
     }
 
+    function parseHwpxXmlToMarkdown(xmlText) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlText, "application/xml");
+
+      let markdownOutput = [];
+      let rawBlocks = [];
+
+      const allElements = doc.querySelectorAll('*');
+      const tables = [];
+
+      allElements.forEach(el => {
+        const local = el.localName || el.nodeName.split(':').pop();
+        if (local === 'tbl') {
+          tables.push(el);
+        }
+      });
+
+      tables.forEach((tbl, tblIdx) => {
+        const rows = [];
+        tbl.querySelectorAll('*').forEach(rEl => {
+          if ((rEl.localName || rEl.nodeName.split(':').pop()) === 'tr') {
+            const cells = [];
+            rEl.querySelectorAll('*').forEach(cEl => {
+              if ((cEl.localName || cEl.nodeName.split(':').pop()) === 'tc') {
+                let cellText = '';
+                cEl.querySelectorAll('*').forEach(tEl => {
+                  if ((tEl.localName || tEl.nodeName.split(':').pop()) === 't') {
+                    cellText += (tEl.textContent || '') + ' ';
+                  }
+                });
+                cells.push(cellText.trim());
+              }
+            });
+            if (cells.length > 0) rows.push(cells);
+          }
+        });
+
+        if (rows.length > 0) {
+          rawBlocks.push({ type: 'table', rows: rows });
+          markdownOutput.push(`\n### [표 ${tblIdx + 1}]\n`);
+          rows.forEach((row, rIdx) => {
+            markdownOutput.push('| ' + row.join(' | ') + ' |');
+            if (rIdx === 0) {
+              markdownOutput.push('| ' + row.map(() => '---').join(' | ') + ' |');
+            }
+          });
+          markdownOutput.push('');
+        }
+      });
+
+      let allTextNodes = [];
+      doc.querySelectorAll('*').forEach(el => {
+        if ((el.localName || el.nodeName.split(':').pop()) === 't') {
+          allTextNodes.push(el.textContent || '');
+        }
+      });
+      const fullText = allTextNodes.join(' ');
+
+      return {
+        markdown: markdownOutput.join('\n'),
+        fullText: fullText,
+        rawBlocks: rawBlocks
+      };
+    }
+
+    // Helper: Match parsed blocks strictly against registered projects
+    function matchWeeklyProjects(parseResult, fileName) {
+      store = sanitizeStore(store);
+      const registered = store.projects || [];
+      const matched = [];
+      const skippedNames = [];
+
+      const projectKeywords = registered.map(p => {
+        const cleanName = p.name.replace(/\s+/g, '').replace(/[(),]/g, '');
+        const tokens = [p.name, cleanName];
+        if (p.name.includes('용인')) tokens.push('용인', '용인시', '노후계획도시기본계획');
+        if (p.name.includes('분당')) tokens.push('분당', '47구역', 'S7구역', '까치마을', '구미동');
+        if (p.name.includes('계산')) tokens.push('계산역', '계산역북측', '계산');
+        if (p.name.includes('광명')) tokens.push('광명동', '광명시', '광명');
+        if (p.name.includes('작전')) tokens.push('작전역', '작전역인근', '작전');
+        return { proj: p, tokens: tokens };
+      });
+
+      parseResult.rawBlocks.forEach(block => {
+        if (block.type === 'table') {
+          block.rows.forEach(row => {
+            const rowText = row.join(' ');
+            let rowMatched = false;
+
+            projectKeywords.forEach(({ proj, tokens }) => {
+              const isMatch = tokens.some(tok => tok.length >= 2 && rowText.includes(tok));
+              if (isMatch) {
+                rowMatched = true;
+                let item = matched.find(m => m.projId === proj.id);
+                if (!item) {
+                  item = {
+                    projId: proj.id,
+                    projName: proj.name,
+                    category: proj.category,
+                    oldProgress: proj.progress || 0,
+                    newProgress: proj.progress || 0,
+                    thisWeek: '',
+                    nextWeek: '',
+                    schedule: '',
+                    newMilestones: proj.milestones || []
+                  };
+                  matched.push(item);
+                }
+
+                const pctMatch = rowText.match(/(\d{1,3})\s*%/);
+                if (pctMatch) {
+                  const parsedPct = parseInt(pctMatch[1]);
+                  if (parsedPct >= 0 && parsedPct <= 100) {
+                    item.newProgress = parsedPct;
+                  }
+                }
+
+                if (row.length >= 3) {
+                  row.forEach((cell, cIdx) => {
+                    if (cIdx > 0) {
+                      if (!item.thisWeek && cell.length > 5) {
+                        item.thisWeek = cell;
+                      } else if (!item.nextWeek && cell.length > 5) {
+                        item.nextWeek = cell;
+                      } else if (!item.schedule && (cell.includes("'2") || cell.includes("202") || cell.includes("월") || cell.includes("공람") || cell.includes("심의"))) {
+                        item.schedule = cell;
+                      }
+                    }
+                  });
+                }
+              }
+            });
+
+            if (!rowMatched && row.length >= 2) {
+              const firstCol = row[0].trim();
+              if (firstCol.length >= 3 && !firstCol.includes('사업명') && !firstCol.includes('순번') && !firstCol.includes('합계') && !skippedNames.includes(firstCol)) {
+                skippedNames.push(firstCol);
+              }
+            }
+          });
+        }
+      });
+
+      projectKeywords.forEach(({ proj, tokens }) => {
+        if (!matched.some(m => m.projId === proj.id)) {
+          const isMatch = tokens.some(tok => tok.length >= 2 && parseResult.fullText.includes(tok));
+          if (isMatch) {
+            let newProg = proj.progress;
+            const regex = new RegExp(proj.name.substring(0, 4) + '[\\s\\S]{0,100}?(\\d{1,3})\\s*%', 'i');
+            const pMatch = parseResult.fullText.match(regex);
+            if (pMatch) {
+              newProg = parseInt(pMatch[1]);
+            }
+            matched.push({
+              projId: proj.id,
+              projName: proj.name,
+              category: proj.category,
+              oldProgress: proj.progress || 0,
+              newProgress: newProg,
+              thisWeek: '주간업무 보고서 본문 내용 연동됨',
+              nextWeek: '차주 계획 및 행정절차 정상 진행',
+              schedule: '',
+              newMilestones: proj.milestones || []
+            });
+          }
+        }
+      });
+
+      return {
+        id: 'w_' + Date.now(),
+        fileName: fileName,
+        parsedAt: new Date().toISOString().slice(0, 10),
+        matched: matched,
+        skipped: skippedNames,
+        markdown: parseResult.markdown
+      };
+    }
+
+    // Render Weekly Report Panel (Latest Expanded + Past Collapsed Accordions)
+    function renderWeeklyPanel() {
+      store = sanitizeStore(store);
+      const reports = store.weeklyReports || [];
+      const emptyState = document.getElementById('weeklyEmptyState');
+      const contentArea = document.getElementById('weeklyContentArea');
+
+      if (!reports || reports.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (contentArea) contentArea.classList.add('hidden');
+        return;
+      }
+
+      if (emptyState) emptyState.classList.add('hidden');
+      if (contentArea) contentArea.classList.remove('hidden');
+
+      const latest = reports[0];
+      const pastReports = reports.slice(1);
+
+      // Render Latest Weekly Report Card (Expanded)
+      const fileNameEl = document.getElementById('weeklyReportFileName');
+      const parsedDateBadge = document.getElementById('weeklyParsedDateBadge');
+      const matchedBadge = document.getElementById('weeklyMatchedBadge');
+      const skippedBadge = document.getElementById('weeklySkippedBadge');
+      const markdownRaw = document.getElementById('weeklyMarkdownRaw');
+      const cardsContainer = document.getElementById('weeklyMatchedCards');
+      const skippedNotice = document.getElementById('weeklySkippedNotice');
+      const skippedText = document.getElementById('weeklySkippedText');
+
+      if (fileNameEl) fileNameEl.innerText = latest.fileName || '최신_주간업무.pdf';
+      if (parsedDateBadge) parsedDateBadge.innerText = `${latest.parsedAt} 분석 (최신)`;
+      if (matchedBadge) matchedBadge.innerText = `✅ 수동 등록 사업 ${latest.matched ? latest.matched.length : 0}건 자동 반영`;
+      if (skippedBadge) skippedBadge.innerText = `⏭️ 미등록 사업 ${latest.skipped ? latest.skipped.length : 0}건 스킵`;
+      if (markdownRaw) markdownRaw.innerText = latest.markdown || '변환된 마크다운 데이터가 없습니다.';
+
+      // Matched Project Cards
+      if (cardsContainer) {
+        cardsContainer.innerHTML = '';
+        if (latest.matched && latest.matched.length > 0) {
+          latest.matched.forEach(m => {
+            const progDelta = m.newProgress - m.oldProgress;
+            const isChanged = progDelta !== 0;
+
+            const card = document.createElement('div');
+            card.className = "bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xs hover:shadow-sm transition";
+
+            card.innerHTML = `
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                <div class="space-y-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200">${m.category || '기본계획'}</span>
+                    <h4 class="text-base font-bold text-slate-900">${m.projName}</h4>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${isChanged ? `
+                    <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                      📈 공정률 갱신: ${m.oldProgress}% ➔ ${m.newProgress}%
+                    </span>
+                  ` : `
+                    <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      공정률: ${m.newProgress}% (유지)
+                    </span>
+                  `}
+                  <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-xl border border-emerald-200 flex items-center gap-1">
+                    <i data-lucide="check" class="w-3 h-3"></i> 1번 마스터 연동완료
+                  </span>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-bold text-slate-600">
+                  <span>진행 공정률</span>
+                  <span class="font-mono text-blue-600">${m.newProgress}%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${m.newProgress}%;"></div>
+                </div>
+              </div>
+
+              <!-- Content Grid: This Week & Next Week -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1 text-xs">
+                  <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11.5px]">
+                    <span class="text-blue-600">🔹</span> 금주 추진실적
+                  </div>
+                  <div class="text-slate-700 break-words leading-relaxed whitespace-pre-wrap pl-4">
+                    ${m.thisWeek || '금주 실적 정상 추진 완료'}
+                  </div>
+                </div>
+
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1 text-xs">
+                  <div class="font-bold text-slate-700 flex items-center gap-1.5 text-[11.5px]">
+                    <span class="text-purple-600">🔸</span> 차주 추진계획
+                  </div>
+                  <div class="text-slate-700 break-words leading-relaxed whitespace-pre-wrap pl-4">
+                    ${m.nextWeek || '차주 후속 행정절차 준비'}
+                  </div>
+                </div>
+              </div>
+
+              ${m.schedule ? `
+                <div class="p-3 bg-amber-50/60 border border-amber-200/80 rounded-2xl text-xs space-y-1">
+                  <div class="font-bold text-amber-900 flex items-center gap-1.5 text-[11px]">
+                    <span>📌 향후 행정일정 및 마일스톤</span>
+                  </div>
+                  <div class="text-amber-950 font-medium break-words leading-relaxed pl-4">
+                    ${m.schedule}
+                  </div>
+                </div>
+              ` : ''}
+            `;
+            cardsContainer.appendChild(card);
+          });
+        } else {
+          cardsContainer.innerHTML = `<div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs text-slate-500 space-y-1">
+            <div class="font-bold text-slate-700">등록된 프로젝트와 일치하는 항목이 없습니다.</div>
+            <div>[1. 프로젝트 마스터]에 등록된 사업명(용인, 분당, 인천 계산, 광명, 작전 등)과 PDF 본문 내용을 비교해 주세요. 아래 [Markdown 원문] 버튼을 눌러 추출된 텍스트를 확인하실 수 있습니다.</div>
+          </div>`;
+        }
+      }
+
+      // Render Skipped Notice
+      if (skippedNotice && skippedText) {
+        if (latest.skipped && latest.skipped.length > 0) {
+          skippedNotice.classList.remove('hidden');
+          skippedText.innerText = `PDF 파일 내에 기재되어 있으나, [1. 프로젝트 마스터]에 수동 등록하지 않은 다음 ${latest.skipped.length}개 사업은 규칙에 따라 1번 마스터 및 주간업무 리스트에서 안전하게 제외(스킵)되었습니다: ${latest.skipped.join(', ')}`;
+        } else {
+          skippedNotice.classList.add('hidden');
+        }
+      }
+
+      // Render Past Reports Accordion Area
+      let pastContainer = document.getElementById('weeklyPastReportsContainer');
+      if (!pastContainer) {
+        pastContainer = document.createElement('div');
+        pastContainer.id = 'weeklyPastReportsContainer';
+        pastContainer.className = 'space-y-3 pt-4 border-t border-slate-200';
+        contentArea.appendChild(pastContainer);
+      }
+
+      pastContainer.innerHTML = '';
+      if (pastReports.length > 0) {
+        pastContainer.innerHTML = `<h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">지난 주간업무 기록 (${pastReports.length}개) — 접힘 상태 보관</h4>`;
+
+        pastReports.forEach((rep, idx) => {
+          const det = document.createElement('details');
+          det.className = "bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden";
+
+          det.innerHTML = `
+            <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+              <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                <span>${rep.fileName || '주간업무보고.pdf'}</span>
+                <span class="text-xs font-normal text-slate-500">(${rep.matched ? rep.matched.length : 0}개 사업 반영)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 font-mono shrink-0">${rep.parsedAt}</span>
+                <button onclick="deletePastWeeklyReport('${rep.id || idx}', event)" class="text-slate-300 hover:text-rose-500 p-1" title="이 주차 기록 삭제">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </summary>
+            <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+              <div class="flex flex-wrap gap-2 text-[11.5px]">
+                ${(rep.matched || []).map(m => `<span class="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 font-semibold text-slate-800">📌 ${m.projName}: ${m.newProgress}%</span>`).join('')}
+              </div>
+              <div class="pt-2 flex justify-end gap-2">
+                <button onclick="reapplyPastWeeklyReport('${rep.id || idx}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl border border-blue-200 text-xs transition">
+                  🔄 이 주차 데이터로 1번 마스터 재반영
+                </button>
+              </div>
+            </div>
+          `;
+          pastContainer.appendChild(det);
+        });
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function applyWeeklyToMaster() {
+      store = sanitizeStore(store);
+      const reports = store.weeklyReports || [];
+      if (reports.length === 0 || !reports[0].matched) {
+        alert("반영할 최신 주간업무 데이터가 없습니다.");
+        return;
+      }
+      renderAll();
+      switchTab('master');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert("✅ 1번 프로젝트 마스터에 최신 주간업무 공정률과 일정이 정상 반영되었습니다!");
+    }
+
+    function reapplyPastWeeklyReport(reportId) {
+      store = sanitizeStore(store);
+      const reports = store.weeklyReports || [];
+      const target = reports.find((r, idx) => (r.id === reportId || String(idx) === String(reportId)));
+      if (!target || !target.matched) return;
+
+      target.matched.forEach(m => {
+        const proj = store.projects.find(p => p.id === m.projId);
+        if (proj) {
+          if (m.newProgress !== null) proj.progress = m.newProgress;
+          if (m.newMilestones && m.newMilestones.length > 0) proj.milestones = m.newMilestones;
+        }
+      });
+      saveStore();
+      renderAll();
+      switchTab('master');
+      alert(`✅ [${target.fileName}] 주간업무 데이터로 1번 마스터가 재반영되었습니다!`);
+    }
+
+    function deletePastWeeklyReport(reportId, evt) {
+      if (evt) evt.stopPropagation();
+      if (!confirm("해당 주차의 주간업무 기록을 삭제하시겠습니까?")) return;
+      store = sanitizeStore(store);
+      store.weeklyReports = (store.weeklyReports || []).filter((r, idx) => (r.id !== reportId && String(idx) !== String(reportId)));
+      saveStore();
+      renderWeeklyPanel();
+    }
+
+    function toggleWeeklyMarkdown() {
+      const container = document.getElementById('weeklyMarkdownContainer');
+      if (container) container.classList.toggle('hidden');
+    }
+
+    function copyWeeklyMarkdown() {
+      const pre = document.getElementById('weeklyMarkdownRaw');
+      if (pre && pre.innerText) {
+        navigator.clipboard.writeText(pre.innerText).then(() => {
+          alert("📋 마크다운 원문이 클립보드에 복사되었습니다!");
+        }).catch(() => {
+          alert("클립보드 복사에 실패했습니다.");
+        });
+      }
+    }
+
     function clearWeeklyReport() {
       if (!confirm("모든 주간업무 내역을 삭제하시겠습니까? (1번 마스터의 프로젝트 데이터는 유지됩니다)")) return;
       store = sanitizeStore(store);
@@ -4603,8 +5040,7 @@
       renderWeeklyPanel();
     }
   
-  
-    function renderAll() {
+  function renderAll() {
 
       updateAllProjectDropdowns();
 
