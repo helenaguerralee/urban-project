@@ -517,7 +517,7 @@
   <div id="addCalendarEventModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">🗓️ 캘린더 일정 및 출장 동행자 직접 등록</h3>
+        <h3 id="calEventModalTitle" class="text-base font-bold text-slate-900 flex items-center gap-2">🗓️ 캘린더 일정 및 출장 동행자 직접 등록</h3>
         <button onclick="closeAddCalendarEventModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
@@ -716,943 +716,125 @@
 
     let calendarCurrentDate = new Date();
     let currentCareerFilter = 'all';
+    let editingCalEventId = null;
 
-    
-    // FIREBASE REALTIME SYNC ENGINE
-    let isCloudSyncActive = false;
-    let fbDbRef = null;
-
-    function openCloudSyncModal() {
-      const modal = document.getElementById('cloudSyncModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-        const savedUrl = localStorage.getItem('urban_firebase_url') || '';
-        document.getElementById('firebaseUrlInput').value = savedUrl;
-        if (window.lucide) lucide.createIcons();
-      }
-    }
-    function closeCloudSyncModal() {
-      const modal = document.getElementById('cloudSyncModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function saveFirebaseConfig() {
-      const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
-      if (!inputUrl) {
-        alert("Firebase Database URL을 입력해 주세요!");
-        return;
-      }
-      localStorage.setItem('urban_firebase_url', inputUrl);
-      closeCloudSyncModal();
-      initFirebaseSync(inputUrl);
-    }
-
-    function initFirebaseSync(dbUrl) {
-      if (!dbUrl || typeof firebase === 'undefined') return;
-      try {
-        let cleanUrl = dbUrl.trim();
-        if (cleanUrl.startsWith('{')) {
-          const cfg = JSON.parse(cleanUrl);
-          if (!firebase.apps.length) firebase.initializeApp(cfg);
-        } else {
-          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
-          if (!firebase.apps.length) firebase.initializeApp({ databaseURL: cleanUrl });
-        }
-
-        const db = firebase.database();
-        fbDbRef = db.ref('urban_project_store');
-
-        fbDbRef.on('value', (snapshot) => {
-          const remoteData = snapshot.val();
-          if (remoteData && remoteData.projects && remoteData.projects.length > 0) {
-            const remoteTs = remoteData.lastLocalUpdate || 0;
-            const localTs = store.lastLocalUpdate || 0;
-            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0) {
-              store = remoteData;
-              localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-              renderAll();
-              updateSyncStatusUI(true, "실시간 연동 중");
-            }
-          } else if (store.projects && store.projects.length > 0) {
-            // Push local non-empty store to Firebase if Firebase is empty
-            fbDbRef.set(store).catch(e => console.error("Cloud auto-seed failed:", e));
-          }
-        }, (err) => {
-          console.error("Firebase sync error", err);
-          updateSyncStatusUI(false, "연동 오류");
-        });
-
-        isCloudSyncActive = true;
-        updateSyncStatusUI(true, "실시간 연동 중");
-      } catch(e) {
-        console.error("Firebase init failed:", e);
-        updateSyncStatusUI(false, "설정 오류");
-      }
-    }
-
-    function updateSyncStatusUI(active, text) {
-      const dot = document.getElementById('syncStatusDot');
-      const txt = document.getElementById('syncStatusText');
-      if (dot && txt) {
-        dot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-        txt.innerText = text;
-        const mdot = document.getElementById('mobSyncDot');
-        const mtxt = document.getElementById('mobSyncText');
-        if (mdot) mdot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-        if (mtxt) mtxt.innerText = active ? "연동중" : "설정";
-      }
-    }
-
-    
-                    
-    
-    
-    
-    function getInitialDefaultProjects() {
-      return [
-  {
-    "id": "p_yongin_default",
-    "name": "용인시 노후계획도시기본계획",
-    "category": "기본계획",
-    "progress": 35,
-    "startDate": "'24.07.10",
-    "endDate": "'27.06",
-    "desc": "∘착수 : '24.07.10.\n∘착수보고 : '24.08.13.\n∘주민설문조사 : '25.03~04.\n∘주민설문조사 : '25.10.~11.\n∘국장보고 : '26.02 ~ 매월\n∘중간보고 : '26.07\n∘관련기관(부서)협의 : '26.07~'26.08.\n∘최종보고 : '26.09.\n∘주민공람 : '26.10.(14일간)\n∘시의회의견청취 : '26.11.\n∘용인시 심의 : '26.12.\n∘도 승인신청 : '27.01.\n∘도 관련기관(부서)협의 : '27.02.\n∘경기도 심의 : '27.04.\n∘국토교통부 협의 : '27.05.\n∘도 승인 및 고시 : '27.06.\n (준공목표 : '27.06.)"
-  },
-  {
-    "id": "p_bundang_default",
-    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
-    "category": "노후계획도시 특별정비사업",
-    "progress": 8,
-    "startDate": "'25.09",
-    "endDate": "'26.12",
-    "desc": "∘착수 : '25.09\n∘접수 : '26.7.1.~7.10.\n∘자문 및 결과통보 : '26.7.\n∘제안서 본안 접수 : '26.9.1.\n∘수용여부 결정 : '26.10.\n∘주민공람·공고 : '26.10.\n∘시의회의견청취 : '26.10.\n∘경기도협의 : '26.11.\n∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.\n∘국토부 보고 : '26.12."
-  },
-  {
-    "id": "p_incheon_default",
-    "name": "인천시 계산역북측구역 재개발사업",
-    "category": "정비사업(재개발)",
-    "progress": 30,
-    "startDate": "'25.10",
-    "endDate": "'27.05",
-    "desc": "∘착수 : '25.10.\n∘사전검토신청 : '26.3.16.\n∘관련기관(부서)1차 협의 : '26.3.~'26.7.15\n∘관련기관(부서)2차 협의 : '26.7.~'26.9.\n∘자문단컨설팅 : '26.10.\n∘주민제안서 접수 : '26.11.\n∘관련기관(부서)협의 : '26.11.~12.\n∘주민공람 : '27.01.\n∘주민설명회 : '27.01.\n∘의회의견청취 : '27.02.\n∘시 결정신청 : '27.03.\n∘시 도시경관공동위원회 : '27.04.\n∘고시 : '27.05."
-  },
-  {
-    "id": "p_gwangmyeong",
-    "name": "광명시 광명동 재개발사업",
-    "category": "정비사업(재개발)",
-    "progress": 25,
-    "startDate": "'25.06",
-    "endDate": "'27.03",
-    "desc": "∘착수 : '25.06.\n∘입안도서 작성 : '25.09.~'26.03.\n∘관련기관(부서) 협의 : '26.06.\n∘주민공람 및 설명회 : '26.09.\n∘시의회 의견청취 : '26.11.\n∘도시계획위원회 심의 : '27.01.\n∘정비구역 지정 및 고시 : '27.03."
-  },
-  {
-    "id": "p_jakjeon",
-    "name": "인천 작전역인근 재개발사업",
-    "category": "정비사업(재개발)",
-    "progress": 20,
-    "startDate": "'25.08",
-    "endDate": "'27.04",
-    "desc": "∘착수 : '25.08.\n∘사전검토 및 자문 : '25.11.\n∘입안제안도서 작성 : '26.03.~'26.06.\n∘정비구역 입안제안 접수 : '26.06.25.\n∘관련부서 조치계획 수립 : '26.08.\n∘주민공람 및 공청회 : '26.11.\n∘도시계획위원회 심의 및 구역지정 : '27.04."
-  }
-];
-    }
-
-    function getInitialDefaultEvents() {
-      return [
-  {
-    "id": "e_user_11",
-    "title": "조치계획 접수",
-    "date": "2026-09-11",
-    "type": "접수",
-    "attendees": [],
-    "desc": "모바일 직접 등록"
-  },
-  {
-    "id": "e_user_14",
-    "title": "교통연구원 출장",
-    "date": "2026-09-14",
-    "type": "출장",
-    "attendees": [],
-    "desc": "PC 직접 등록"
-  }
-];
-    }
-
-    function getInitialDefaultTasks() {
-      return [];
-    }
-
-    function restoreDefaultProjectsData() {
-      store.projects = getInitialDefaultProjects();
-      store.calendarEvents = getInitialDefaultEvents();
-      store.dailyTasks = getInitialDefaultTasks();
-      saveStore();
-      alert("5개 프로젝트(용인, 분당, 계산, 광명, 작전) 및 일정이 성공적으로 복구되었습니다!");
-    }
-
-
-    
-    function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store, null, 2));
-      const a = document.createElement('a');
-      a.setAttribute("href", dataStr);
-      a.setAttribute("download", "urban_project_backup_" + new Date().toISOString().slice(0,10) + ".json");
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-
-    function importDataBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported && Array.isArray(imported.projects)) {
-            store = imported;
-            store.lastLocalUpdate = Date.now();
-            localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-            if (isCloudSyncActive && fbDbRef) {
-              fbDbRef.set(store).catch(err => console.error("Firebase sync error", err));
-            }
-            renderAll();
-            alert("백업 파일에서 데이터가 성공적으로 복원되었습니다!");
-          } else {
-            alert("유효한 도시계획 백업 파일이 아닙니다.");
-          }
-        } catch(err) {
-          alert("파일 읽기 오류: " + err.message);
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function loadStore() {
-      const saved = localStorage.getItem('urban_clean_store_v11');
-      if (saved) {
-        try { store = JSON.parse(saved); } catch(e) {}
-      }
-      const hasBadProject = store && store.projects && store.projects.some(p => p.id === 'p_suji_default' || p.id === 'p_daejeon_default');
-      const hasGwangmyeong = store && store.projects && store.projects.some(p => p.id === 'p_gwangmyeong');
-      if (!store || !store.projects || store.projects.length < 5 || hasBadProject || !hasGwangmyeong) {
-        store = {
-          projects: getInitialDefaultProjects(),
-          dailyTasks: getInitialDefaultTasks(),
-          calendarEvents: getInitialDefaultEvents(),
-          careerLogs: [],
-          lastLocalUpdate: Date.now()
-        };
-      }
-      if (!store.calendarEvents || store.calendarEvents.length === 0) {
-        store.calendarEvents = getInitialDefaultEvents();
-      }
-      if (!store.dailyTasks) store.dailyTasks = [];
-      if (!store.careerLogs) store.careerLogs = [];
-      try {
-        localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-        ['urban_clean_store_v11', 'urban_clean_store_v9', 'urban_clean_store_v8', 'urban_clean_store_v4'].forEach(k => localStorage.removeItem(k));
-      } catch(e) {}
-      autoSyncCareerFromCompletedTasks();
-    }
-
-    function saveStore() {
-      store.lastLocalUpdate = Date.now();
-      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-      renderAll();
-      if (isCloudSyncActive && fbDbRef) {
-        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
-      }
-    }
-
-    function autoSyncCareerFromCompletedTasks() {
-      if (!store.careerLogs) store.careerLogs = [];
-      const completedTasks = store.dailyTasks.filter(t => t.completed);
-
-      completedTasks.forEach(t => {
-        const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
-        if (!exists) {
-          const proj = store.projects.find(p => p.id === t.projId);
-          const projName = proj ? proj.name : '일반 수행 업무';
-
-          const autoLog = {
-            id: "c_auto_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
-            autoTaskId: t.id,
-            projId: t.projId || '',
-            category: "주요 성과",
-            role: `[수행 실적] ${t.title}`,
-            metric: `완료일: ${t.date} (${projName})`,
-            content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
-            date: t.date,
-            isAuto: true
-          };
-          store.careerLogs.unshift(autoLog);
-        }
-      });
-    }
-
-    function clearAllData() {
-      if (confirm("정말로 모든 프로젝트, 일정, 출장 및 경력 관리 이력을 초기화하시겠습니까?")) {
-        store = { projects: [], dailyTasks: [], calendarEvents: [], careerLogs: [] };
-        saveStore();
-      }
-    }
-
-    function exportDataJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store, null, 2));
-      const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = `도시계획_경력업무백업_${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-        function switchTab(tabKey) {
-      if (!tabKey) return;
-
-      // 1. Panel Show/Hide
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      const targetPanel = document.getElementById('panel-' + tabKey);
-      if (targetPanel) targetPanel.classList.remove('hidden');
-
-      // 2. Desktop Left Sidebar Active State (.mode-btn)
-      document.querySelectorAll('.mode-btn').forEach(b => {
-        b.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900';
-        const c = b.querySelector('[data-lucide="chevron-right"]') || b.querySelector('.lucide-chevron-right');
-        if (c) c.classList.add('opacity-0');
-      });
-      const desktopBtn = document.getElementById('tab-' + tabKey);
-      if (desktopBtn) {
-        desktopBtn.className = 'mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md';
-        const c = desktopBtn.querySelector('[data-lucide="chevron-right"]') || desktopBtn.querySelector('.lucide-chevron-right');
-        if (c) c.classList.remove('opacity-0');
-      }
-
-      // 3. Mobile Top Scrollable Tabs (.mob-top-tab)
-      document.querySelectorAll('.mob-top-tab').forEach(tbtn => {
-        tbtn.className = 'mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 border border-slate-200 shrink-0';
-      });
-      const activeTopBtn = document.getElementById('mob-top-' + tabKey);
-      if (activeTopBtn) {
-        activeTopBtn.className = 'mob-top-tab px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 text-white shadow-md border border-blue-600 shrink-0';
-        try { activeTopBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch(e) {}
-      }
-
-      // 4. Mobile Bottom Navigation Bar (.mob-nav-btn)
-      document.querySelectorAll('.mob-nav-btn').forEach(mbtn => {
-        mbtn.className = 'mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition';
-      });
-      const activeMobBtn = document.getElementById('mob-tab-' + tabKey);
-      if (activeMobBtn) {
-        activeMobBtn.className = 'mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-blue-600 font-bold bg-blue-50/70 transition scale-105';
-      }
-
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function getMilestoneEffectiveStatus(item) {
-      if (item.status) return item.status;
-
-      const dateStr = item.date || '';
-      if (!dateStr) return 'todo';
-
-      const today = new Date();
-      const curYear = today.getFullYear();
-      const curMonth = today.getMonth() + 1;
-      const curDay = today.getDate();
-
-      let yrMatch = dateStr.match(/'?(\d{2,4})/);
-      if (!yrMatch) return 'todo';
-
-      let yr = parseInt(yrMatch[1]);
-      if (yr < 100) yr += 2000;
-
-      if (yr < curYear) return 'done';
-      if (yr > curYear) return 'todo';
-
-      let nums = dateStr.replace(/[^0-9.]/g, ' ').trim().split(/\s+/);
-      let mo = null;
-      let dy = null;
-
-      for (let n of nums) {
-        let parts = n.split('.').filter(Boolean);
-        if (parts.length >= 1) {
-          let candidateMo = parseInt(parts[0]);
-          if (candidateMo >= 1 && candidateMo <= 12) {
-            mo = candidateMo;
-            if (parts.length >= 2) {
-              let candidateDy = parseInt(parts[1]);
-              if (candidateDy >= 1 && candidateDy <= 31) dy = candidateDy;
-            }
-            break;
-          }
-        }
-      }
-
-      if (mo !== null) {
-        if (mo < curMonth) return 'done';
-        if (mo > curMonth) return 'todo';
-
-        if (dy !== null) {
-          if (dy < curDay) return 'done';
-          if (dy > curDay) return 'todo';
-          return 'in_progress';
-        }
-        return 'in_progress';
-      }
-
-      return 'in_progress';
-    }
-
-    function getOrParseMilestones(p) {
-      const desc = p.desc || '';
-      const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
-      const existing = p.milestones || [];
-      const items = [];
-
-      lines.forEach((line, idx) => {
-        if (line.startsWith('∘') || line.startsWith('•') || line.startsWith('-')) {
-          const clean = line.replace(/^[∘•-]\s*/, '');
-          const cIdx = clean.indexOf(':');
-          if (cIdx !== -1) {
-            const title = clean.substring(0, cIdx).trim();
-            const date = clean.substring(cIdx + 1).trim();
-            const matchOld = existing.find(m => m.title === title && m.date === date);
-            items.push({
-              id: 'm_' + idx,
-              title: title,
-              date: date,
-              status: matchOld ? matchOld.status : null
-            });
-          } else {
-            items.push({ id: 'm_' + idx, title: clean, date: '', status: null });
-          }
-        }
-      });
-      p.milestones = items;
-      return items;
-    }
-
-    function toggleMilestoneStatus(projId, mIdx) {
-      const p = store.projects.find(x => x.id === projId);
-      if (!p) return;
-
-      const milestones = getOrParseMilestones(p);
-      if (!milestones[mIdx]) return;
-
-      const curStatus = getMilestoneEffectiveStatus(milestones[mIdx]);
-      const statusCycle = {
-        'done': 'in_progress',
-        'in_progress': 'todo',
-        'todo': 'done'
-      };
-
-      milestones[mIdx].status = statusCycle[curStatus] || 'done';
-      p.milestones = milestones;
-
-      const doneCount = milestones.filter(m => getMilestoneEffectiveStatus(m) === 'done').length;
-      if (milestones.length > 0) {
-        p.progress = Math.round((doneCount / milestones.length) * 100);
-      }
-
-      saveStore();
-    }
-
-    function formatProjectScheduleUI(p) {
-      const desc = p.desc || '';
-      const milestones = getOrParseMilestones(p);
-
-      const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
-      let noteText = '';
-      lines.forEach(line => {
-        if (line.includes('준공목표') || (line.startsWith('(') && !line.startsWith('∘'))) {
-          noteText = line;
-        }
-      });
-
-      if (milestones.length === 0) {
-        return `<p class="text-xs text-slate-700 font-mono whitespace-pre-line leading-relaxed">${desc || '등록된 세부 일정이 없습니다.'}</p>`;
-      }
-
-      let html = `<div class="space-y-2 mt-1.5">`;
-      html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">`;
-
-      milestones.forEach((item, idx) => {
-        const status = getMilestoneEffectiveStatus(item);
-
-        let borderStyle = "border-slate-200 bg-slate-50/70 text-slate-800 hover:border-slate-300";
-        let badgeStyle = "bg-slate-200/80 text-slate-700 font-mono";
-        let statusBadge = "<span class='text-[10px] text-slate-500 font-bold'>📌 예정</span>";
-        let icon = "📌";
-
-        if (status === 'done') {
-          borderStyle = "border-emerald-200 bg-emerald-50/60 text-emerald-950 font-medium hover:border-emerald-300";
-          badgeStyle = "bg-emerald-600 text-white font-bold font-mono";
-          statusBadge = "<span class='text-[10px] text-emerald-700 font-bold'>✅ 완료</span>";
-          icon = "✅";
-        } else if (status === 'in_progress') {
-          borderStyle = "border-blue-400 bg-blue-50/90 text-blue-950 font-bold shadow-xs hover:border-blue-500";
-          badgeStyle = "bg-blue-600 text-white font-bold font-mono shadow-xs";
-          statusBadge = "<span class='text-[10px] text-blue-700 font-bold'>🚀 진행중</span>";
-          icon = "🚀";
-        }
-
-        html += `
-          <div onclick="toggleMilestoneStatus('${p.id}', ${idx})" 
-               class="p-2.5 rounded-xl border ${borderStyle} flex items-center justify-between gap-2 shadow-2xs hover:shadow-xs transition transform active:scale-95 cursor-pointer select-none" 
-               title="클릭 시 상태 전환: 완료(✅) ➔ 진행중(🚀) ➔ 예정(📌)">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span class="text-xs shrink-0">${icon}</span>
-              <span class="font-bold truncate text-[11px]">${item.title}</span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              ${statusBadge}
-              <span class="text-[10px] px-2 py-0.5 rounded-md ${badgeStyle}">${item.date}</span>
-            </div>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-
-      if (noteText) {
-        html += `
-          <div class="mt-2 text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200 p-2.5 rounded-xl flex items-center justify-center gap-2 shadow-2xs">
-            <span class="text-sm">🏁</span>
-            <span>${noteText}</span>
-          </div>
-        `;
-      }
-
-      html += `</div>`;
-      return html;
-    }
-
-    // 1. MASTER PROJECTS
-    function renderMasterCards() {
-      const grid = document.getElementById('projectCardsGrid');
-      grid.innerHTML = '';
-
-      if (!store.projects || store.projects.length === 0) {
-        grid.innerHTML = `
-          <div class="col-span-2 bg-white border border-dashed border-emerald-300 rounded-2xl p-10 text-center space-y-3.5 shadow-sm">
-            <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">🏙️</div>
-            <h4 class="font-bold text-slate-900 text-base">프로젝트 데이터 원상복구</h4>
-            <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">아래 초록색 [ 🔄 기본 프로젝트 3개 즉시 복구 ] 버튼을 누르시면 용인시, 분당, 인천시 프로젝트와 모든 마일스톤 일정이 즉시 복원됩니다!</p>
-            <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
-              <button onclick="restoreDefaultProjectsData()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 🔄 기본 프로젝트 3개 즉시 복구
-              </button>
-              <button onclick="openAddProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition">+ 신규 등록</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      store.projects.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm hover:shadow-md transition';
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between">
-            <div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">${p.category || '기본'}</span>
-              <h4 class="font-bold text-slate-900 text-sm mt-1">${p.name}</h4>
-              <p class="text-xs text-blue-700 font-semibold mt-0.5 flex items-center gap-1">
-                <span>🗓️</span> ${p.startDate || '미정'} ~ ${p.endDate || '미정'}
-              </p>
-            </div>
-            <div class="flex items-center gap-1">
-              <button onclick="openEditProjectModal('${p.id}')" class="text-slate-500 hover:text-blue-600 text-xs px-2 py-1 flex items-center gap-1 font-semibold border border-slate-200 rounded-lg hover:bg-slate-50 transition" title="프로젝트 일정/설명 수정">
-                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
-              </button>
-              <button onclick="deleteProject('${p.id}')" class="text-slate-400 hover:text-rose-600 text-xs px-1.5 py-1" title="삭제">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="space-y-1.5 bg-blue-50/40 p-3 rounded-xl border border-blue-100">
-            <div class="flex justify-between items-center text-xs font-bold">
-              <span class="text-slate-700">공정률 직접 조절:</span>
-              <div class="flex items-center gap-1">
-                <input type="number" min="0" max="100" value="${p.progress}" onchange="updateProjectProgress('${p.id}', this.value)" class="w-14 bg-white border border-blue-300 rounded px-1.5 py-0.5 text-center font-bold text-blue-600 font-mono text-xs">
-                <span class="text-blue-700 font-bold">%</span>
-              </div>
-            </div>
-            <input type="range" min="0" max="100" value="${p.progress}" oninput="updateProjectProgress('${p.id}', this.value)" class="w-full accent-blue-600 cursor-pointer">
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-300">
-              <div class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${p.progress}%"></div>
-            </div>
-          </div>
-
-          <div class="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                <span>📋</span> 사업 추진 로드맵 및 주요 단계별 일정
-              </span>
-              <span class="text-[10px] text-slate-400 font-medium">💡 마일스톤 클릭 시 [완료 ➔ 진행 ➔ 예정] 수동 체크</span>
-            </div>
-            ${formatProjectScheduleUI(p)}
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function openEditProjectModal(id) {
-      const p = store.projects.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('editProjId').value = p.id;
-      document.getElementById('editProjName').value = p.name;
-      document.getElementById('editProjCategory').value = p.category || '';
-      document.getElementById('editProjProgress').value = p.progress || 0;
-      document.getElementById('editProjStart').value = p.startDate || '';
-      document.getElementById('editProjEnd').value = p.endDate || '';
-      document.getElementById('editProjDesc').value = p.desc || '';
-      document.getElementById('editProjectModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeEditProjectModal() {
-      document.getElementById('editProjectModal').classList.add('hidden');
-    }
-
-    function saveEditProject() {
-      const id = document.getElementById('editProjId').value;
-      const p = store.projects.find(x => x.id === id);
-      if (!p) return;
-
-      p.name = document.getElementById('editProjName').value.trim() || p.name;
-      p.category = document.getElementById('editProjCategory').value.trim() || '기본';
-      p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
-      p.startDate = document.getElementById('editProjStart').value.trim();
-      p.endDate = document.getElementById('editProjEnd').value.trim();
-      p.desc = document.getElementById('editProjDesc').value.trim();
-      p.milestones = null; // force re-parse from new desc
-
-      saveStore();
-      closeEditProjectModal();
-    }
-
-    function openEditProjectModal(id) {
-      const p = store.projects.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('editProjId').value = p.id;
-      document.getElementById('editProjName').value = p.name;
-      document.getElementById('editProjCategory').value = p.category || '';
-      document.getElementById('editProjProgress').value = p.progress || 0;
-      document.getElementById('editProjStart').value = p.startDate || '';
-      document.getElementById('editProjEnd').value = p.endDate || '';
-      document.getElementById('editProjDesc').value = p.desc || '';
-      document.getElementById('editProjectModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeEditProjectModal() {
-      document.getElementById('editProjectModal').classList.add('hidden');
-    }
-
-    function saveEditProject() {
-      const id = document.getElementById('editProjId').value;
-      const p = store.projects.find(x => x.id === id);
-      if (!p) return;
-
-      p.name = document.getElementById('editProjName').value.trim() || p.name;
-      p.category = document.getElementById('editProjCategory').value.trim() || '기본';
-      p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
-      p.startDate = document.getElementById('editProjStart').value.trim();
-      p.endDate = document.getElementById('editProjEnd').value.trim();
-      p.desc = document.getElementById('editProjDesc').value.trim();
-
-      saveStore();
-      closeEditProjectModal();
-    }
-
-    function updateProjectProgress(id, val) {
-      const p = store.projects.find(x => x.id === id);
-      if (p) {
-        p.progress = Math.min(100, Math.max(0, parseInt(val) || 0));
-        saveStore();
-      }
-    }
-
-    function deleteProject(id) {
-      if (confirm("이 프로젝트를 삭제하시겠습니까?")) {
-        store.projects = store.projects.filter(p => p.id !== id);
-        store.dailyTasks = store.dailyTasks.filter(t => t.projId !== id);
-        store.calendarEvents = store.calendarEvents.filter(e => e.projId !== id);
-        saveStore();
-      }
-    }
-
-    function openAddProjectModal() { document.getElementById('addProjectModal').classList.remove('hidden'); }
-    function closeAddProjectModal() { document.getElementById('addProjectModal').classList.add('hidden'); }
-    function saveNewProject() {
-      const name = document.getElementById('newProjName').value.trim();
-      if (!name) { alert("프로젝트명을 입력해 주세요."); return; }
-
-      const newP = {
-        id: "p_" + Date.now(),
-        name: name,
-        category: document.getElementById('newProjCategory').value || "일반",
-        progress: parseInt(document.getElementById('newProjProgress').value) || 0,
-        startDate: document.getElementById('newProjStart').value,
-        endDate: document.getElementById('newProjEnd').value,
-        desc: document.getElementById('newProjDesc').value
-      };
-
-      store.projects.push(newP);
-      saveStore();
-      closeAddProjectModal();
-      document.getElementById('newProjName').value = '';
-    }
-
-    // 2. DAILY TASKS
-    function renderDailyTasks() {
-      const dateVal = document.getElementById('dailyLogDatePicker').value;
-      const list = document.getElementById('dailyTasksList');
-      list.innerHTML = '';
-
-      document.getElementById('dailyLogTitle').innerText = `📅 ${dateVal} 세부 업무 리스트`;
-      const tasks = store.dailyTasks.filter(t => t.date === dateVal);
-      const completedCount = tasks.filter(t => t.completed).length;
-
-      document.getElementById('dailyLogProgressBadge').innerText = `${completedCount} / ${tasks.length} 완료`;
-
-      if (tasks.length === 0) {
-        list.innerHTML = `<div class="text-xs text-slate-400 p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">해당 날짜에 등록된 업무가 없습니다. [+ 업무 추가] 버튼으로 추가하세요!</div>`;
-        return;
-      }
-
-      tasks.forEach(t => {
-        const proj = store.projects.find(p => p.id === t.projId);
-        const item = document.createElement('div');
-        item.className = `p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs transition ${t.completed ? 'bg-amber-50/30 border-amber-200' : 'bg-white border-slate-300 shadow-sm'}`;
-
-        item.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskDone('${t.id}')" class="w-4.5 h-4.5 text-emerald-600 rounded cursor-pointer">
-            <div class="${t.completed ? 'line-through text-slate-400' : 'text-slate-800 font-semibold'}">
-              <span>${t.title}</span>
-              ${proj ? `<span class="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">${proj.name}</span>` : ''}
-              ${t.completed ? `<span class="ml-1.5 text-[9.5px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">⚡ 5번 경력관리 자동기록됨</span>` : ''}
-            </div>
-          </div>
-          <button onclick="deleteTask('${t.id}')" class="text-slate-300 hover:text-rose-500"><i data-lucide="trash" class="w-3.5 h-3.5"></i></button>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function toggleTaskDone(id) {
-      const t = store.dailyTasks.find(x => x.id === id);
-      if (t) {
-        t.completed = !t.completed;
-        if (!store.careerLogs) store.careerLogs = [];
-
-        if (t.completed) {
-          const proj = store.projects.find(p => p.id === t.projId);
-          const projName = proj ? proj.name : '일반 수행 업무';
-
-          const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
-          if (!exists) {
-            const autoLog = {
-              id: "c_auto_" + Date.now(),
-              autoTaskId: t.id,
-              projId: t.projId || '',
-              category: "주요 성과",
-              role: `[수행 실적] ${t.title}`,
-              metric: `완료일: ${t.date} (${projName})`,
-              content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
-              date: t.date,
-              isAuto: true
-            };
-            store.careerLogs.unshift(autoLog);
-          }
-        } else {
-          store.careerLogs = store.careerLogs.filter(c => c.autoTaskId !== t.id);
-        }
-
-        saveStore();
-      }
-    }
-
-    function deleteTask(id) {
-      const t = store.dailyTasks.find(x => x.id === id);
-      if (t && t.completed) {
-        store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== id);
-      }
-      store.dailyTasks = store.dailyTasks.filter(x => x.id !== id);
-      saveStore();
-    }
-
-    function openAddTaskModal() {
-      const sel = document.getElementById('newTaskProjId');
-      sel.innerHTML = '';
-      if (store.projects.length === 0) {
-        alert("먼저 [ 1. 프로젝트 마스터 ] 탭에서 프로젝트를 등록해 주세요!");
-        switchTab('master');
-        return;
-      }
-      store.projects.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-      });
-      document.getElementById('newTaskDate').value = document.getElementById('dailyLogDatePicker').value;
-      document.getElementById('addTaskModal').classList.remove('hidden');
-    }
-    function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
-    function saveNewTask() {
-      const title = document.getElementById('newTaskTitle').value.trim();
-      if (!title) { alert("업무 내용을 입력해 주세요."); return; }
-
-      const newTask = {
-        id: "t_" + Date.now(),
-        projId: document.getElementById('newTaskProjId').value,
-        date: document.getElementById('newTaskDate').value,
-        title: title,
-        completed: false
-      };
-
-      store.dailyTasks.push(newTask);
-      saveStore();
-      closeAddTaskModal();
-      document.getElementById('newTaskTitle').value = '';
-    }
-
-    // 3. PROJECT SUMMARY BOARD
-    function renderProjectSummaryBoard() {
-      const sel = document.getElementById('summaryProjectFilter');
-      const curVal = sel.value;
-      sel.innerHTML = '';
-
-      if (store.projects.length === 0) {
-        document.getElementById('summaryDoneList').innerHTML = `<div class="text-xs text-slate-400 p-4">등록된 프로젝트가 없습니다.</div>`;
-        document.getElementById('summaryTodoList').innerHTML = `<div class="text-xs text-slate-400 p-4">등록된 프로젝트가 없습니다.</div>`;
-        return;
-      }
-
-      store.projects.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}" ${p.id === curVal ? 'selected' : ''}>${p.name}</option>`;
-      });
-
-      const activeProjId = sel.value || (store.projects[0] && store.projects[0].id);
-
-      const doneList = document.getElementById('summaryDoneList');
-      const todoList = document.getElementById('summaryTodoList');
-      doneList.innerHTML = '';
-      todoList.innerHTML = '';
-
-      const projTasks = store.dailyTasks.filter(t => t.projId === activeProjId);
-      const doneTasks = projTasks.filter(t => t.completed);
-      const todoTasks = projTasks.filter(t => !t.completed);
-
-      if (doneTasks.length === 0) {
-        doneList.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center bg-white rounded-xl">완료된 업무 내역이 아직 없습니다.</div>`;
-      } else {
-        doneTasks.forEach(t => {
-          doneList.innerHTML += `
-            <div class="p-3 bg-white border border-emerald-200 rounded-xl text-xs flex justify-between items-center">
-              <span class="font-semibold text-slate-800">✅ ${t.title}</span>
-              <span class="text-[10px] text-emerald-700 font-mono font-bold">${t.date}</span>
-            </div>
-          `;
-        });
-      }
-
-      if (todoTasks.length === 0) {
-        todoList.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center bg-white rounded-xl">앞으로 해야 할 남은 업무가 없습니다! (100% 진행)</div>`;
-      } else {
-        todoTasks.forEach(t => {
-          todoList.innerHTML += `
-            <div class="p-3 bg-white border border-blue-200 rounded-xl text-xs flex justify-between items-center">
-              <span class="font-semibold text-slate-800">📌 ${t.title}</span>
-              <span class="text-[10px] text-blue-700 font-mono font-bold">${t.date} 예정</span>
-            </div>
-          `;
-        });
-      }
-    }
-
-    // 4. MONTHLY CALENDAR
     function renderCalendar() {
       const year = calendarCurrentDate.getFullYear();
       const month = calendarCurrentDate.getMonth();
       document.getElementById('calendarMonthTitle').innerText = `${year}년 ${month + 1}월`;
 
       const grid = document.getElementById('calendarGridBody');
-      grid.innerHTML = '';
+      if (grid) {
+        grid.innerHTML = '';
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
 
-      const firstDay = new Date(year, month, 1).getDay();
-      const lastDate = new Date(year, month + 1, 0).getDate();
+        for (let i = 0; i < firstDay; i++) {
+          grid.innerHTML += `<div class="min-h-[105px] bg-slate-50/50 border border-slate-100 rounded-xl"></div>`;
+        }
 
-      for (let i = 0; i < firstDay; i++) {
-        grid.innerHTML += `<div class="min-h-[105px] bg-slate-50/50 border border-slate-100 rounded-xl"></div>`;
+        for (let d = 1; d <= lastDate; d++) {
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const dayTasks = (store.dailyTasks || []).filter(t => t.date === dateStr);
+          const dayEvents = (store.calendarEvents || []).filter(e => e.date === dateStr);
+          const dayProjects = (store.projects || []).filter(p => p.endDate === dateStr);
+
+          let badgesHtml = '';
+
+          dayEvents.forEach(e => {
+            let isMyTrip = e.type === '출장' && (e.attendees || []).includes('나');
+            let colorClass = 'bg-slate-100 text-slate-800';
+
+            if (e.type === '출장') {
+              colorClass = isMyTrip 
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md ring-1 ring-purple-400' 
+                : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold';
+            } else if (e.type === '자료 요청') {
+              colorClass = 'bg-blue-100 text-blue-900 border border-blue-300 font-semibold';
+            } else if (e.type === '자료송부') {
+              colorClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-semibold';
+            } else if (e.type === '접수') {
+              colorClass = 'bg-indigo-100 text-indigo-900 border border-indigo-300 font-semibold';
+            }
+
+            let icon = e.type === '출장' ? '🚗' : e.type === '자료 요청' ? '📩' : e.type === '자료송부' ? '📤' : '📥';
+            let attStr = (e.attendees && e.attendees.length > 0) ? ` (${e.attendees.join(', ')})` : '';
+
+            badgesHtml += `
+              <div onclick="event.stopPropagation(); openEditCalendarEventModal('${e.id}')" title="${e.title}${attStr} (클릭하여 수정/삭제)" class="text-[9.5px] truncate px-1.5 py-0.5 rounded-lg ${colorClass} hover:opacity-80 cursor-pointer transition shadow-2xs">
+                ${icon} ${e.title}${attStr}
+              </div>
+            `;
+          });
+
+          dayTasks.forEach(t => {
+            badgesHtml += `
+              <div title="${t.title}" class="text-[9px] truncate px-1.5 py-0.5 rounded ${t.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-slate-100 text-slate-800 border border-slate-200'}">
+                ☑ ${t.title}
+              </div>
+            `;
+          });
+
+          dayProjects.forEach(p => {
+            badgesHtml += `<div class="text-[9px] truncate px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-300">🏁 마감: ${p.name}</div>`;
+          });
+
+          grid.innerHTML += `
+            <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[125px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group shadow-2xs">
+              <div class="flex justify-between items-center font-mono font-bold text-xs text-slate-700">
+                <span>${d}</span>
+                <span class="text-[10px] text-purple-600 opacity-0 group-hover:opacity-100 font-normal">+추가</span>
+              </div>
+              <div class="space-y-1 overflow-hidden flex-1">${badgesHtml}</div>
+            </div>
+          `;
+        }
       }
 
-      for (let d = 1; d <= lastDate; d++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dayTasks = store.dailyTasks.filter(t => t.date === dateStr);
-        const dayEvents = (store.calendarEvents || []).filter(e => e.date === dateStr);
-        const dayProjects = store.projects.filter(p => p.endDate === dateStr);
+      renderCalendarEventList();
+    }
 
-        let badgesHtml = '';
+    function renderCalendarEventList() {
+      const listContainer = document.getElementById('calendarEventListView');
+      if (!listContainer) return;
 
-        dayEvents.forEach(e => {
-          let isMyTrip = e.type === '출장' && (e.attendees || []).includes('나');
-          let colorClass = 'bg-slate-100 text-slate-800';
+      const events = store.calendarEvents || [];
+      if (events.length === 0) {
+        listContainer.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">등록된 일정이 없습니다.</div>`;
+        return;
+      }
 
-          if (e.type === '출장') {
-            colorClass = isMyTrip 
-              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md ring-1 ring-purple-400' 
-              : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold';
-          } else if (e.type === '자료 요청') {
-            colorClass = 'bg-blue-100 text-blue-900 border border-blue-300 font-semibold';
-          } else if (e.type === '자료송부') {
-            colorClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-semibold';
-          } else if (e.type === '접수') {
-            colorClass = 'bg-indigo-100 text-indigo-900 border border-indigo-300 font-semibold';
-          }
+      events.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
-          let icon = e.type === '출장' ? '🚗' : e.type === '자료 요청' ? '📩' : e.type === '자료송부' ? '📤' : '📥';
-          let attStr = (e.attendees && e.attendees.length > 0) ? ` (${e.attendees.join(', ')})` : '';
+      let html = '';
+      events.forEach(e => {
+        const proj = (store.projects || []).find(p => p.id === e.projId);
+        const projName = proj ? proj.name : '공통 / 프로젝트 미지정';
+        let attStr = (e.attendees && e.attendees.length > 0) ? ` (${e.attendees.join(', ')})` : '';
 
-          badgesHtml += `
-            <div title="${e.title}${attStr}" class="text-[9.5px] truncate px-1.5 py-0.5 rounded-lg ${colorClass}">
-              ${icon} ${e.title}${attStr}
+        html += `
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center justify-between gap-3 text-xs shadow-2xs hover:bg-white transition">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-purple-700">${e.date}</span>
+                <span class="px-2 py-0.5 bg-purple-100 text-purple-900 rounded-full font-bold text-[10px]">${e.type}</span>
+                <span class="text-[10px] text-slate-500 font-semibold truncate max-w-[150px]">${projName}</span>
+              </div>
+              <div class="font-bold text-slate-900">${e.title}${attStr}</div>
+              ${e.desc ? `<div class="text-[11px] text-slate-600">${e.desc}</div>` : ''}
             </div>
-          `;
-        });
-
-        dayTasks.forEach(t => {
-          badgesHtml += `
-            <div title="${t.title}" class="text-[9px] truncate px-1.5 py-0.5 rounded ${t.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-slate-100 text-slate-800 border border-slate-200'}">
-              ☑ ${t.title}
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="openEditCalendarEventModal('${e.id}')" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-purple-50 hover:border-purple-300 text-purple-700 font-bold rounded-xl text-[11px] transition flex items-center gap-1">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> 수정
+              </button>
+              <button onclick="deleteCalendarEvent('${e.id}')" class="px-2 py-1 text-slate-400 hover:text-rose-600 transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
             </div>
-          `;
-        });
-
-        dayProjects.forEach(p => {
-          badgesHtml += `<div class="text-[9px] truncate px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-300">🏁 마감: ${p.name}</div>`;
-        });
-
-        grid.innerHTML += `
-          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[125px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group shadow-2xs">
-            <div class="flex justify-between items-center font-mono font-bold text-xs text-slate-700">
-              <span>${d}</span>
-              <span class="text-[10px] text-purple-600 opacity-0 group-hover:opacity-100 font-normal">+추가</span>
-            </div>
-            <div class="space-y-1 overflow-hidden flex-1">${badgesHtml}</div>
           </div>
         `;
-      }
+      });
+      listContainer.innerHTML = html;
     }
 
     function changeCalendarMonth(delta) {
@@ -1661,24 +843,153 @@
     }
 
     function clickCalendarCell(dateStr) {
-      document.getElementById('calEventDate').value = dateStr;
-      openAddCalendarEventModal();
+      openAddCalendarEventModal(dateStr);
     }
 
-    function openAddCalendarEventModal() {
+    function openAddCalendarEventModal(dateStr) {
+      editingCalEventId = null;
+      const titleEl = document.getElementById('calEventModalTitle');
+      if (titleEl) titleEl.innerText = "🗓️ 캘린더 일정 및 출장 동행자 직접 등록";
+
+      document.getElementById('calEventTitle').value = '';
+      document.getElementById('calEventDate').value = dateStr || new Date().toISOString().slice(0, 10);
+      document.getElementById('calEventType').value = '출장';
+
       const sel = document.getElementById('calEventProjId');
-      sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
-      store.projects.forEach(p => {
-        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-      });
-      if (!document.getElementById('calEventDate').value) {
-        document.getElementById('calEventDate').value = new Date().toISOString().slice(0,10);
+      if (sel) {
+        sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
+        (store.projects || []).forEach(p => {
+          sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
       }
-      document.getElementById('addCalendarEventModal').classList.remove('hidden');
+
+      const descEl = document.getElementById('calEventDesc');
+      if (descEl) descEl.value = '';
+
+      const attMySelf = document.getElementById('attMySelf');
+      if (attMySelf) attMySelf.checked = false;
+
+      toggleAttendeesBox('출장');
+
+      const delBtn = document.getElementById('calEventDeleteBtn');
+      if (delBtn) delBtn.classList.add('hidden');
+
+      const saveBtnText = document.getElementById('calEventSaveBtnText');
+      if (saveBtnText) saveBtnText.innerText = "일정 저장하기";
+
+      const modal = document.getElementById('addCalendarEventModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function openEditCalendarEventModal(eventId) {
+      const ev = (store.calendarEvents || []).find(e => e.id === eventId);
+      if (!ev) return;
+
+      editingCalEventId = eventId;
+      const titleEl = document.getElementById('calEventModalTitle');
+      if (titleEl) titleEl.innerText = "✏️ 캘린더 일정 수정 및 관리";
+
+      document.getElementById('calEventTitle').value = ev.title || '';
+      document.getElementById('calEventDate').value = ev.date || '';
+      document.getElementById('calEventType').value = ev.type || '출장';
+
+      const sel = document.getElementById('calEventProjId');
+      if (sel) {
+        sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
+        (store.projects || []).forEach(p => {
+          sel.innerHTML += `<option value="${p.id}" ${p.id === ev.projId ? 'selected' : ''}>${p.name}</option>`;
+        });
+      }
+
+      const descEl = document.getElementById('calEventDesc');
+      if (descEl) descEl.value = ev.desc || '';
+
+      const attMySelf = document.getElementById('attMySelf');
+      if (attMySelf) {
+        attMySelf.checked = (ev.attendees || []).includes('나');
+      }
+
+      toggleAttendeesBox(ev.type || '출장');
+
+      const delBtn = document.getElementById('calEventDeleteBtn');
+      if (delBtn) delBtn.classList.remove('hidden');
+
+      const saveBtnText = document.getElementById('calEventSaveBtnText');
+      if (saveBtnText) saveBtnText.innerText = "수정 완료";
+
+      const modal = document.getElementById('addCalendarEventModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
     }
 
     function closeAddCalendarEventModal() {
-      document.getElementById('addCalendarEventModal').classList.add('hidden');
+      editingCalEventId = null;
+      const modal = document.getElementById('addCalendarEventModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveCalendarEvent() {
+      const title = document.getElementById('calEventTitle').value.trim();
+      const date = document.getElementById('calEventDate').value;
+      const type = document.getElementById('calEventType').value;
+      const projId = document.getElementById('calEventProjId').value;
+      const descEl = document.getElementById('calEventDesc');
+      const desc = descEl ? descEl.value.trim() : '';
+
+      if (!title) { alert("일정 제목을 입력해 주세요."); return; }
+      if (!date) { alert("일정 날짜를 선택해 주세요."); return; }
+
+      let attendees = [];
+      if (type === '출장') {
+        const attMySelf = document.getElementById('attMySelf');
+        if (attMySelf && attMySelf.checked) {
+          attendees.push('나');
+        }
+      }
+
+      if (!store.calendarEvents) store.calendarEvents = [];
+
+      if (editingCalEventId) {
+        const idx = store.calendarEvents.findIndex(e => e.id === editingCalEventId);
+        if (idx !== -1) {
+          store.calendarEvents[idx] = {
+            ...store.calendarEvents[idx],
+            title: title,
+            date: date,
+            type: type,
+            projId: projId,
+            desc: desc,
+            attendees: attendees
+          };
+        }
+      } else {
+        const newEv = {
+          id: "e_" + Date.now(),
+          title: title,
+          date: date,
+          type: type,
+          projId: projId,
+          desc: desc,
+          attendees: attendees
+        };
+        store.calendarEvents.push(newEv);
+      }
+
+      saveStore();
+      closeAddCalendarEventModal();
+      renderAll();
+    }
+
+    function deleteCalendarEvent(eventId) {
+      const targetId = eventId || editingCalEventId;
+      if (!targetId) return;
+      if (confirm("이 일정을 정말 삭제하시겠습니까?")) {
+        store.calendarEvents = (store.calendarEvents || []).filter(e => e.id !== targetId);
+        saveStore();
+        closeAddCalendarEventModal();
+        renderAll();
+      }
     }
 
     function toggleAttendeesBox(typeVal) {
