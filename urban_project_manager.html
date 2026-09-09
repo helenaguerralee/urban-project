@@ -778,7 +778,9 @@
 
           </div>
 
-                <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
+                </div>
+
+        <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
         <div id="panel-release" class="tab-panel hidden space-y-6 w-full max-w-5xl mx-auto">
           <!-- Top Header -->
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200/80 pb-4">
@@ -3832,122 +3834,6 @@
       closeAddCalendarEventModal();
       renderCalendar();
     }
-
-    function _old_openAddCalendarEventModal() {
-
-      const sel = document.getElementById('calEventProjId');
-
-      sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
-
-      store.projects.forEach(p => {
-
-        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-
-      });
-
-      if (!document.getElementById('calEventDate').value) {
-
-        document.getElementById('calEventDate').value = new Date().toISOString().slice(0,10);
-
-      }
-
-      document.getElementById('addCalendarEventModal').classList.remove('hidden');
-
-    }
-
-
-
-    function closeAddCalendarEventModal() {
-
-      document.getElementById('addCalendarEventModal').classList.add('hidden');
-
-    }
-
-
-
-    function toggleAttendeesBox(typeVal) {
-
-      const box = document.getElementById('attendeesBox');
-
-      if (typeVal === '출장') {
-
-        box.classList.remove('hidden');
-
-      } else {
-
-        box.classList.add('hidden');
-
-      }
-
-    }
-
-
-
-    function saveCalendarEvent() {
-
-      const title = document.getElementById('calEventTitle').value.trim();
-
-      if (!title) { alert("일정 제목을 입력해 주세요."); return; }
-
-
-
-      const type = document.getElementById('calEventType').value;
-
-      let selectedAttendees = [];
-
-
-
-      if (type === '출장') {
-
-        if (document.getElementById('att_me').checked) selectedAttendees.push('나');
-
-        if (document.getElementById('att_kim').checked) selectedAttendees.push('김아현 이사님');
-
-        if (document.getElementById('att_jang').checked) selectedAttendees.push('장민선 과장님');
-
-        if (document.getElementById('att_choi').checked) selectedAttendees.push('최지율 주임님');
-
-        if (document.getElementById('att_lee').checked) selectedAttendees.push('이상호 주임님');
-
-      }
-
-
-
-      const newEv = {
-
-        id: "e_" + Date.now(),
-
-        title: title,
-
-        date: document.getElementById('calEventDate').value,
-
-        type: type,
-
-        projId: document.getElementById('calEventProjId').value,
-
-        attendees: selectedAttendees,
-
-        desc: document.getElementById('calEventDesc').value
-
-      };
-
-
-
-      if (!store.calendarEvents) store.calendarEvents = [];
-
-      store.calendarEvents.push(newEv);
-
-      saveStore();
-
-      closeAddCalendarEventModal();
-
-      document.getElementById('calEventTitle').value = '';
-
-      document.getElementById('calEventDesc').value = '';
-
-    }
-
-
 
     // 5. CAREER MANAGEMENT LOGS & RESUME SOURCES
 
