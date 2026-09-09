@@ -599,7 +599,7 @@
 
         <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100 space-y-2">
           <label class="text-[11px] font-bold text-indigo-900 block">🌐 Firebase Database URL 또는 Config JSON</label>
-          <input type="text" id="firebaseUrlInput" placeholder="https://urban-project-default-rtdb.firebaseio.com" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs font-mono text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="firebaseUrlInput" value="https://urban-project-ed906-default-rtdb.firebaseio.com/" class="w-full bg-white border border-indigo-200 rounded-xl px-3 py-2 text-xs font-mono text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1 text-[11px] text-slate-600">
@@ -1780,8 +1780,8 @@
 
     document.getElementById('dailyLogDatePicker').value = new Date().toISOString().slice(0,10);
     loadStore();
-    const savedFbUrl = localStorage.getItem('urban_firebase_url');
-    if (savedFbUrl) initFirebaseSync(savedFbUrl);
+    const savedFbUrl = localStorage.getItem('urban_firebase_url') || 'https://urban-project-ed906-default-rtdb.firebaseio.com/';
+    initFirebaseSync(savedFbUrl);
     renderAll();
   </script>
 </body>
