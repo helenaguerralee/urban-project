@@ -1323,13 +1323,19 @@
         </div>
 
         <div class="space-y-1">
-          <label class="block font-bold text-slate-700 mb-1">🏷️ 업무 테마 / 주제 (직접 입력)</label>
+          <label class="block font-bold text-slate-700 mb-1">🏷️ 업무 테마 / 주제 (선택)</label>
           <input type="text" id="editTaskTheme" placeholder="예: 1차 관련부서 협의 조치계획 첨부자료" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-purple-500 transition">
         </div>
 
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">📝 수행할 세부 내용 (To-Do)</label>
-          <textarea id="editTaskTitle" rows="3" placeholder="예: 관련부서 의견 조치계획서 작성 및 협의도서 첨부" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-emerald-500 transition resize-none"></textarea>
+        <div class="space-y-2 pt-1">
+          <div class="flex justify-between items-center">
+            <label class="block font-bold text-slate-700">📝 세부 할 일 체크리스트 (항목별 체크 및 수정)</label>
+            <button type="button" onclick="addChecklistRow('editTaskChecklistContainer')" class="text-[11px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> + 항목 추가
+            </button>
+          </div>
+          <div id="editTaskChecklistContainer" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+          <div class="text-[10.5px] text-slate-400">💡 Tip: 각 항목의 체크박스를 눌러 개별 완료 상태를 변경하거나, ✕ 버튼으로 삭제할 수 있습니다.</div>
         </div>
       </div>
 
@@ -3453,37 +3459,171 @@
 
 
 
-    function openAddTaskModal() {
+    // Checklist Dynamic Row Management
+    function addChecklistRow(containerId, text = '', completed = false) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
 
-      const sel = document.getElementById('newTaskProjId');
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 checklist-item-row bg-slate-50/80 p-1.5 rounded-xl border border-slate-200';
+      row.innerHTML = `
+        <input type="checkbox" ${completed ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded cursor-pointer shrink-0 accent-emerald-600" title="완료 체크">
+        <input type="text" value="${(text || '').replace(/"/g, '&quot;')}" placeholder="세부 할 일을 입력하세요 (예: 조치계획서 작성)" class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:border-blue-500 transition checklist-item-text">
+        <button type="button" onclick="removeChecklistRow(this)" class="text-slate-300 hover:text-rose-500 p-1 rounded-md shrink-0 transition" title="항목 삭제"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+      `;
 
-      sel.innerHTML = '';
-
-      if (store.projects.length === 0) {
-
-        alert("먼저 [ 1. 프로젝트 마스터 ] 탭에서 프로젝트를 등록해 주세요!");
-
-        switchTab('master');
-
-        return;
-
-      }
-
-      store.projects.forEach(p => {
-
-        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-
+      const inputEl = row.querySelector('.checklist-item-text');
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addChecklistRow(containerId, '', false);
+        }
       });
 
-      document.getElementById('newTaskDate').value = document.getElementById('dailyLogDatePicker').value;
-      if (document.getElementById('newTaskTheme')) document.getElementById('newTaskTheme').value = '';
-      if (document.getElementById('newTaskTitle')) document.getElementById('newTaskTitle').value = '';
+      inputEl.addEventListener('paste', (e) => {
+        const pasteText = (e.clipboardData || window.clipboardData).getData('text');
+        if (pasteText && (pasteText.includes('\n') || /(?=\s+\d+[\.\)]\s+)/.test(pasteText))) {
+          e.preventDefault();
+          const lines = pasteText.split(/(?=\s+\d+[\.\)]\s+)|[\r\n]+/).map(s => s.trim()).filter(Boolean);
+          if (lines.length > 0) {
+            inputEl.value = lines[0];
+            for (let i = 1; i < lines.length; i++) {
+              addChecklistRow(containerId, lines[i], false);
+            }
+          }
+        }
+      });
 
-      document.getElementById('addTaskModal').classList.remove('hidden');
-
+      container.appendChild(row);
+      if (window.lucide) lucide.createIcons();
+      inputEl.focus();
     }
 
-    
+    function removeChecklistRow(btn) {
+      const row = btn.closest('.checklist-item-row');
+      const container = row ? row.parentElement : null;
+      if (row) row.remove();
+      if (container && container.querySelectorAll('.checklist-item-row').length === 0) {
+        addChecklistRow(container.id, '', false);
+      }
+    }
+
+    function getChecklistDataFromContainer(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return [];
+      const rows = container.querySelectorAll('.checklist-item-row');
+      const items = [];
+      rows.forEach((row, idx) => {
+        const chk = row.querySelector('input[type="checkbox"]');
+        const txt = row.querySelector('.checklist-item-text');
+        const textVal = txt ? txt.value.trim() : '';
+        if (textVal) {
+          items.push({
+            id: 'it_' + Date.now() + '_' + idx,
+            text: textVal,
+            completed: chk ? chk.checked : false
+          });
+        }
+      });
+      return items;
+    }
+
+    function toggleChecklistItem(taskId, itemId) {
+      store = sanitizeStore(store);
+      const task = store.dailyTasks.find(t => t.id === taskId);
+      if (!task || !task.items) return;
+      const item = task.items.find(it => it.id === itemId);
+      if (!item) return;
+
+      item.completed = !item.completed;
+      const wasCompleted = task.completed;
+      task.completed = task.items.length > 0 && task.items.every(it => it.completed);
+
+      if (!wasCompleted && task.completed) {
+        autoSyncCareerFromCompletedTasks();
+      }
+
+      saveStore();
+      renderDailyTasks();
+      renderProjectSummaryBoard();
+    }
+
+    function openAddTaskModal() {
+      const sel = document.getElementById('newTaskProjId');
+      sel.innerHTML = '';
+      if (!store.projects || store.projects.length === 0) {
+        alert("등록된 프로젝트가 없습니다. 먼저 1번 메뉴에서 프로젝트를 생성해 주세요.");
+        switchTab('master');
+        return;
+      }
+      store.projects.forEach(p => {
+        sel.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+      });
+
+      document.getElementById('newTaskDate').value = document.getElementById('dailyLogDatePicker').value || getTodayDateStr();
+      if (document.getElementById('newTaskTheme')) document.getElementById('newTaskTheme').value = '';
+
+      const container = document.getElementById('newTaskChecklistContainer');
+      if (container) {
+        container.innerHTML = '';
+        addChecklistRow('newTaskChecklistContainer', '', false);
+      }
+
+      document.getElementById('addTaskModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeAddTaskModal() {
+      const modal = document.getElementById('addTaskModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveNewTask() {
+      store = sanitizeStore(store);
+      const themeEl = document.getElementById('newTaskTheme');
+      const dateEl = document.getElementById('newTaskDate');
+      const projEl = document.getElementById('newTaskProjId');
+
+      const theme = themeEl ? themeEl.value.trim() : '';
+      const items = getChecklistDataFromContainer('newTaskChecklistContainer');
+      if (items.length === 0) {
+        alert("수행할 세부 할 일 항목을 최소 1개 이상 입력해 주세요.");
+        return;
+      }
+
+      const taskDate = (dateEl && dateEl.value) ? dateEl.value : (document.getElementById('dailyLogDatePicker').value || getTodayDateStr());
+      const projId = (projEl && projEl.value) ? projEl.value : (store.projects[0] ? store.projects[0].id : '');
+
+      const isCompleted = items.every(it => it.completed);
+
+      const newTask = {
+        id: "t_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+        projId: projId,
+        date: taskDate,
+        theme: theme,
+        title: items.map(it => it.text).join(' '),
+        items: items,
+        completed: isCompleted
+      };
+
+      store.dailyTasks.push(newTask);
+
+      const picker = document.getElementById('dailyLogDatePicker');
+      if (picker) {
+        picker.value = taskDate;
+      }
+
+      if (isCompleted) {
+        autoSyncCareerFromCompletedTasks();
+      }
+
+      saveStore();
+      closeAddTaskModal();
+      if (themeEl) themeEl.value = '';
+      renderDailyTasks();
+      renderProjectSummaryBoard();
+    }
+
     function openEditTaskModal(id) {
       store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
@@ -3509,8 +3649,16 @@
       document.getElementById('editTaskId').value = t.id;
       document.getElementById('editTaskDate').value = t.date || getTodayDateStr();
       document.getElementById('editTaskTheme').value = t.theme || '';
-      document.getElementById('editTaskTitle').value = t.title || '';
       document.getElementById('editTaskCompleted').value = t.completed ? 'true' : 'false';
+
+      const container = document.getElementById('editTaskChecklistContainer');
+      if (container) {
+        container.innerHTML = '';
+        const items = Array.isArray(t.items) && t.items.length > 0 ? t.items : [{ id: 'it_0', text: t.title, completed: !!t.completed }];
+        items.forEach(it => {
+          addChecklistRow('editTaskChecklistContainer', it.text, it.completed);
+        });
+      }
 
       modal.classList.remove('hidden');
       if (window.lucide) lucide.createIcons();
@@ -3527,11 +3675,9 @@
       const t = store.dailyTasks.find(x => x.id === id);
       if (!t) return;
 
-      const titleEl = document.getElementById('editTaskTitle');
-      const title = titleEl ? titleEl.value.trim() : '';
-      if (!title) {
-        alert("수행할 세부 내용을 입력해 주세요.");
-        if (titleEl) titleEl.focus();
+      const items = getChecklistDataFromContainer('editTaskChecklistContainer');
+      if (items.length === 0) {
+        alert("수행할 세부 할 일 항목을 최소 1개 이상 입력해 주세요.");
         return;
       }
 
@@ -3543,9 +3689,18 @@
       t.projId = projEl ? projEl.value : t.projId;
       t.date = dateEl && dateEl.value ? dateEl.value : t.date;
       t.theme = themeEl ? themeEl.value.trim() : '';
-      t.title = title;
+      t.items = items;
+      t.title = items.map(it => it.text).join(' ');
+
       const wasCompleted = t.completed;
-      t.completed = completedEl ? (completedEl.value === 'true') : t.completed;
+      if (completedEl && completedEl.value === 'true') {
+        t.completed = true;
+        t.items.forEach(it => it.completed = true);
+      } else if (completedEl && completedEl.value === 'false') {
+        t.completed = false;
+      } else {
+        t.completed = items.every(it => it.completed);
+      }
 
       if (!wasCompleted && t.completed) {
         autoSyncCareerFromCompletedTasks();
@@ -3560,55 +3715,8 @@
       closeEditTaskModal();
       renderDailyTasks();
       renderProjectSummaryBoard();
+      alert("업무 수정이 성공적으로 저장되었습니다!");
     }
-
-    function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
-
-    function saveNewTask() {
-      store = sanitizeStore(store);
-      const themeEl = document.getElementById('newTaskTheme');
-      const titleEl = document.getElementById('newTaskTitle');
-      const dateEl = document.getElementById('newTaskDate');
-      const projEl = document.getElementById('newTaskProjId');
-
-      const theme = themeEl ? themeEl.value.trim() : '';
-      const title = titleEl ? titleEl.value.trim() : '';
-      if (!title) {
-        alert("수행할 세부 내용을 입력해 주세요.");
-        if (titleEl) titleEl.focus();
-        return;
-      }
-
-      const taskDate = (dateEl && dateEl.value) ? dateEl.value : (document.getElementById('dailyLogDatePicker').value || getTodayDateStr());
-      const projId = (projEl && projEl.value) ? projEl.value : (store.projects[0] ? store.projects[0].id : '');
-
-      const newTask = {
-        id: "t_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
-        projId: projId,
-        date: taskDate,
-        theme: theme,
-        title: title,
-        completed: false
-      };
-
-      store.dailyTasks.push(newTask);
-
-      // Automatically switch the dailyLogDatePicker to the new task's date so user sees it right away!
-      const picker = document.getElementById('dailyLogDatePicker');
-      if (picker) {
-        picker.value = taskDate;
-      }
-
-      saveStore();
-      closeAddTaskModal();
-      if (themeEl) themeEl.value = '';
-      if (titleEl) titleEl.value = '';
-      renderDailyTasks();
-    }
-
-
-
-    // 3. PROJECT SUMMARY BOARD
 
     function renderProjectSummaryBoard() {
 
