@@ -797,8 +797,299 @@
                 </div>
 
         <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
+        <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
         <div id="panel-release" class="tab-panel hidden space-y-6 w-full max-w-5xl mx-auto">
-          <!-- DYNAMIC RELEASE NOTES CONTAINER -->
+          <!-- Top Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200/80 pb-4">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>릴리즈 기록</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">실시간 자동 반영됨</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
+            </div>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.6.0</span>
+          </div>
+
+          <!-- 3 Stats Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.6.0</div>
+              <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold text-slate-400 block mb-1">총 릴리즈 횟수</span>
+              <div class="text-2xl sm:text-3xl font-black text-emerald-600 font-mono tracking-tight">11<span class="text-base font-normal text-slate-600 ml-1">회</span></div>
+              <div class="text-xs text-slate-500 mt-1.5">고친 문제 및 개선 26건 완비</div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-semibold text-slate-400 block mb-1">릴리즈 담당자</span>
+              <div class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">도시계획팀</div>
+              <div class="text-xs text-slate-500 mt-1.5">도시계획 업무관리 포털</div>
+            </div>
+          </div>
+
+          <!-- Latest Release Box (v1.6.0) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="h-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-600 w-full"></div>
+            <div class="p-5 sm:p-7 space-y-6">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-4">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-base sm:text-lg font-bold text-slate-900 font-mono">
+                    v1.6.0 · 🛡️ 데이터 유실 방지 5중 안전망(타임머신 복구함/휴지통/양방향 머지), 📋 전체 날짜 모아보기, 🏷️ '경력 소스' 배지 통일
+                  </h3>
+                  <span class="px-2 py-0.5 bg-purple-100 text-purple-800 text-[11px] font-bold rounded-md">최신 릴리즈</span>
+                </div>
+                <div class="text-xs text-slate-400 font-mono shrink-0">2026-09-10 · 개선 및 조치 3건</div>
+              </div>
+
+              <div class="space-y-2.5">
+                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 바뀐 점 및 신규 기능
+                </h4>
+                <ul class="text-xs sm:text-sm text-slate-700 space-y-2 list-disc list-inside leading-relaxed pl-1">
+                  <li><strong>🛡️ [데이터 안전 복구함] 신설</strong>: 상단 헤더 및 2번 탭에 초록색 [🛡️ 데이터 안전 복구함] 버튼 탑재. 자동 저장된 최근 50회 스냅샷 및 삭제 업무 휴지통 원클릭 복원 지원.</li>
+                  <li><strong>🔄 [비파괴 양방향 지능형 머지]</strong>: Firebase 클라우드 동기화 시 로컬에만 있는 할 일을 절대 덮어쓰지 않고 합집합(Union Merge)으로 안전 보존 및 클라우드 역전송.</li>
+                  <li><strong>📋 [전체 날짜 모아보기]</strong>: 2번 일자별 업무 탭에 [📋 전체 날짜 모아보기] 토글 버튼을 추가하여 날짜 오기입이나 특정 일자 필터링으로 인한 업무 미표시 현상 완전 해소.</li>
+                  <li><strong>🏷️ [상단 배지 명칭 개선]</strong>: 헤더 요약 통계 배지를 '경력/이직 소스'에서 직관적인 '경력 소스'로 전면 수정.</li>
+                </ul>
+              </div>
+
+              <div class="space-y-2.5 pt-2">
+                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span> 고친 문제 및 개선 3건
+                </h4>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                        <th class="p-3 w-1/4 min-w-[140px]">증상</th>
+                        <th class="p-3 w-1/3 min-w-[200px]">원인</th>
+                        <th class="p-3 w-5/12 min-w-[240px]">조치</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-800 leading-relaxed">
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-3 font-semibold text-slate-900 align-top">어제 등록했던 할 일 1건이 브라우저에서 사라지는 현상 발생</td>
+                        <td class="p-3 text-slate-600 align-top">Firebase 실시간 클라우드 동기화 시 원격 스냅샷이 로컬 데이터를 검증 없이 덮어써버려(store = cleanRemote), 클라우드 미전송 로컬 할 일이 유실됨</td>
+                        <td class="p-3 text-slate-700 align-top"><strong>비파괴 양방향 머지(Union Merge) 알고리즘 확립, 로컬 할 일 무조건 보존 및 자동 롤링 스냅샷(50회)과 안전 휴지통 구축</strong></td>
+                      </tr>
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-3 font-semibold text-slate-900 align-top">날짜를 착각하거나 오기입하여 등록한 업무가 현재 날짜 화면에서 보이지 않아 유실된 것으로 오인</td>
+                        <td class="p-3 text-slate-600 align-top">일자별 리스트가 오직 선택된 1개 날짜(t.date === dateVal)만 필터링하여 노출함</td>
+                        <td class="p-3 text-slate-700 align-top"><strong>2번 탭 상단에 [📋 전체 날짜 모아보기] 토글 버튼을 추가하여 날짜와 무관하게 전수 조회 가능하도록 조치</strong></td>
+                      </tr>
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-3 font-semibold text-slate-900 align-top">데이터 안전 복구함 버튼이 화면에서 바로 보이지 않는 문제</td>
+                        <td class="p-3 text-slate-600 align-top">복구함 모달 함수는 선언되었으나 트리거 버튼이 헤더 및 툴바 DOM에 정확히 마운트되지 않음</td>
+                        <td class="p-3 text-slate-700 align-top"><strong>최상단 헤더(모바일 연결 버튼 옆)와 2번 탭 툴바(업무 추가 버튼 옆) 2곳에 초록색 [🛡️ 데이터 안전 복구함] 버튼 마운트</strong></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Past Releases Accordion -->
+          <div class="space-y-3">
+            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">지난 릴리즈 10개 — 눌러서 펼칩니다</h4>
+
+            <!-- Past: v1.5.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.5.0 · ☑️ 일자별 업무 세부 할 일 '개별 체크박스' 작성 및 실시간 진행률(%) 연동</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-10 · 고친 문제 1건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <div>
+                  <strong class="text-slate-800 font-bold block mb-1.5">바뀐 점:</strong>
+                  <ul class="list-disc list-inside space-y-1 text-slate-700 pl-1 leading-relaxed">
+                    <li>업무 등록/수정 모달에서 [+ 항목 추가] 또는 [Enter] 키로 세부 할 일을 개별 체크박스 행으로 분할 입력 지원</li>
+                    <li>여러 줄 텍스트 복사 붙여넣기 시 각 줄을 개별 체크박스로 자동 변환</li>
+                    <li>업무 카드 본문 체크리스트 개별 체크 & 실시간 진행률(X / Y 완료 %) 연동</li>
+                  </ul>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl mt-2">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-700"><th class="p-2.5">증상</th><th class="p-2.5">원인</th><th class="p-2.5">조치</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700 leading-relaxed">
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-2.5 font-medium text-slate-900 align-top">하나의 업무에 여러 세부 할 일이 있을 때 개별적으로 체크하거나 진행 상태를 파악하기 어려움</td>
+                        <td class="p-2.5 text-slate-600 align-top">업무가 단일 title 문자열로 저장되고 단 하나의 체크박스로만 완료 여부를 판정함</td>
+                        <td class="p-2.5 text-slate-800 align-top"><strong>items: [{id, text, completed}] 구조 도입 및 개별 체크박스 토글(toggleChecklistItem) 엔진 구축</strong></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+
+            <!-- Past: v1.4.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.4.0 · 🛠️ 일자별 업무 수정 모달(editTaskModal) 정식 탑재 및 한국 표준시(KST) 날짜 자동 보정</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-10 · 고친 문제 2건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <div>
+                  <strong class="text-slate-800 font-bold block mb-1.5">바뀐 점:</strong>
+                  <ul class="list-disc list-inside space-y-1 text-slate-700 pl-1 leading-relaxed">
+                    <li>일자별 업무 및 프로젝트별 업무 보드에서 [수정] 아이콘 클릭 시 전용 수정 모달 연동 및 저장</li>
+                    <li>오늘 날짜 계산 함수 getTodayDateStr() 도입으로 KST 한국 시간 자동 보정</li>
+                    <li>주간업무 탭 원복 및 클린 7탭 레이아웃 복원</li>
+                  </ul>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl mt-2">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200 font-semibold text-slate-700"><th class="p-2.5">증상</th><th class="p-2.5">원인</th><th class="p-2.5">조치</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700 leading-relaxed">
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-2.5 font-medium text-slate-900 align-top">등록된 일자별 업무의 [수정] 버튼을 눌러도 반응이 없고 수정 창이 열리지 않음</td>
+                        <td class="p-2.5 text-slate-600 align-top">수정 모달 HTML(editTaskModal) 태그가 DOM에 누락되어 있음</td>
+                        <td class="p-2.5 text-slate-800 align-top"><strong>editTaskModal HTML을 완비하고 기존 데이터 바인딩 및 저장 함수 정상화</strong></td>
+                      </tr>
+                      <tr class="hover:bg-slate-50/50">
+                        <td class="p-2.5 font-medium text-slate-900 align-top">9월 10일 아침에 접속했는데 오늘 날짜 기본값이 9월 9일로 잘못 잡힘</td>
+                        <td class="p-2.5 text-slate-600 align-top">new Date().toISOString().split('T')[0]가 UTC 기준시를 반환하여 한국시간 오전 9시 이전에는 전날 날짜가 반환됨</td>
+                        <td class="p-2.5 text-slate-800 align-top"><strong>Intl.DateTimeFormat 기반 KST(Asia/Seoul) 로컬 날짜 계산 함수 getTodayDateStr()로 교체</strong></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+
+            <!-- Past: v1.3.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.3.0 · 🏷️ 업무 '테마(주제)' & '세부 To-Do' 분리 등록 및 전용 배지 시스템 탑재</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-09 · 고친 문제 3건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <div>
+                  <strong class="text-slate-800 font-bold block mb-1.5">바뀐 점:</strong>
+                  <ul class="list-disc list-inside space-y-1 text-slate-700 pl-1 leading-relaxed">
+                    <li>업무 등록 모달 입력 필드 전격 분리: [🏷️ 업무 테마 / 주제 (직접 입력)]와 [📝 수행할 세부 내용 (To-Do)] 분리</li>
+                    <li>일자별 업무 리스트 🏷️ 보라색 테마 배지 표시</li>
+                    <li>캘린더·프로젝트별 현황·5번 경력관리 자동 연계</li>
+                  </ul>
+                </div>
+              </div>
+            </details>
+
+            <!-- Past: v1.2.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.2.0 · 🌐 Firebase 호스팅 이관 및 캘린더 일정 실시간 편집·삭제 지원</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-09 · 고친 문제 3건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>Google Firebase Hosting(https://urban-project-ed906.web.app) 단일 프로덕션 배포 파이프라인 구축 및 캘린더 일정 수정 모달 연동</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.1.2 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.1.2 · 💾 사용자 백업 데이터 영구 보존 및 긴급 [🔄 복구] 버튼 신설</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-09 · 고친 문제 2건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>사용자 백업 JSON 파일(용인 80%, 분당 20%, 계산 10%, 광명 7%, 작전 10%)을 시스템 코드 기본값으로 영구 박제 및 원클릭 복구 지원</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.1.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.1.0 · ⚡ 실시간 클라우드 DB 연동 및 모바일 연동 상태 표시등 탑재</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-09 · 고친 문제 3건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>Firebase Realtime Database 실시간 클라우드 동기화 모듈 탑재 및 모바일 화면 연동등 추가</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.0.3 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.0.3 · 👥 캘린더 동행자 선택 및 '나' 포함 시 보라색 강조 표시</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-08 · 고친 문제 2건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>출장 등록 시 동행자 선택 체크박스 추가 및 '나' 포함 시 보라색 뱃지 강조</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.0.2 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.0.2 · 📱 모바일 상단 6대 메뉴 가로 스크롤 및 반응형 레이아웃 개선</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-08 · 고친 문제 3건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>모바일 상단 메뉴 가로 스와이프 기능 적용 및 내비게이션 바 개선</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.0.1 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.0.1 · 🛠️ 리포트헬퍼(ReportHelper) 문서 검수 및 도면 변환 툴 통합</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-05 · 고친 문제 2건</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>보고서 윤문 3버전 생성, 엑셀 수치 분석, 50p 도서 오타 스캔 툴을 시스템 6번째 탭으로 통합 임베드</p>
+              </div>
+            </details>
+
+            <!-- Past: v1.0.0 -->
+            <details class="bg-white rounded-2xl border border-slate-200 shadow-2xs group overflow-hidden">
+              <summary class="p-4 sm:p-5 flex justify-between items-center cursor-pointer select-none hover:bg-slate-50 transition list-none">
+                <div class="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 font-mono">
+                  <span class="text-slate-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                  <span>v1.0.0 · 🚀 도시계획 경력 및 마스터 프로젝트 관리 시스템 최초 공식 런칭</span>
+                </div>
+                <span class="text-xs text-slate-400 font-mono shrink-0">2026-09-01 · 최초 구축</span>
+              </summary>
+              <div class="px-5 pb-5 pt-2 border-t border-slate-100 text-xs text-slate-600 space-y-3">
+                <p>프로젝트 마스터 공정률 관리, 일자별 업무 체크리스트, 프로젝트별 업무 정리, 월간 캘린더, 경력관리 포트폴리오 최초 통합 런칭</p>
+              </div>
+            </details>
+          </div>
         </div>
 
 
@@ -2030,6 +2321,7 @@
       } catch(e) {}
 
       autoSyncCareerFromCompletedTasks();
+      if (typeof ensureBaselineSnapshot === 'function') ensureBaselineSnapshot();
     }
 
     
@@ -2589,6 +2881,7 @@
       const targetPanel = document.getElementById('panel-' + tabKey);
 
       if (targetPanel) targetPanel.classList.remove('hidden');
+      if (tabKey === 'release') renderReleaseNotes();
 
 
 
@@ -3698,6 +3991,7 @@
 
     
     function openRecoveryModal() {
+      ensureBaselineSnapshot();
       renderRecoveryModalUI();
       const modal = document.getElementById('recoveryModal');
       if (modal) modal.classList.remove('hidden');
@@ -3709,50 +4003,155 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    function ensureBaselineSnapshot() {
+      try {
+        const historyKey = 'urban_snapshot_history_v1';
+        let history = [];
+        try {
+          const raw = localStorage.getItem(historyKey);
+          if (raw) history = JSON.parse(raw);
+        } catch(e) {}
+        if (!Array.isArray(history) || history.length === 0) {
+          const now = Date.now();
+          const snap = {
+            time: now,
+            iso: new Date(now).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+            taskCount: Array.isArray(store.dailyTasks) ? store.dailyTasks.length : 0,
+            projectCount: Array.isArray(store.projects) ? store.projects.length : 0,
+            label: "기준 복원 시점 (초기 자동 생성)",
+            data: JSON.parse(JSON.stringify(store))
+          };
+          localStorage.setItem(historyKey, JSON.stringify([snap]));
+        }
+      } catch(e) {
+        console.warn("Baseline snapshot failed:", e);
+      }
+    }
+
+    function takeManualSnapshot() {
+      store = sanitizeStore(store);
+      const now = Date.now();
+      const snap = {
+        time: now,
+        iso: new Date(now).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+        taskCount: Array.isArray(store.dailyTasks) ? store.dailyTasks.length : 0,
+        projectCount: Array.isArray(store.projects) ? store.projects.length : 0,
+        label: "사용자 수동 생성 백업",
+        data: JSON.parse(JSON.stringify(store))
+      };
+      const historyKey = 'urban_snapshot_history_v1';
+      let history = [];
+      try {
+        const raw = localStorage.getItem(historyKey);
+        if (raw) history = JSON.parse(raw);
+      } catch(e) {}
+      if (!Array.isArray(history)) history = [];
+      history.unshift(snap);
+      if (history.length > 50) history = history.slice(0, 50);
+      localStorage.setItem(historyKey, JSON.stringify(history));
+      renderRecoveryModalUI();
+      alert("현재 상태가 새로운 복원 스냅샷으로 즉시 저장되었습니다!");
+    }
+
     function renderRecoveryModalUI() {
       const snapshotList = document.getElementById('snapshotHistoryList');
       const trashList = document.getElementById('trashTaskList');
       if (!snapshotList || !trashList) return;
 
-      // 1. Render Snapshots
+      ensureBaselineSnapshot();
+
       let history = [];
       try {
         const raw = localStorage.getItem('urban_snapshot_history_v1');
         if (raw) history = JSON.parse(raw);
       } catch(e) {}
 
-      if (history.length === 0) {
-        snapshotList.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">아직 저장된 스냅샷이 없습니다.</div>';
-      } else {
-        snapshotList.innerHTML = history.slice(0, 20).map((snap, idx) => `
-          <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-indigo-50/50 transition">
-            <div class="space-y-0.5 min-w-0 flex-1">
-              <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                ${snap.iso || new Date(snap.time).toLocaleString('ko-KR')}
-                ${idx === 0 ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold">최신</span>' : ''}
+      // Legacy keys
+      const legacyItems = [];
+      ['urban_clean_store_v10', 'urban_clean_store_v9'].forEach(k => {
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            legacyItems.push({
+              key: k,
+              label: `이전 버전 로컬 백업 (${k})`,
+              taskCount: (parsed.dailyTasks || []).length,
+              projectCount: (parsed.projects || []).length
+            });
+          }
+        } catch(e) {}
+      });
+
+      snapshotList.innerHTML = `
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl text-xs mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <div>
+              <div class="font-bold text-emerald-900 flex items-center gap-1.5">
+                <span>🟢 실시간 자동 백업 시스템 가동 중</span>
               </div>
-              <div class="text-slate-500 text-[11px]">업무 ${snap.taskCount || 0}건 · 프로젝트 ${snap.projectCount || 0}개</div>
+              <div class="text-[11px] text-emerald-700 mt-0.5">현재 보관된 스냅샷 <strong>${history.length}개</strong> · 현재 등록 업무 <strong>${(store.dailyTasks || []).length}건</strong></div>
             </div>
-            <button onclick="restoreFromSnapshot(${snap.time})" class="px-2.5 py-1.5 bg-white hover:bg-blue-600 hover:text-white text-blue-700 font-bold rounded-lg border border-blue-200 shadow-xs transition shrink-0 ml-2">
-              이 시점으로 복원
+          </div>
+          <div class="flex items-center gap-1.5 w-full sm:w-auto shrink-0 justify-end">
+            <button type="button" onclick="takeManualSnapshot()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition text-xs flex items-center gap-1">
+              <i data-lucide="camera" class="w-3.5 h-3.5"></i> 📸 지금 상태 즉시 저장
+            </button>
+            <button type="button" onclick="restoreDefaultProjectsData()" class="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-300 shadow-xs transition text-xs flex items-center gap-1" title="공식 5대 사업 초기 데이터 복구">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 5대 사업 원본
             </button>
           </div>
-        `).join('');
-      }
+        </div>
 
-      // 2. Render Trash Tasks
+        <div class="space-y-2">
+          ${history.map((snap, idx) => `
+            <div class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl text-xs hover:border-blue-400 hover:shadow-xs transition">
+              <div class="space-y-0.5 min-w-0 flex-1">
+                <div class="font-bold text-slate-800 flex flex-wrap items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full ${idx === 0 ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
+                  <span>${snap.iso || new Date(snap.time).toLocaleString('ko-KR')}</span>
+                  <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium">${snap.label || '스냅샷'}</span>
+                  ${idx === 0 ? '<span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full font-bold">최신</span>' : ''}
+                </div>
+                <div class="text-slate-500 text-[11px]">업무 ${snap.taskCount || 0}건 · 프로젝트 ${snap.projectCount || 0}개 등록 상태</div>
+              </div>
+              <button onclick="restoreFromSnapshot(${snap.time})" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 font-bold rounded-lg border border-blue-200 transition shrink-0 ml-2">
+                이 시점으로 복원
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        ${legacyItems.length > 0 ? `
+          <div class="pt-3">
+            <div class="text-[11px] font-bold text-amber-800 uppercase mb-1">📦 발견된 과거 버전 로컬 백업</div>
+            ${legacyItems.map(leg => `
+              <div class="flex items-center justify-between p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs mt-1">
+                <div>
+                  <div class="font-bold text-amber-900">${leg.label}</div>
+                  <div class="text-[11px] text-amber-700">업무 ${leg.taskCount}건 · 프로젝트 ${leg.projectCount}개</div>
+                </div>
+                <button onclick="restoreLegacyData('${leg.key}')" class="px-2.5 py-1.5 bg-white hover:bg-amber-600 hover:text-white text-amber-800 font-bold rounded-lg border border-amber-300 shadow-xs transition shrink-0">
+                  복구
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      `;
+
+      // 2. Render Trash
       const trash = store.trashTasks || [];
       if (trash.length === 0) {
-        trashList.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">휴지통이 비어 있습니다.</div>';
+        trashList.innerHTML = '<div class="text-xs text-slate-400 p-3 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">휴지통이 비어 있습니다. (업무를 삭제하면 여기에 30일간 보관되어 언제든 되살릴 수 있습니다)</div>';
       } else {
-        trashList.innerHTML = trash.slice(0, 20).map(t => `
+        trashList.innerHTML = trash.map(t => `
           <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-rose-100 rounded-xl text-xs hover:bg-rose-50/50 transition">
             <div class="space-y-0.5 min-w-0 flex-1">
               <div class="font-bold text-slate-800 flex items-center gap-1.5">
                 <span class="text-rose-600">🗑️</span>
-                <span>[${t.date}]</span>
-                <span class="truncate">${t.theme || t.title}</span>
+                <span class="text-slate-500 font-mono">[${t.date}]</span>
+                <span class="truncate font-semibold">${t.theme ? '🏷️ ' + t.theme + ' · ' : ''}${t.title}</span>
               </div>
               <div class="text-slate-400 text-[10.5px]">삭제일시: ${t.deletedDateStr || '최근'}</div>
             </div>
@@ -3762,6 +4161,8 @@
           </div>
         `).join('');
       }
+
+      if (window.lucide) lucide.createIcons();
     }
 
     function restoreFromSnapshot(timestamp) {
@@ -3780,6 +4181,20 @@
         alert("선택하신 시점의 데이터로 성공적으로 복원되었습니다!");
       } catch(e) {
         alert("복원 중 오류 발생: " + e.message);
+      }
+    }
+
+    function restoreLegacyData(key) {
+      if (!confirm("선택한 이전 버전 데이터로 복구하시겠습니까?")) return;
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        store = sanitizeStore(JSON.parse(raw));
+        saveStore();
+        closeRecoveryModal();
+        alert("이전 버전 데이터가 성공적으로 복구되었습니다!");
+      } catch(e) {
+        alert("복구 실패: " + e.message);
       }
     }
 
