@@ -497,6 +497,10 @@
               </div>
               <input type="date" id="dailyLogDatePicker" onchange="renderDailyTasks()" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-600">
 
+              
+              <button type="button" onclick="toggleAllDatesView()" id="btnAllDatesToggle" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 text-xs transition flex items-center gap-1" title="모든 날짜의 등록된 할 일을 한 번에 확인">
+                <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i> 📋 전체 날짜 모아보기
+              </button>
               <button onclick="openAddTaskModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
 
                 <i data-lucide="plus" class="w-4 h-4"></i> + 업무 추가
@@ -1864,24 +1868,42 @@
             const cleanRemote = sanitizeStore(remoteData);
             const remoteTs = cleanRemote.lastLocalUpdate || 0;
             const localTs = store.lastLocalUpdate || 0;
-            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0) {
-              // PRESERVE AND MERGE DAILY TASKS: Never erase user's local tasks if remote is missing them
-              if (!cleanRemote.dailyTasks || cleanRemote.dailyTasks.length === 0) {
-                if (store.dailyTasks && store.dailyTasks.length > 0) {
-                  cleanRemote.dailyTasks = store.dailyTasks;
-                } else {
-                  cleanRemote.dailyTasks = getInitialDefaultTasks();
-                }
-              } else {
-                const remoteIds = new Set(cleanRemote.dailyTasks.map(t => t.id));
-                (store.dailyTasks || []).forEach(lt => {
-                  if (!remoteIds.has(lt.id)) cleanRemote.dailyTasks.push(lt);
-                });
+
+            // [BI-DIRECTIONAL SAFE MERGE] Never overwrite or lose local tasks!
+            const mergedTasksMap = new Map();
+            // Put remote tasks first
+            (cleanRemote.dailyTasks || []).forEach(t => {
+              if (t && t.id) mergedTasksMap.set(t.id, t);
+            });
+            // If local has tasks that remote doesn't have, PRESERVE THEM!
+            let localHadNewTasks = false;
+            (store.dailyTasks || []).forEach(lt => {
+              if (lt && lt.id && !mergedTasksMap.has(lt.id)) {
+                mergedTasksMap.set(lt.id, lt);
+                localHadNewTasks = true;
               }
+            });
+
+            // Merge trash tasks safely
+            const mergedTrashMap = new Map();
+            (cleanRemote.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
+            (store.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
+
+            cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
+            cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
+
+            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
               store = cleanRemote;
+              store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
               localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+              recordAutoSnapshot(store);
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
+
+              // If local had tasks missing from cloud, push back combined data so cloud is also updated
+              if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
+                fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
+              }
             }
           } else if (store.projects && store.projects.length > 0) {
             fbDbRef.set(sanitizeStore(store)).catch(e => console.error("Cloud auto-seed failed:", e));
@@ -2406,6 +2428,7 @@
         t.completed = t.items.length > 0 && t.items.every(it => it.completed);
       });
       if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
+      if (!Array.isArray(s.trashTasks)) s.trashTasks = s.trashTasks ? Object.values(s.trashTasks) : [];
       if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
       return JSON.parse(JSON.stringify(s));
     }
@@ -2438,6 +2461,46 @@
       autoSyncCareerFromCompletedTasks();
     }
 
+    
+    function recordAutoSnapshot(s) {
+      try {
+        const historyKey = 'urban_snapshot_history_v1';
+        let history = [];
+        try {
+          const raw = localStorage.getItem(historyKey);
+          if (raw) history = JSON.parse(raw);
+        } catch(e) {}
+        if (!Array.isArray(history)) history = [];
+
+        const snap = {
+          time: Date.now(),
+          iso: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          taskCount: Array.isArray(s.dailyTasks) ? s.dailyTasks.length : 0,
+          projectCount: Array.isArray(s.projects) ? s.projects.length : 0,
+          data: JSON.parse(JSON.stringify(s))
+        };
+
+        // Don't save identical consecutive snapshot
+        if (history.length > 0) {
+          const last = history[0];
+          if (JSON.stringify(last.data.dailyTasks) === JSON.stringify(snap.data.dailyTasks) &&
+              JSON.stringify(last.data.projects) === JSON.stringify(snap.data.projects)) {
+            return;
+          }
+        }
+
+        history.unshift(snap);
+        if (history.length > 50) history = history.slice(0, 50);
+        localStorage.setItem(historyKey, JSON.stringify(history));
+
+        // Also save daily archive
+        const todayKey = 'urban_daily_archive_' + (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0,10));
+        localStorage.setItem(todayKey, JSON.stringify(s));
+      } catch(e) {
+        console.warn("Snapshot record failed:", e);
+      }
+    }
+  
     function saveStore() {
       store = sanitizeStore(store);
       store.lastLocalUpdate = Date.now();
@@ -3379,6 +3442,24 @@
       renderDailyTasks();
     }
 
+    
+    let isAllDatesViewActive = false;
+    function toggleAllDatesView() {
+      isAllDatesViewActive = !isAllDatesViewActive;
+      const btn = document.getElementById('btnAllDatesToggle');
+      if (btn) {
+        if (isAllDatesViewActive) {
+          btn.className = "px-2.5 py-1.5 bg-indigo-600 text-white font-bold rounded-xl border border-indigo-500 text-xs transition flex items-center gap-1 shadow-xs";
+          btn.innerHTML = '<i data-lucide="calendar" class="w-3.5 h-3.5"></i> 📅 선택일자만 보기';
+        } else {
+          btn.className = "px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 text-xs transition flex items-center gap-1";
+          btn.innerHTML = '<i data-lucide="calendar-range" class="w-3.5 h-3.5"></i> 📋 전체 날짜 모아보기';
+        }
+      }
+      renderDailyTasks();
+      if (window.lucide) lucide.createIcons();
+    }
+  
     function renderDailyTasks() {
 
       const dateVal = document.getElementById('dailyLogDatePicker').value;
@@ -3424,11 +3505,27 @@
             <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskDone('${t.id}')" class="w-4.5 h-4.5 mt-0.5 text-emerald-600 rounded cursor-pointer shrink-0">
             <div class="${t.completed ? 'line-through text-slate-400' : 'text-slate-800 font-semibold'} space-y-1 min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-1.5">
+                ${isAllDatesViewActive ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">📅 ${t.date || "날짜미지정"}</span>` : ''}
                 ${t.theme ? `<span class="inline-flex items-center text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-200 shadow-xs">🏷️ ${t.theme}</span>` : ''}
                 ${proj ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">${proj.name}</span>` : ''}
                 ${t.completed ? `<span class="text-[9.5px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">⚡ 5번 경력관리 자동기록됨</span>` : ''}
               </div>
-              <div class="text-xs break-words leading-relaxed whitespace-pre-wrap">${t.title}</div>
+              ${Array.isArray(t.items) && t.items.length > 0 ? `
+                <div class="mt-2 space-y-1.5 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                  <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-0.5 px-0.5">
+                    <span>세부 할 일 (${t.items.filter(it => it.completed).length}/${t.items.length} 완료)</span>
+                    <span class="text-indigo-600 font-mono">${Math.round((t.items.filter(it => it.completed).length / t.items.length) * 100)}%</span>
+                  </div>
+                  ${t.items.map(it => `
+                    <label class="flex items-start gap-2.5 p-1 rounded-lg hover:bg-white cursor-pointer group transition">
+                      <input type="checkbox" ${it.completed ? 'checked' : ''} onchange="toggleChecklistItem('${t.id}', '${it.id}')" class="w-4 h-4 mt-0.5 text-emerald-600 rounded accent-emerald-600 shrink-0 cursor-pointer">
+                      <span class="${it.completed ? 'line-through text-slate-400 font-normal' : 'text-slate-700 font-semibold'} text-xs break-words leading-relaxed group-hover:text-blue-600 transition">${it.text}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              ` : `
+                <div class="text-xs break-words leading-relaxed whitespace-pre-wrap ${t.completed ? 'line-through text-slate-400' : 'text-slate-800'}">${t.title}</div>
+              `}
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
@@ -3511,15 +3608,24 @@
 
 
     function deleteTask(id) {
-      if (!confirm("해당 업무를 삭제하시겠습니까?")) return;
+      if (!confirm("해당 업무를 삭제하시겠습니까?\n(삭제된 업무는 안전 복구함에 안전하게 보관되며 언제든 복구할 수 있습니다)")) return;
       store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
-      if (t && t.completed) {
-        store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== id);
+      if (t) {
+        if (!store.trashTasks) store.trashTasks = [];
+        const trashCopy = JSON.parse(JSON.stringify(t));
+        trashCopy.deletedAt = Date.now();
+        trashCopy.deletedDateStr = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+        store.trashTasks.unshift(trashCopy);
+        if (store.trashTasks.length > 50) store.trashTasks = store.trashTasks.slice(0, 50);
+        if (t.completed) {
+          store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== id);
+        }
       }
       store.dailyTasks = store.dailyTasks.filter(x => x.id !== id);
       saveStore();
       renderDailyTasks();
+      renderProjectSummaryBoard();
     }
 
 
@@ -3613,6 +3719,109 @@
       renderProjectSummaryBoard();
     }
 
+    
+    function openRecoveryModal() {
+      renderRecoveryModalUI();
+      const modal = document.getElementById('recoveryModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeRecoveryModal() {
+      const modal = document.getElementById('recoveryModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderRecoveryModalUI() {
+      const snapshotList = document.getElementById('snapshotHistoryList');
+      const trashList = document.getElementById('trashTaskList');
+      if (!snapshotList || !trashList) return;
+
+      // 1. Render Snapshots
+      let history = [];
+      try {
+        const raw = localStorage.getItem('urban_snapshot_history_v1');
+        if (raw) history = JSON.parse(raw);
+      } catch(e) {}
+
+      if (history.length === 0) {
+        snapshotList.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">아직 저장된 스냅샷이 없습니다.</div>';
+      } else {
+        snapshotList.innerHTML = history.slice(0, 20).map((snap, idx) => `
+          <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:bg-indigo-50/50 transition">
+            <div class="space-y-0.5 min-w-0 flex-1">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                ${snap.iso || new Date(snap.time).toLocaleString('ko-KR')}
+                ${idx === 0 ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold">최신</span>' : ''}
+              </div>
+              <div class="text-slate-500 text-[11px]">업무 ${snap.taskCount || 0}건 · 프로젝트 ${snap.projectCount || 0}개</div>
+            </div>
+            <button onclick="restoreFromSnapshot(${snap.time})" class="px-2.5 py-1.5 bg-white hover:bg-blue-600 hover:text-white text-blue-700 font-bold rounded-lg border border-blue-200 shadow-xs transition shrink-0 ml-2">
+              이 시점으로 복원
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 2. Render Trash Tasks
+      const trash = store.trashTasks || [];
+      if (trash.length === 0) {
+        trashList.innerHTML = '<div class="text-xs text-slate-400 p-4 text-center">휴지통이 비어 있습니다.</div>';
+      } else {
+        trashList.innerHTML = trash.slice(0, 20).map(t => `
+          <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-rose-100 rounded-xl text-xs hover:bg-rose-50/50 transition">
+            <div class="space-y-0.5 min-w-0 flex-1">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="text-rose-600">🗑️</span>
+                <span>[${t.date}]</span>
+                <span class="truncate">${t.theme || t.title}</span>
+              </div>
+              <div class="text-slate-400 text-[10.5px]">삭제일시: ${t.deletedDateStr || '최근'}</div>
+            </div>
+            <button onclick="restoreFromTrash('${t.id}')" class="px-2.5 py-1.5 bg-white hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold rounded-lg border border-emerald-200 shadow-xs transition shrink-0 ml-2">
+              업무 복원
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    function restoreFromSnapshot(timestamp) {
+      if (!confirm("선택한 시점의 데이터로 복원하시겠습니까?\n(현재 상태도 새 스냅샷으로 자동 보관됩니다)")) return;
+      try {
+        const raw = localStorage.getItem('urban_snapshot_history_v1');
+        const history = raw ? JSON.parse(raw) : [];
+        const target = history.find(h => h.time === timestamp);
+        if (!target || !target.data) {
+          alert("복원 데이터를 찾을 수 없습니다.");
+          return;
+        }
+        store = sanitizeStore(target.data);
+        saveStore();
+        closeRecoveryModal();
+        alert("선택하신 시점의 데이터로 성공적으로 복원되었습니다!");
+      } catch(e) {
+        alert("복원 중 오류 발생: " + e.message);
+      }
+    }
+
+    function restoreFromTrash(taskId) {
+      store = sanitizeStore(store);
+      if (!store.trashTasks) return;
+      const idx = store.trashTasks.findIndex(t => t.id === taskId);
+      if (idx === -1) return;
+      const t = store.trashTasks.splice(idx, 1)[0];
+      delete t.deletedAt;
+      delete t.deletedDateStr;
+      store.dailyTasks.push(t);
+      saveStore();
+      renderRecoveryModalUI();
+      renderDailyTasks();
+      renderProjectSummaryBoard();
+      alert(`'${t.theme || t.title}' 업무가 복원되었습니다!`);
+    }
+  
     function openAddTaskModal() {
       const sel = document.getElementById('newTaskProjId');
       sel.innerHTML = '';
@@ -4703,6 +4912,44 @@
 
 
 
+
+  <!-- SAFETY RECOVERY & SNAPSHOT MODAL -->
+  <div id="recoveryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-200">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="shield-check" class="w-5 h-5"></i></span>
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">🛡️ 데이터 안전 복구함 & 타임머신</h3>
+            <p class="text-[11px] text-slate-500">클라우드 및 로컬 변경 시마다 자동 저장된 스냅샷과 삭제된 업무를 즉시 복원합니다.</p>
+          </div>
+        </div>
+        <button onclick="closeRecoveryModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- TABS / SECTIONS -->
+      <div class="space-y-4">
+        <div>
+          <h4 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5 mb-2">
+            <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> 자동 롤링 스냅샷 (타임머신 히스토리)
+          </h4>
+          <div id="snapshotHistoryList" class="space-y-2 max-h-52 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <h4 class="text-xs font-bold text-rose-900 flex items-center gap-1.5 mb-2">
+            <i data-lucide="trash-2" class="w-4 h-4 text-rose-600"></i> 삭제된 업무 휴지통 (최근 50개)
+          </h4>
+          <div id="trashTaskList" class="space-y-2 max-h-44 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-100">
+        <button onclick="closeRecoveryModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">닫기</button>
+      </div>
+    </div>
+  </div>
+    
 </body>
 
 </html>
