@@ -323,6 +323,10 @@
 
         </button>
 
+        <button onclick="openRecoveryModal()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-xl border border-emerald-300 transition flex items-center gap-1.5 shadow-sm" title="자동 스냅샷 및 삭제된 업무 복구">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i> 🛡️ 데이터 안전 복구함
+        </button>
+
         <button onclick="exportDataJSON()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-sm">
 
           <i data-lucide="download" class="w-3.5 h-3.5"></i> 백업 저장
@@ -500,6 +504,9 @@
               
               <button type="button" onclick="toggleAllDatesView()" id="btnAllDatesToggle" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl border border-slate-200 text-xs transition flex items-center gap-1" title="모든 날짜의 등록된 할 일을 한 번에 확인">
                 <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i> 📋 전체 날짜 모아보기
+              </button>
+              <button type="button" onclick="openRecoveryModal()" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-200 text-xs transition flex items-center gap-1" title="자동 롤링 스냅샷 및 삭제 업무 복구">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i> 🛡️ 안전 복구함
               </button>
               <button onclick="openAddTaskModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
 
