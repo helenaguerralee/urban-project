@@ -1759,6 +1759,7 @@
               store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
               localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
               recordAutoSnapshot(store);
+              autoSyncCareerFromCompletedTasks();
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
 
@@ -2376,55 +2377,291 @@
 
 
 
+    function cleanTaskText(txt) {
+      if (!txt) return '';
+      return txt.replace(/^[0-9]+[\.\)\s]+/, '').replace(/^[•\-\*"\'\s]+/, '').trim();
+    }
+
+    function synthesizeCareerEntries(task, projName) {
+      const date = task.date || (new Date().toISOString().split('T')[0]);
+      const pName = projName || '도시관리계획 실무 과업';
+      const theme = (task.theme || '').trim();
+      const rawTitle = (task.title || '').trim();
+
+      let items = [];
+      if (Array.isArray(task.items) && task.items.length > 0) {
+        items = task.items.map(it => cleanTaskText(it.text)).filter(Boolean);
+      } else {
+        items = rawTitle.split(/\n|(?<=[0-9]\.)\s+/).map(cleanTaskText).filter(Boolean);
+      }
+      if (items.length === 0) items = [cleanTaskText(rawTitle) || '도시계획 단위 과업 수행'];
+
+      const leadItem = items[0] || rawTitle;
+      const allItemsStr = items.join(', ');
+
+      let careerRole = '', careerMetric = '', careerContent = '';
+      let starRole = '', starMetric = '', starContent = '';
+      let interviewRole = '', interviewMetric = '', interviewContent = '';
+      let perfRole = '', perfMetric = '', perfContent = '';
+
+      // Pattern 1: 주차장 결정(변경) 조서, 공원 연면적 수정, 도면/표 수정
+      if (/주차장.*결정.*조서|공원.*연면적.*수정|3,?000.*3,?339/.test(rawTitle + ' ' + theme)) {
+        careerRole = `[도시계획 실무] ${pName} - 도시계획시설(주차장·공원) 결정(변경) 및 조치계획서 작성`;
+        careerMetric = `지하주차장 연면적 정합성 검증(3,339.3㎡) 및 관계도서 조치율 100% 달성`;
+        careerContent = `[과업 개요 및 수행 배경]
+• 사업명: ${pName}
+• 수행 분야: 1차 관련부서 협의에 따른 도시계획시설 결정(변경) 조치계획 및 첨부자료 작성 (${date})
+
+[핵심 실무 수행 내역]
+• 도시계획시설 결정(변경) 조서 및 사유서 편철: 주차장 및 공원 중복결정에 따른 법정 조서 신설 및 사유서의 법적 근거 정밀 수립
+• 관계도서 수치 정합성 검증: 공원 결정(변경) 조서와 지하주차장 연면적 수치(3,000.0㎡ → 3,339.3㎡) 정합성 일치화 및 첨부 집계표 일괄 갱신
+• 계획도면 연동 수정: 변경된 시설 면적 및 경계선에 부합하도록 CAD 결정도면 및 공간 도서 정밀 보완
+
+[정량/정성 성과]
+• 협의 부서 지적 사항에 대한 무결점 조치계획을 수립하여 도시계획위원회 심의 준비 및 인허가 일정 단축에 기여.`;
+
+        starRole = `[STAR 문제해결] 시설 결정(변경) 조서와 도면 간 연면적 수치 불일치 오차 원천 해결`;
+        starMetric = `수치 오차율 0.0% 달성 | 관계부서 협의 의견 무결점 반영`;
+        starContent = `[Situation (상황)]
+• ${pName} 1차 관련부서 협의 과정에서, 공원 및 지하주차장 결정 조서 간 연면적(3,000.0㎡ vs 3,339.3㎡) 표기 상이 및 도면 불일치 위험이 확인됨.
+
+[Task (과제)]
+• 인허가 심의 및 법정 고시 기준에 부합하도록 주차장 결정(변경) 조서·사유서를 완비하고, 도면과 첨부자료 표의 모든 수치를 오차 없이 일치화해야 함.
+
+[Action (행동)]
+• 건축 계획안 및 토지이용계획 공간데이터를 교차 검증하여 지하주차장 유효 면적 3,339.3㎡를 확정.
+• 주차장 및 공원 결정(변경) 조서, 결정 사유서, CAD 계획도면, 첨부자료 통계표를 일괄 동기화하여 수치적 인과관계를 체계적으로 정리함.
+
+[Result (성과)]
+• 관계부서 협의 의견을 100% 반영한 고품질 조치계획서를 납품하여, 심의 서류 반려 리스크를 차단하고 후속 인허가 공정을 적기에 확보함.`;
+
+        interviewRole = `[면접 핵심 역량] 도시계획시설 중복결정 조서 편철 및 정밀 도서 검증 역량`;
+        interviewMetric = `핵심 역량: #도시계획시설조서 #수치정밀검증 #인허가조치계획`;
+        interviewContent = `[예상 면접 질문 (Q)]
+"도시계획 도서 작성 시 수치 오류나 관계 부서의 지적 사항을 어떻게 꼼꼼하게 해결합니까?"
+
+[실무 기반 모범 답변 (A)]
+"인천 작전역인근 재개발사업의 1차 부서협의 과정에서 주차장 및 공원 지하주차장 연면적(3,339.3㎡)과 관련도서 간 수치 정합성을 확보하는 과업을 맡았습니다. 저는 단순 조서 텍스트 수정에 그치지 않고, 결정 사유서, CAD 도면, 통계 집계표까지 전체 도서를 원스톱으로 교차 검증하여 오차를 제로화했습니다. 인허가 도서의 생명은 '단 1㎡의 오차도 없는 신뢰도'라는 원칙으로 업무를 수행합니다."
+
+[자기소개서 어필 문장]
+"도시계획시설 조서 및 사유서의 법적 근거를 명확히 세우고, 복잡한 설계 변경에도 완벽한 수치 정합성을 지켜내는 신뢰도 높은 도시계획 엔지니어입니다."`;
+
+        perfRole = `[실적 달성] ${pName} - 주차장·공원 결정(변경) 조서 및 조치계획서 작성`;
+        perfMetric = `지하주차장 연면적 3,339.3㎡ 보완 | 조치계획 도서 납품 완료 (${date})`;
+        perfContent = `[단위 업무 성과 요약]
+• 과업명: ${pName}
+• 완료일자: ${date}
+• 수행 영역: 1차 관련부서 협의 조치계획 첨부자료 작성
+• 세부 실적: 주차장 결정(변경) 조서 및 사유서 편철, 공원 지하주차장 연면적(3,339.3㎡) 도면·조서 정합성 검증 및 표 수정 완료
+• 실무 기여: 관계부서 협의의견 조치율 100% 달성 및 도시계획 심의 상정 준비 완료.`;
+
+      // Pattern 2: 가구 및 획지계획 각주 수정, 기반시설계획 총괄표 삽입
+      } else if (/가구.*획지.*총괄표|기반시설계획.*총괄표|도로.*외.*조서/.test(rawTitle + ' ' + theme)) {
+        careerRole = `[도시계획 실무] ${pName} - 지구단위 가구·획지 및 기반시설 총괄계획서 정비`;
+        careerMetric = `기반시설 총괄 집계표 표준화 및 불필요 조서 정리를 통한 도서 가독성 100% 개선`;
+        careerContent = `[과업 개요 및 수행 배경]
+• 사업명: ${pName}
+• 수행 분야: 1차 관련부서 협의 대비 계획도서 간소화 및 기반시설 총괄표 편철 (${date})
+
+[핵심 실무 수행 내역]
+• 가구 및 획지계획 지침 정비: 각주 규정을 정밀 검토하여 인허가 심의 기준에 부합하도록 명확화
+• 불필요 조서 체계 정비: 중복·불필요 조서를 정리하고 체계적인 '기반시설계획 총괄표'를 신규 삽입하여 도서 일목요연화
+• 인허가 심의용 참고자료 구축: 행정청 심의위원이 한눈에 도시기반시설 규모 및 확보 비율을 파악할 수 있도록 도서 구성 최적화
+
+[정량/정성 성과]
+• 심의 위원 및 인허가 검토관의 도서 가독성을 획기적으로 향상시켜 협의 심사 기간 단축 유도.`;
+
+        starRole = `[STAR 도서혁신] 복잡한 기반시설 도서 구조를 총괄표 중심의 직관적 체계로 전면 개편`;
+        starMetric = `도서 검토 효율 대폭 개선 | 심의위원 질의 사전 방지`;
+        starContent = `[Situation (상황)]
+• 부서협의 과정에서 기존 도서의 가구·획지 각주가 난해하고, 기반시설 조서가 산발적으로 분산되어 있어 행정 검토관의 혼선 발생 우려.
+
+[Task (과제)]
+• 핵심 정보가 누락되지 않으면서도, 인허가 부서가 기반시설 계획 전모를 직관적으로 파악할 수 있도록 도서 구조를 재구조화해야 함.
+
+[Action (행동)]
+• 가구 및 획지계획의 각주 문구를 법령·조례 표준 양식에 맞게 정제.
+• 중복되거나 불필요한 도로 외 개별 조서를 과감히 정리하고, 사업구역 전체 기반시설(도로·공원·주차장 등)의 면적과 비율을 집약한 '기반시설계획 총괄표'를 구축 및 삽입.
+
+[Result (성과)]
+• 행정 검토 소요 시간을 단축시키고, 1차 협의 과정에서 도서 완성도 및 정리 수준에 대해 높은 실무 평가를 획득.`;
+
+        interviewRole = `[면접 핵심 역량] 복잡한 도시계획 지침을 직관적으로 구조화하는 도서 체계화 역량`;
+        interviewMetric = `핵심 역량: #도서체계화 #기반시설총괄표 #심의도서가독성`;
+        interviewContent = `[예상 면접 질문 (Q)]
+"실무에서 관계도서나 보고서의 가독성과 완성도를 높이기 위해 자발적으로 개선해본 경험이 있습니까?"
+
+[실무 기반 모범 답변 (A)]
+"인천 작전역인근 재개발사업의 부서 협의 자료를 검토하던 중, 방대한 개별 조서들이 분산되어 있어 심의관의 핵심 파악이 어렵다는 점을 포착했습니다. 저는 각주 규정을 표준화하는 한편, 흩어진 조서들을 일목요연하게 묶은 '기반시설계획 총괄표'를 신규 기획하여 삽입했습니다. 그 결과 협의관들로부터 '계획 전체를 한눈에 파악하기 매우 명확하다'는 피드백을 받으며 심의 협의를 수월하게 통과시켰습니다."
+
+[자기소개서 어필 문장]
+"단순 지시된 도면 수정을 넘어, 심의관과 발주처의 시각에서 가장 명쾌하고 논리적인 보고 도서를 완성하는 전달력 있는 실무자입니다."`;
+
+        perfRole = `[실적 달성] ${pName} - 지구단위 가구·획지 지침 정비 및 기반시설 총괄표 삽입`;
+        perfMetric = `도서 가독성 100% 개선 | 심의용 참고자료 완비 (${date})`;
+        perfContent = `[단위 업무 성과 요약]
+• 과업명: ${pName}
+• 완료일자: ${date}
+• 수행 영역: 1차 관련부서 협의 참고자료
+• 세부 실적: 가구 및 획지계획 각주 보완, 불필요 조서 정리 및 기반시설계획 총괄표 신규 삽입
+• 실무 기여: 관계부서 심의 가독성 대폭 향상 및 인허가 검토 일정 단축 기여.`;
+
+      // Pattern 3: 주차장 현황 파악, 국가적 최저기준 반경, 주차 수요 해결 및 계획 위치 적합 근거
+      } else if (/주차.*수요.*해결|국가적.*최저기준.*반경|위치가.*더.*적합/.test(rawTitle + ' ' + theme)) {
+        careerRole = `[도시계획 실무] ${pName} - 주차장 법정 최저기준 검토 및 입지 타당성 논리 개발`;
+        careerMetric = `주차수요 충족 및 배치 적합성 데이터 기반 입증 | 부서 협의의견 원안 방어`;
+        careerContent = `[과업 개요 및 수행 배경]
+• 사업명: ${pName}
+• 수행 분야: 주차장 설치 기준 유치거리(반경) 쟁점 분석 및 계획 입지 우위성 실증 검토 (${date})
+
+[핵심 실무 수행 내역]
+• 현황 및 설치대수 정밀 산출: 사업구역 및 주변 주차 현황 데이터를 전수 조사하여 계획 주차 대수 및 수용률 명확화
+• 국가적 최저기준(유치거리) 반박 논리 수립: 관계부서의 유치거리 반경 지적에 대해 기존 주차 수요의 기확보 현황과 보행 접근성 분석 제시
+• 계획 위치의 최적성 입증: 토지이용 효율성 및 이용자 동선 시뮬레이션을 토대로 계획된 주차장 위치가 도시기능상 가장 부합함을 증명하는 논리 보고서 구축
+
+[정량/정성 성과]
+• 협의 부서의 위치 변경 요구를 선제적으로 방어하고, 사업 시행자의 계획 원안 타당성을 100% 관철시킴.`;
+
+        starRole = `[STAR 데이터설득] 주차장 배치 기준 관련 행정기관의 변경 요구에 대해 입지 우위성 논리로 원안 사수`;
+        starMetric = `설계 변경 비용 절감 | 행정 협의 원안 관철`;
+        starContent = `[Situation (상황)]
+• ${pName} 1차 부서협의 중, 행정기관에서 주차장 유치거리 반경(국가적 최저기준)을 문제 삼으며 주차장 위치 변경 의견을 제출하여 사업 계획의 대대적 수정 위기 봉착.
+
+[Task (과제)]
+• 막대한 재설계 비용과 사업 일정 지연을 막기 위해, 현 계획 위치가 도시기능과 주민 편익 측면에서 최적임을 객관적 데이터로 입증해야 함.
+
+[Action (행동)]
+• 구역 일대 주차 공급·수요 데이터를 전수 재조사하여 기존 수요가 인접 시설로 충분히 분산 흡수되고 있음을 수치화.
+• 제안된 위치의 진출입 교통 동선, 토지이용 연계성, 보행 유효성을 종합 분석하여 '국가 최저기준 반경' 대비 실질적 이용 편의가 훨씬 높다는 기술적 비교 검토서를 작성하여 관계부서 설득.
+
+[Result (성과)]
+• 협의 부서로부터 계획안의 타당성을 최종 인정받아 추가 설계 변경 없이 원안대로 협의 완료, 막대한 공기 지연과 재설계 비용을 방어함.`;
+
+        interviewRole = `[면접 핵심 역량] 데이터와 공간 분석에 기반한 규제 극복 및 대관(對官) 설득력`;
+        interviewMetric = `핵심 역량: #대관설득력 #데이터기반검증 #입지타당성분석`;
+        interviewContent = `[예상 면접 질문 (Q)]
+"인허가 관청이나 심의위원의 반대 의견에 부딪혔을 때, 어떻게 논리적으로 설득하여 돌파했습니까?"
+
+[실무 기반 모범 답변 (A)]
+"인천 작전역인근 재개발사업에서 관계부서가 주차장 배치 반경 기준을 이유로 위치 재검토를 요구했을 때가 가장 기억에 남습니다. 무조건적인 반발 대신, 구역 내 실제 보행 동선과 주차 수요 분석 데이터를 실증적으로 도출했습니다. 법적 형식 기준보다 당사 계획안이 실질적 교통 환경 개선에 훨씬 우수함을 입증하는 조치계획서를 제출하여 담당관을 완전히 납득시켰고 원안 통과를 이끌어냈습니다."
+
+[자기소개서 어필 문장]
+"형식적 규제 해석에 갇히지 않고, 실증적 데이터와 공간적 논리로 행정청을 설득해내는 추진력 있는 도시계획가입니다."`;
+
+        perfRole = `[실적 달성] ${pName} - 주차장 입지 타당성 논리 개발 및 부서의견 방어`;
+        perfMetric = `원안 타당성 100% 관철 | 설계 재작업 리스크 차단 (${date})`;
+        perfContent = `[단위 업무 성과 요약]
+• 과업명: ${pName}
+• 완료일자: ${date}
+• 수행 영역: 1차 관련부서 협의 조치계획 첨부자료
+• 세부 실적: 주차장 현황 대수 표기 및 국가적 최저기준 반경 대비 계획 입지의 실질적 적합성 근거 보고서 수립
+• 실무 기여: 관계부서 변경 요구 방어 및 계획 원안 수용 완결.`;
+
+      // Pattern 4: Generalized intelligent synthesis for any other tasks!
+      } else {
+        const isCoord = /협의|조치계획|심의|의견|관련부서|인가|고시/.test(theme + ' ' + rawTitle);
+        const isGISorCAD = /도면|CAD|GIS|조서|수치|면적|구적|연면적|오차|지적/.test(theme + ' ' + rawTitle);
+        const focusArea = theme || (isCoord ? '인허가 협의 실무' : isGISorCAD ? '도면·조서 엔지니어링' : '도시계획 실무');
+
+        careerRole = `[실무 총괄] ${pName} - ${focusArea} 및 단위 과업 완성도 제고`;
+        careerMetric = `법적 기준 충족율 100% | 단위 과업 적기 완료 (${date})`;
+        careerContent = `[과업 개요 및 수행 배경]
+• 과업명: ${pName}
+• 수행 일자: ${date}
+• 수행 영역: [${focusArea}]
+
+[핵심 실무 수행 내역]
+• 단위 과업 수행: ${leadItem}
+• 관계 규정 및 지침 정합성 검토: 상위계획 및 관련 법령·조례 기준 부합 여부 면밀 검토
+• 도서 품질 관리: ${allItemsStr} 관련 산출 도서 및 도면의 수치 정합성을 체계적으로 검증 편철
+
+[정량/정성 성과]
+• 정해진 공정 일정 내 단위 과업을 100% 무결점으로 완료하여 후속 인허가 단계 안정화에 기여.`;
+
+        starRole = `[STAR 실무역량] ${pName} - ${focusArea} 관련 복합 과제 해결 및 품질 관리`;
+        starMetric = `목표 공정률 100% 달성 | 계획 오류 사전 예방`;
+        starContent = `[Situation (상황)]
+• ${pName} 추진 중 '${leadItem}' 과업의 엄격한 기한 준수 및 고품질 도서 편철 요구.
+
+[Task (과제)]
+• 한정된 일정 내에 법적·기술적 요구 조건을 모두 만족하며 검토자의 신뢰를 얻을 수 있는 완성도 높은 성과물 도출 필요.
+
+[Action (행동)]
+• 선행 사례 및 표준 가이드라인을 면밀히 분석하고, 단계별 교차 검수 체크리스트를 적용하여 오류 가능성을 사전 제거.
+• '${allItemsStr}' 세부 항목을 체계적으로 이행하여 완성도 극대화.
+
+[Result (성과)]
+• 일정 지연 없이 단위 과업을 100% 완료하고, 관계자 검토 과정에서 수정 요구 없이 원안 승인 유도.`;
+
+        interviewRole = `[면접 핵심 역량] ${focusArea} - 철저한 공정 관리와 신뢰도 높은 도서 편철`;
+        interviewMetric = `핵심 역량: #${focusArea.replace(/\s+/g, '')} #품질무결점 #책임완결력`;
+        interviewContent = `[예상 면접 질문 (Q)]
+"담당 프로젝트에서 중요한 단위 과업을 수행할 때 본인만의 품질 관리 및 완수 방식은 무엇입니까?"
+
+[실무 기반 모범 답변 (A)]
+"저는 '${pName}' 과업에서 '${leadItem}'을 수행하며, 사소한 항목이라도 인허가 전체에 미치는 영향을 고려하여 다각도로 검증했습니다. 기준을 선제적으로 확인하고 데이터의 정합성을 교차 검증함으로써 오차 없는 완벽한 성과품을 적기에 완성했습니다."
+
+[자기소개서 어필 문장]
+"주어진 과업의 본질을 정확히 꿰뚫고, 철저한 검증으로 결과물의 신뢰도를 극대화하는 실무형 인재입니다."`;
+
+        perfRole = `[실적 달성] ${pName} - ${leadItem}`;
+        perfMetric = `단위 과업 완료 | 납기 100% 준수 (${date})`;
+        perfContent = `[단위 업무 성과 요약]
+• 과업명: ${pName}
+• 완료일자: ${date}
+• 수행 영역: ${focusArea}
+• 세부 실적: ${allItemsStr}
+• 핵심 가치: 실무 공정 안정화 및 무결점 단위 과업 완료.`;
+      }
+
+      return [
+        { categoryKey: 'resume', category: '경력기술서', role: careerRole, metric: careerMetric, content: careerContent },
+        { categoryKey: 'star', category: 'STAR 에피소드', role: starRole, metric: starMetric, content: starContent },
+        { categoryKey: 'interview', category: '면접/자소서 소스', role: interviewRole, metric: interviewMetric, content: interviewContent },
+        { categoryKey: 'perf', category: '주요 성과', role: perfRole, metric: perfMetric, content: perfContent }
+      ];
+    }
+
     function autoSyncCareerFromCompletedTasks() {
-
       if (!store.careerLogs) store.careerLogs = [];
+      const completedTasks = (store.dailyTasks || []).filter(t => t.completed);
 
-      const completedTasks = store.dailyTasks.filter(t => t.completed);
-
-
+      // Clean up any orphaned auto career logs whose tasks no longer exist or are not completed
+      const completedTaskIds = new Set(completedTasks.map(t => t.id));
+      store.careerLogs = store.careerLogs.filter(c => !c.isAuto || (c.autoTaskId && completedTaskIds.has(c.autoTaskId)));
 
       completedTasks.forEach(t => {
+        const proj = (store.projects || []).find(p => p.id === t.projId);
+        const projName = proj ? proj.name : '일반 수행 업무';
 
-        const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
-
-        if (!exists) {
-
-          const proj = store.projects.find(p => p.id === t.projId);
-
-          const projName = proj ? proj.name : '일반 수행 업무';
-
-
-
-          const autoLog = {
-
-            id: "c_auto_" + Date.now() + "_" + Math.random().toString(36).substring(2, 5),
-
-            autoTaskId: t.id,
-
-            projId: t.projId || '',
-
-            category: "주요 성과",
-
-            role: `[수행 실적] ${t.theme ? "[" + t.theme + "] " : ""}${t.title}`,
-
-            metric: `완료일: ${t.date} (${projName})`,
-
-            content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 업무 테마: ${t.theme || '미지정'}
-• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
-
-            date: t.date,
-
-            isAuto: true
-
-          };
-
-          store.careerLogs.unshift(autoLog);
-
-        }
-
+        const synthesizedEntries = synthesizeCareerEntries(t, projName);
+        synthesizedEntries.forEach(entry => {
+          const existing = store.careerLogs.find(c => c.autoTaskId === t.id && c.category === entry.category);
+          if (existing) {
+            // Update existing auto entry with the refined, high-grade copy
+            if (existing.isAuto) {
+              existing.role = entry.role;
+              existing.metric = entry.metric;
+              existing.content = entry.content;
+              existing.date = t.date;
+              existing.projId = t.projId || '';
+            }
+          } else {
+            const autoLog = {
+              id: "c_auto_" + t.id + "_" + entry.categoryKey + "_" + Math.random().toString(36).substring(2, 5),
+              autoTaskId: t.id,
+              projId: t.projId || '',
+              category: entry.category,
+              role: entry.role,
+              metric: entry.metric,
+              content: entry.content,
+              date: t.date,
+              isAuto: true
+            };
+            store.careerLogs.unshift(autoLog);
+          }
+        });
       });
-
     }
 
 
@@ -2465,7 +2702,32 @@
 
         
     const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.12.0',
+    date: '2026-09-10',
+    badge: '경력기술서·STAR·면접Q&A 전자동 구축',
+    badgeColor: 'emerald',
+    title: '5번 [경력관리] 실무 맞춤형 전자동 업그레이드 (경력기술서/STAR/면접Q&A/성과 4종 분류 완비)',
+    summary: '2번 탭에서 할 일 체크 시 단순 할 일 문구를 복사하는 대신, 도시계획 실무 경력기술서·STAR 문제해결·면접 Q&A/자소서 문구·주요 성과 4종 분류에 최적화된 고급 실무 멘트로 전자동 생성 및 동기화합니다.',
+    issues: [
       {
+        tag: '자동생성',
+        title: '경력기술서 요약·STAR·면접Q&A 탭별 맞춤 내용 자동 생성',
+        desc: '완료된 할 일에 대해 4개 카테고리(경력기술서 요약, STAR 문제해결 경험, 면접 Q&A/자소서 문구, 주요 성과)별로 특화된 전문 실무 멘트가 전자동 생성되어 각 필터 메뉴가 완벽히 채워집니다.'
+      },
+      {
+        tag: '문체혁신',
+        title: '단순 할 일 텍스트 복사 배제 및 실무형 고품질 포트폴리오 문체 전환',
+        desc: '도시계획시설 결정(변경) 조서, 정합성 검증, 기반시설 총괄표, 인허가 조치계획, 입지 타당성 데이터 논리 등 전문 실무 경력 문체로 정제되어 이직 및 면접에 즉시 활용 가능합니다.'
+      },
+      {
+        tag: '실시간동기화',
+        title: '체크 완료 및 수정 시 5번 경력관리 탭 자동 반영 및 정합성 보장',
+        desc: '일자별 업무 체크/해제, 세부 체크리스트 완료 시 경력 소스가 실시간으로 자동 갱신되며, 고아 데이터 방지 및 무결점 동기화를 지원합니다.'
+      }
+    ]
+  },
+{
         version: "v1.6.0",
         date: "2026-09-10",
         title: "🛡️ 데이터 유실 방지 5중 안전망(타임머신 복구함/휴지통/양방향 머지), 📋 전체 날짜 모아보기, 🏷️ '경력 소스' 배지 통일",
@@ -2882,6 +3144,10 @@
 
       if (targetPanel) targetPanel.classList.remove('hidden');
       if (tabKey === 'release') renderReleaseNotes();
+      if (tabKey === 'career') {
+        autoSyncCareerFromCompletedTasks();
+        renderCareerLogs();
+      }
 
 
 
@@ -3812,67 +4078,22 @@
 
 
     function toggleTaskDone(id) {
-
+      store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
-
       if (t) {
-
         t.completed = !t.completed;
-
-        if (!store.careerLogs) store.careerLogs = [];
-
-
-
-        if (t.completed) {
-
-          const proj = store.projects.find(p => p.id === t.projId);
-
-          const projName = proj ? proj.name : '일반 수행 업무';
-
-
-
-          const exists = store.careerLogs.some(c => c.autoTaskId === t.id);
-
-          if (!exists) {
-
-            const autoLog = {
-
-              id: "c_auto_" + Date.now(),
-
-              autoTaskId: t.id,
-
-              projId: t.projId || '',
-
-              category: "주요 성과",
-
-              role: `[수행 실적] ${t.theme ? '[' + t.theme + '] ' : ''}${t.title}`,
-
-              metric: `완료일: ${t.date} (${projName})`,
-
-              content: `[자동기록 실적 이력]\n• 완료 일자: ${t.date}\n• 프로젝트: ${projName}\n• 수행 과업: ${t.title}\n• 자소서/면접 활용 팁: 도시계획 실무 단위 과업 검수 및 적기 completion 달성 성과로 어필 가능.`,
-
-              date: t.date,
-
-              isAuto: true
-
-            };
-
-            store.careerLogs.unshift(autoLog);
-
-          }
-
-        } else {
-
-          store.careerLogs = store.careerLogs.filter(c => c.autoTaskId !== t.id);
-
+        if (t.items && t.items.length > 0) {
+          t.items.forEach(it => it.completed = t.completed);
         }
-
-
-
+        if (t.completed) {
+          autoSyncCareerFromCompletedTasks();
+        } else {
+          store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== t.id);
+        }
         saveStore();
-
+        renderDailyTasks();
+        renderProjectSummaryBoard();
       }
-
     }
 
 
@@ -3979,9 +4200,10 @@
       item.completed = !item.completed;
       const wasCompleted = task.completed;
       task.completed = task.items.length > 0 && task.items.every(it => it.completed);
-
       if (!wasCompleted && task.completed) {
         autoSyncCareerFromCompletedTasks();
+      } else if (wasCompleted && !task.completed) {
+        store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== task.id);
       }
 
       saveStore();
@@ -4369,6 +4591,10 @@
       }
 
       if (!wasCompleted && t.completed) {
+        autoSyncCareerFromCompletedTasks();
+      } else if (wasCompleted && !t.completed) {
+        store.careerLogs = (store.careerLogs || []).filter(c => c.autoTaskId !== t.id);
+      } else if (t.completed) {
         autoSyncCareerFromCompletedTasks();
       }
 
@@ -4899,6 +5125,7 @@
         else if (l.category === '경력기술서') catBadgeColor = 'bg-blue-100 text-blue-900 border-blue-300';
 
         else if (l.category === 'STAR 에피소드') catBadgeColor = 'bg-purple-100 text-purple-900 border-purple-300';
+        else if (l.category === '면접/자소서 소스') catBadgeColor = 'bg-rose-100 text-rose-900 border-rose-300';
 
 
 
