@@ -199,12 +199,12 @@
           </p>
         </div>
 
-        <div class="flex items-center justify-between text-xs text-slate-600">
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" id="portalRememberMe" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-            <span>로그인 상태 유지 (자동 로그인)</span>
-          </label>
-          <span class="text-[11px] text-slate-400">초기: admin / urban2026</span>
+        <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/80">
+          <span class="flex items-center gap-1.5 font-medium text-slate-600">
+            <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
+            <span>보안 세션 적용 (새 탭/재접속 시 로그인 필요)</span>
+          </span>
+          <span class="text-[11px] font-mono text-slate-400">초기: admin / urban2026</span>
         </div>
 
         <!-- ACTION 1: ADMIN LOGIN -->
@@ -859,7 +859,7 @@
                     </span>
                   </div>
                   <p class="text-[11.5px] text-indigo-200/70 mt-0.5">
-                    실시간 근무 경과 타이머 및 초당 수입 카운터 + 야근 식대(1회당 1만원) 자동 정산
+                    오늘 남은 근무시간 카운트다운 및 실시간 수입 카운터 + 야근 식대(1회당 1만원) 자동 정산
                   </p>
                 </div>
               </div>
@@ -912,7 +912,7 @@
                     </span>
                   </div>
                   <div class="text-xs text-indigo-200 font-mono font-bold flex items-center justify-between pt-1.5 border-t border-indigo-500/20">
-                    <span class="text-[11.5px] text-indigo-300/80">오늘 번 돈 (초당 3.8원):</span>
+                    <span id="todayEarningsLabel" class="text-[11.5px] text-indigo-300/80">오늘 번 돈 (시간당 13,680원):</span>
                     <span class="text-base font-black text-amber-300"><span id="statTodayEarnings">0</span>원</span>
                   </div>
                 </div>
@@ -2082,14 +2082,10 @@
 
     
     
-    // One-time session reset for v1.15.0 so all users see the new Initial Portal Screen
+    // 🔒 Security: Always clear any cross-tab localStorage auth session
+    // Every newly opened tab / reconnect must start fresh at the Login Portal Screen
     try {
-      if (localStorage.getItem('urban_portal_v15_seen') !== 'v1.15.0') {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_guest_entered');
-        localStorage.setItem('urban_portal_v15_seen', 'v1.15.0');
-      }
+      localStorage.removeItem('urban_auth_session');
     } catch(e) {}
 
     // ==========================================
@@ -2099,8 +2095,8 @@
 
     function checkIsAdmin() {
       try {
-        return localStorage.getItem('urban_auth_session') === 'admin' ||
-               sessionStorage.getItem('urban_auth_session') === 'admin';
+        // Strictly per-tab session so opening a link in a new tab/window always requires login
+        return sessionStorage.getItem('urban_auth_session') === 'admin';
       } catch(e) {
         return false;
       }
@@ -2143,13 +2139,10 @@
 
       if (idVal.toLowerCase() === DEFAULT_MASTER_ID && pwVal === masterPass) {
         if (err) err.classList.add('hidden');
-        if (remember && remember.checked) {
-          localStorage.setItem('urban_auth_session', 'admin');
-          sessionStorage.removeItem('urban_auth_session');
-        } else {
-          sessionStorage.setItem('urban_auth_session', 'admin');
-          localStorage.removeItem('urban_auth_session');
-        }
+        // Save strictly to sessionStorage so newly opened tabs/windows always show login screen
+        sessionStorage.setItem('urban_auth_session', 'admin');
+        sessionStorage.removeItem('urban_guest_entered');
+        localStorage.removeItem('urban_auth_session');
         sessionStorage.removeItem('urban_guest_entered');
         syncAppViews();
         renderAll();
@@ -2195,8 +2188,7 @@
     // Original checkIsAdmin replaced above
     function _unusedCheckIsAdmin() {
       try {
-        return localStorage.getItem('urban_auth_session') === 'admin' ||
-               sessionStorage.getItem('urban_auth_session') === 'admin';
+        return sessionStorage.getItem('urban_auth_session') === 'admin';
       } catch(e) {
         return false;
       }
@@ -2305,13 +2297,9 @@
       const currentMaster = getMasterPassword();
 
       if (val === currentMaster) {
-        if (remember && remember.checked) {
-          localStorage.setItem('urban_auth_session', 'admin');
-          sessionStorage.removeItem('urban_auth_session');
-        } else {
-          sessionStorage.setItem('urban_auth_session', 'admin');
-          localStorage.removeItem('urban_auth_session');
-        }
+        sessionStorage.setItem('urban_auth_session', 'admin');
+        sessionStorage.removeItem('urban_guest_entered');
+        localStorage.removeItem('urban_auth_session');
         closeLoginModal();
         updateAuthUI();
         showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
@@ -3661,6 +3649,11 @@
       const elTodayEarn = document.getElementById('statTodayEarnings');
       if (elTodayEarn) elTodayEarn.innerText = Math.round(todayEarnings).toLocaleString();
 
+      const elTodayLabel = document.getElementById('todayEarningsLabel');
+      if (elTodayLabel) {
+        elTodayLabel.innerText = `오늘 번 돈 (시간당 ${Math.round(hourlyRate).toLocaleString()}원):`;
+      }
+
       const elTodayStatus = document.getElementById('todayWorkStatusBadge');
       if (elTodayStatus) elTodayStatus.innerText = todayStatusText;
 
@@ -4478,12 +4471,12 @@
     badge: '실시간 수입 & 야근식대 신설',
     badgeColor: 'emerald',
     title: '💰 5번 [근무 캘린더] 실시간 누적 수입 & 오늘 근무 타이머 & 야근 식대(+10,000원) 정산 시스템 신설 (게스트 모드 비공개)',
-    summary: '개인 월 기본급(설정 가능)을 기준으로 오늘 출근부터 퇴근까지의 실시간 근무 타이머 및 초당 누적 수입을 실시간으로 추적하고, 야근 발생 시 식대(+10,000원)가 자동 합산되는 라이브 수입 대시보드를 구축했습니다. (개인정보 보호를 위해 게스트 모드에서는 완전 비공개 처리)',
+    summary: '개인 월 기본급(설정 가능)을 기준으로 오늘 퇴근까지 남은 시간 카운트다운 및 오늘 번 돈(시간당 13,680원)을 추적하고, 별도 연장근무수당 없이 야근 발생 시 식대(+10,000원)만 자동 합산되는 라이브 수입 대시보드를 구축했습니다. (게스트 모드 비공개 보호)',
     changes: [
-      '💰 [실시간 누적 수입 대시보드 신설]: 당월 누적 수입, 기본급 대비 실시간 달성률 게이지 바(%), 잔여 수입을 실시간 초당 누적(LIVE)으로 시각화.',
-      '⏱️ [오늘 실시간 근무 타이머 & 오늘 번 돈]: 09:00 출근부터 실시간 경과 타이머(HH:MM:SS)가 작동하며 초당 3.8원씩 올라가는 오늘 수입 카운터 제공.',
+      '💰 [실시간 누적 수입 대시보드 신설]: 당월 누적 수입, 기본급 대비 실시간 달성률 게이지 바(%), 잔여 수입을 실시간 라이브(LIVE)로 시각화.',
+      '⏱️ [오늘 남은 근무시간 카운트다운 & 오늘 번 돈]: 18:00 퇴근까지 남은 시간 카운트다운(HH:MM:SS)과 오늘 실시간 번 돈(시간당 13,680원 기준) 제공.',
       '🍱 [야근 식대 자동 합산 시스템]: 연장근무가 발생한 일자마다 식대 10,000원이 자동으로 누적 수입에 추가 정산.',
-      '⚡ [연장근무 수당 1.5배 산출]: 월간 야근 시간 합산액을 통상 시급(13,680원)의 1.5배(20,521원/h)로 정밀 계산.',
+      '🚫 [연장근무수당 미적용]: 포괄임금제 기준에 따라 별도 연장근무수당을 적용하지 않고, 야근 발생 시 식대(+10,000원/회)만 정액 정산.',
       '🔒 [게스트 모드 철저 비공개 보호]: 로그인하지 않은 게스트 모드 접속 시에는 급여 및 수입 대시보드가 원천 숨김 처리되어 개인정보가 완벽히 보호됩니다.',
       '⚙️ [기본급 & 식대 단가 설정 기능]: [⚙️ 기본급 설정] 모달을 통해 월 기본급과 야근 식대 단가를 언제든지 직접 수정 및 보존 가능.'
     ]
@@ -7472,7 +7465,7 @@ saveStore();
         <div>
           <label class="block font-bold text-slate-700 mb-1">월 기본급 (원)</label>
           <input type="number" id="cfgMonthlySalary" value="" placeholder="기본급 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <p class="text-[11px] text-slate-400 mt-1">월 기본급 입력 시 초당 수입 및 당월 실시간 누적액이 계산됩니다.</p>
+          <p class="text-[11px] text-slate-400 mt-1">월 기본급 입력 시 시급(시간당 수입) 및 당월 실시간 누적액이 계산됩니다.</p>
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">야근 식대 (1회당, 원)</label>
@@ -7517,12 +7510,12 @@ saveStore();
           </p>
         </div>
 
-        <div class="flex items-center justify-between text-xs text-slate-600">
-          <label class="flex items-center gap-2 cursor-pointer selection:none">
-            <input type="checkbox" id="loginRememberMe" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-            <span>이 기기에서 로그인 상태 유지</span>
-          </label>
-          <span class="text-[11px] text-slate-400">초기 암호: urban2026</span>
+        <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/80">
+          <span class="flex items-center gap-1.5 font-medium text-slate-600">
+            <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
+            <span>현재 탭 보안 세션 적용</span>
+          </span>
+          <span class="text-[11px] font-mono text-slate-400">초기 암호: urban2026</span>
         </div>
 
         <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
