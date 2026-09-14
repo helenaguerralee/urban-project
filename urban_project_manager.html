@@ -156,9 +156,89 @@
 
 
 
+    <!-- INITIAL LOGIN LANDING PORTAL SCREEN -->
+  <div id="loginLandingPortal" class="fixed inset-0 z-40 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto" style="display: flex;">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-8 space-y-6">
+      
+      <!-- LOGO & BRANDING -->
+      <div class="text-center space-y-2">
+        <div class="h-16 w-36 mx-auto px-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-xs">
+          <img src="app_logo.png" alt="Kyong Ho . ENC" class="h-9 object-contain">
+        </div>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">도시계획 업무관리시스템</h2>
+          <p class="text-xs text-slate-500 mt-1">경호엔지니어링 도시계획부 통합 포털</p>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          <span>v1.15.0 Enterprise Workspace</span>
+        </div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form onsubmit="event.preventDefault(); handlePortalLoginSubmit();" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 아이디</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">👤</span>
+            <input type="text" id="portalLoginId" value="admin" placeholder="아이디 입력 (기본: admin)" class="w-full pl-10 pr-3.5 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="username" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 비밀번호</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔒</span>
+            <input type="password" id="portalLoginPassword" placeholder="비밀번호 입력 (기본: urban2026)" class="w-full pl-10 pr-10 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="current-password" required>
+            <button type="button" onclick="togglePasswordVisibility('portalLoginPassword', 'eyeIconPortal')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+              <i data-lucide="eye" id="eyeIconPortal" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p id="portalLoginErrorMsg" class="hidden text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+            <span>⚠️</span> <span>아이디 또는 비밀번호가 일치하지 않습니다. (기본: admin / urban2026)</span>
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="portalRememberMe" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+            <span>로그인 상태 유지 (자동 로그인)</span>
+          </label>
+          <span class="text-[11px] text-slate-400">초기: admin / urban2026</span>
+        </div>
+
+        <!-- ACTION 1: ADMIN LOGIN -->
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          <span>관리자 로그인 (수정 권한 활성화)</span>
+        </button>
+      </form>
+
+      <!-- DIVIDER -->
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-xs font-semibold text-slate-400">또는</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <!-- ACTION 2: GUEST MODE EXPLORE -->
+      <div class="space-y-2">
+        <button type="button" onclick="enterGuestMode()" class="w-full py-3.5 bg-amber-50/90 hover:bg-amber-100 border border-amber-300 hover:border-amber-400 text-amber-900 font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-xs cursor-pointer group">
+          <span class="text-base group-hover:scale-110 transition-transform">👀</span>
+          <span>게스트 모드로 둘러보기 (조회 전용)</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 text-amber-700 group-hover:translate-x-0.5 transition-transform"></i>
+        </button>
+        <p class="text-center text-[11px] text-slate-400 leading-normal">
+          로그인 없이 8개 탭(프로젝트, 일자별 To-Do, 캘린더, 근무/연차 등)의 모든 데이터를 자유롭게 실시간 확인하실 수 있습니다.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- MAIN CONTAINER -->
 
-  <div class="relative z-10 w-full max-w-[1700px] mx-auto px-3 sm:px-6 py-3 sm:py-4 pb-24 md:pb-6 min-h-screen flex flex-col justify-between">
+  <div id="mainAppContainer" class="relative z-10 w-full max-w-[1700px] mx-auto px-3 sm:px-6 py-3 sm:py-4 pb-24 md:pb-6 min-h-screen flex flex-col justify-between" style="display: none;">
 
     
 
@@ -359,9 +439,14 @@
           <span class="hidden sm:inline text-amber-800/90 ml-1.5">모든 프로젝트, 캘린더, 근무/연차 데이터를 자유롭게 열람하실 수 있으며, 데이터 수정 및 추가는 관리자 로그인 후 이용 가능합니다.</span>
         </div>
       </div>
-      <button onclick="openLoginModal()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-xs transition text-xs flex items-center gap-1">
-        🔑 관리자 로그인
-      </button>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="openLoginModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition text-xs flex items-center gap-1">
+          🔑 로그인
+        </button>
+        <button onclick="showLoginPortal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-300 transition text-xs flex items-center gap-1" title="초기 로그인 포털 화면으로 이동">
+          🚪 로그인 화면
+        </button>
+      </div>
     </div>
 
     <!-- Global Notification Toast Container -->
@@ -1898,7 +1983,109 @@
       return true;
     }
 
+    
+    // ==========================================
+    // 🚪 PORTAL LANDING & GUEST ENTRY SYSTEM (v1.15.0)
+    // ==========================================
+    const DEFAULT_MASTER_ID = 'admin';
+
     function checkIsAdmin() {
+      try {
+        return localStorage.getItem('urban_auth_session') === 'admin' ||
+               sessionStorage.getItem('urban_auth_session') === 'admin';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function checkHasGuestAccess() {
+      try {
+        return sessionStorage.getItem('urban_guest_entered') === 'true';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function syncAppViews() {
+      const portal = document.getElementById('loginLandingPortal');
+      const mainApp = document.getElementById('mainAppContainer');
+      const isAdmin = checkIsAdmin();
+      const hasGuest = checkHasGuestAccess();
+
+      if (isAdmin || hasGuest) {
+        if (portal) portal.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'flex';
+      } else {
+        if (portal) portal.style.display = 'flex';
+        if (mainApp) mainApp.style.display = 'none';
+      }
+      updateAuthUI();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handlePortalLoginSubmit() {
+      const idInput = document.getElementById('portalLoginId');
+      const pwInput = document.getElementById('portalLoginPassword');
+      const remember = document.getElementById('portalRememberMe');
+      const err = document.getElementById('portalLoginErrorMsg');
+
+      const idVal = (idInput ? idInput.value : '').trim();
+      const pwVal = (pwInput ? pwInput.value : '').trim();
+      const masterPass = getMasterPassword();
+
+      if (idVal.toLowerCase() === DEFAULT_MASTER_ID && pwVal === masterPass) {
+        if (err) err.classList.add('hidden');
+        if (remember && remember.checked) {
+          localStorage.setItem('urban_auth_session', 'admin');
+          sessionStorage.removeItem('urban_auth_session');
+        } else {
+          sessionStorage.setItem('urban_auth_session', 'admin');
+          localStorage.removeItem('urban_auth_session');
+        }
+        sessionStorage.removeItem('urban_guest_entered');
+        syncAppViews();
+        renderAll();
+        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
+      } else {
+        if (err) {
+          err.classList.remove('hidden');
+        } else {
+          alert('아이디 또는 비밀번호가 일치하지 않습니다.\n(기본: admin / urban2026)');
+        }
+        if (pwInput) {
+          pwInput.focus();
+          pwInput.select();
+        }
+      }
+    }
+
+    function enterGuestMode() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.setItem('urban_guest_entered', 'true');
+      } catch(e) {}
+      syncAppViews();
+      renderAll();
+      showAuthToast('👀 게스트 모드로 접속했습니다. (조회 전용)', false);
+    }
+
+    function showLoginPortal() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_guest_entered');
+      } catch(e) {}
+      const pwInput = document.getElementById('portalLoginPassword');
+      if (pwInput) pwInput.value = '';
+      const err = document.getElementById('portalLoginErrorMsg');
+      if (err) err.classList.add('hidden');
+      syncAppViews();
+      if (pwInput) setTimeout(() => pwInput.focus(), 150);
+    }
+
+    // Original checkIsAdmin replaced above
+    function _unusedCheckIsAdmin() {
       try {
         return localStorage.getItem('urban_auth_session') === 'admin' ||
                sessionStorage.getItem('urban_auth_session') === 'admin';
@@ -2034,13 +2221,8 @@
     }
 
     function handleLogout() {
-      if (!confirm('로그아웃하시겠습니까?\n게스트(조회 전용) 모드로 전환됩니다.')) return;
-      try {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-      } catch(e) {}
-      updateAuthUI();
-      showAuthToast('👀 게스트 모드로 전환되었습니다. (조회 전용)', false);
+      if (!confirm('로그아웃하시겠습니까?\n초기 로그인 화면으로 이동합니다.')) return;
+      showLoginPortal();
     }
 
     function openChangePasswordModal() {
@@ -3905,6 +4087,20 @@
 
         
     const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.15.0',
+    date: '2026-09-14',
+    badge: '로그인 포털 & 게스트 분리',
+    badgeColor: 'blue',
+    title: '🚪 독립 초기 로그인 화면(랜딩 포털) 및 게스트 모드 진입 전용 탭 신설',
+    summary: '웹 접속 시 대시보드로 바로 들어가지 않고 아이디(admin)와 비밀번호(urban2026)를 입력하는 전용 초기 로그인 포털 화면을 신설하고, [게스트 모드로 둘러보기] 전용 진입 탭을 분리하여 비로그인 사용자도 원클릭으로 안전하게 열람할 수 있도록 개선했습니다.',
+    changes: [
+      '🚪 [독립 초기 로그인 포털 화면 신설]: 미로그인 접속 시 세련된 전용 포털 카드 화면이 먼저 노출되며 아이디(admin) / 비밀번호(urban2026) 입력 폼 제공.',
+      '👀 [게스트 모드로 둘러보기 전용 탭]: 포털 화면 내 전용 게스트 진입 버튼을 통해 비밀번호 없이 8개 탭의 모든 업무 현황을 자유롭게 실시간 열람 가능.',
+      '🔄 [자유로운 화면 전환 및 원클릭 복귀]: 게스트 모드 열람 중 상단 배너의 [🚪 로그인 화면] 버튼을 눌러 언제든지 초기 포털 화면으로 돌아갈 수 있도록 지원.',
+      '🔒 [로그아웃 시 포털 복귀]: 관리자 모드에서 [로그아웃] 시 즉시 초기 로그인 포털 화면으로 안전하게 복귀.'
+    ]
+  },
   {
     version: 'v1.14.0',
     date: '2026-09-14',
@@ -6724,6 +6920,7 @@ saveStore();
 
 
     function renderAll() {
+      syncAppViews();
       updateAuthUI();
       updateAllProjectDropdowns();
       renderSummaryHeader();
