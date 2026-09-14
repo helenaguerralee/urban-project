@@ -2748,6 +2748,10 @@
     }
 
 
+    let currentWorkCalYear = new Date().getFullYear();
+    let currentWorkCalMonth = new Date().getMonth() + 1;
+    let currentEditingWorkDate = null;
+
     function changeWorkMonth(offset) {
       currentWorkCalMonth += offset;
       if (currentWorkCalMonth > 12) {
