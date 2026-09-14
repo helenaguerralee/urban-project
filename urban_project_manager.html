@@ -859,7 +859,7 @@
                     </span>
                   </div>
                   <p class="text-[11.5px] text-indigo-200/70 mt-0.5">
-                    오늘 남은 근무시간 카운트다운 및 실시간 수입 카운터 + 야근 식대(1회당 1만원) 자동 정산
+                    월 기본급 기준 실시간 수입 카운터 (법정공휴일·연차 100% 유급 보장) + 야근 식대(+10,000원/회) 자동 정산
                   </p>
                 </div>
               </div>
@@ -1021,9 +1021,10 @@
           <div class="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700">
             <span class="text-slate-400 mr-1">근무 구분:</span>
             <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-300">💼 일반 근무 (09:00~18:00)</span>
-            <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">🏖️ 연차 (종일, -1.0일)</span>
-            <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 border border-sky-300">🌤️ 오전 반차 (12:30~18:00, -0.5일)</span>
-            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">⛅ 오후 반차 (09:00~11:30, -0.5일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">🏖️ 연차 (유급휴가, -1.0일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 border border-sky-300">🌤️ 오전 반차 (유급 -0.5일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">⛅ 오후 반차 (유급 -0.5일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 font-bold">🔴 법정공휴일 (100% 유급휴일)</span>
             <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-300">🔥 추가 연장 근무</span>
             <span class="text-slate-400 text-[11px] ml-auto font-medium hidden sm:inline">💡 날짜를 클릭하면 해당 일자의 근무 형태 및 연장 시간을 등록/수정할 수 있습니다.</span>
             <span class="text-indigo-600 font-bold text-[11px] sm:hidden w-full text-right mt-1">👉 좌우로 스크롤하여 캘린더 전체를 확인하세요</span>
@@ -3540,8 +3541,8 @@
         salarySection.style.display = 'none';
         salarySection.classList.add('hidden');
         if (guestNotice) {
-          guestNotice.style.display = 'flex';
-          guestNotice.classList.remove('hidden');
+          guestNotice.style.display = 'none';
+          guestNotice.classList.add('hidden');
         }
         if (liveSalaryTimerInterval) {
           clearInterval(liveSalaryTimerInterval);
@@ -3560,9 +3561,6 @@
 
       // Calculations:
       const monthlySalary = getMonthlySalary();
-      const hourlyRate = monthlySalary / STANDARD_MONTHLY_HOURS;
-      const perSecondRate = hourlyRate / 3600;
-      const overtimeHourlyRate = hourlyRate * 1.5;
       const mealRate = getMealAllowanceRate();
 
       // Current year & month
@@ -3579,10 +3577,9 @@
       const baseDisp = document.getElementById('statMonthlyBaseDisplay');
       if (baseDisp) baseDisp.innerText = monthlySalary.toLocaleString();
 
-      // 1. Calculate past days in current month up to yesterday
       const daysInMonth = new Date(curYear, curMonth, 0).getDate();
-      let pastWorkdaysCount = 0;
-      let totalBusinessDaysInMonth = 0;
+      let totalPaidWeekdaysInMonth = 0;
+      let pastPaidWeekdaysCount = 0;
       let totalOvertimeHoursInMonth = 0;
       let overtimeDaysCount = 0;
 
@@ -3593,17 +3590,27 @@
         }
       });
 
+      // 월급제 기준: 평일(월~금)은 근무일, 법정공휴일, 연차 모두 100% 유급휴일/유급휴가로 급여 전액 지급
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dt = new Date(curYear, curMonth - 1, d);
+        const dayOfWeek = dt.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        if (!isWeekend) {
+          totalPaidWeekdaysInMonth++;
+        }
+      }
+      if (totalPaidWeekdaysInMonth === 0) totalPaidWeekdaysInMonth = 20;
+
+      // 1일 유급 일급 및 통상 시급/초당 단가
+      const dailyBasePay = monthlySalary / totalPaidWeekdaysInMonth;
+      const hourlyRate = dailyBasePay / 8;
+      const perSecondRate = hourlyRate / 3600;
+
       for (let d = 1; d <= daysInMonth; d++) {
         const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
         const dt = new Date(curYear, curMonth - 1, d);
-        const dayOfWeek = dt.getDay(); // 0: Sun, 6: Sat
+        const dayOfWeek = dt.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const holiday = getKoreanPublicHoliday(dStr);
-        const isWorkday = !isWeekend && !holiday;
-
-        if (isWorkday) {
-          totalBusinessDaysInMonth++;
-        }
 
         const log = logsMap[dStr];
         const otHours = log && log.overtimeHours ? Number(log.overtimeHours) : 0;
@@ -3612,11 +3619,11 @@
           overtimeDaysCount++;
         }
 
-        // If day is before today (or past days in viewing month):
+        // 과거 일자 (1일 ~ 어제)
         if (dStr < todayStr) {
-          let leaveDeduct = log ? Number(log.deductLeave || 0) : 0;
-          if (isWorkday) {
-            pastWorkdaysCount += Math.max(0, 1 - leaveDeduct);
+          // 법정공휴일과 연차도 모두 유급이므로 평일이면 일급 100% 정상 누적
+          if (!isWeekend) {
+            pastPaidWeekdaysCount++;
           }
         }
       }
@@ -3624,6 +3631,7 @@
       // 2. Today's live time & remaining countdown calculation (오늘 남은 근무시간 카운트다운)
       let todayWorkSeconds = 0;
       let todayRemainingSeconds = 0;
+      let todayEarnings = 0;
       let todayStatusText = '근무 외';
 
       const isRealCurrentMonth = (curYear === now.getFullYear() && curMonth === (now.getMonth() + 1));
@@ -3631,7 +3639,7 @@
         const todayLog = logsMap[todayStr];
         const dayOfWeek = now.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const holiday = getKoreanPublicHoliday(todayStr);
+        const holidayName = getKoreanPublicHoliday(todayStr);
 
         const startSeconds = 9 * 3600;   // 09:00 출근
         const lunchStart = 12 * 3600;    // 12:00 점심 시작
@@ -3640,41 +3648,89 @@
 
         const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         let todayLeaveDeduct = todayLog ? Number(todayLog.deductLeave || 0) : 0;
+        const isFullAnnualLeave = (todayLog && todayLog.type === 'annual_full') || todayLeaveDeduct >= 1.0;
+        const isHalfAm = (todayLog && todayLog.type === 'half_am');
+        const isHalfPm = (todayLog && todayLog.type === 'half_pm');
 
-        if (!isWeekend && !holiday && todayLeaveDeduct < 1.0) {
+        if (isWeekend) {
+          todayStatusText = '주말 휴무';
+          todayRemainingSeconds = 0;
+          todayEarnings = 0;
+        } else if (holidayName) {
+          // 🔴 법정공휴일: 100% 유급휴일! 하루 일급 전액 그대로 지급
+          todayStatusText = `${holidayName} (유급) 🏖️`;
+          todayRemainingSeconds = 0;
+          todayEarnings = dailyBasePay;
+        } else if (isFullAnnualLeave) {
+          // 🏖️ 연차: 100% 유급휴가! 하루 일급 전액 그대로 지급
+          todayStatusText = '연차 (유급) 🏖️';
+          todayRemainingSeconds = 0;
+          todayEarnings = dailyBasePay;
+        } else if (isHalfAm) {
+          // 🌤️ 오전반차 (12:30~18:00 근무, 오전 4h는 유급 보장)
+          const halfPaid = dailyBasePay * 0.5;
+          const halfWorkStart = 12 * 3600 + 30 * 60; // 12:30
+          if (curSeconds < halfWorkStart) {
+            todayStatusText = '오전반차 (출근전)';
+            todayRemainingSeconds = endSeconds - halfWorkStart;
+            todayEarnings = halfPaid;
+          } else if (curSeconds <= endSeconds) {
+            todayStatusText = '오전반차 근무중 🔥';
+            const elapsed = curSeconds - halfWorkStart;
+            todayRemainingSeconds = Math.max(0, endSeconds - curSeconds);
+            todayEarnings = halfPaid + (elapsed * perSecondRate);
+          } else {
+            todayStatusText = '퇴근 완료 🎉';
+            todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
+          }
+        } else if (isHalfPm) {
+          // ⛅ 오후반차 (09:00~11:30 근무, 오후는 유급 보장)
+          const halfPaid = dailyBasePay * 0.5;
+          const halfWorkEnd = 11 * 3600 + 30 * 60; // 11:30
           if (curSeconds < startSeconds) {
-            // 출근 전: 오늘 근무 8시간 전체 남음
+            todayStatusText = '출근 전';
+            todayRemainingSeconds = 2.5 * 3600;
+            todayEarnings = 0;
+          } else if (curSeconds <= halfWorkEnd) {
+            todayStatusText = '오후반차 근무중 🔥';
+            const elapsed = curSeconds - startSeconds;
+            todayRemainingSeconds = Math.max(0, halfWorkEnd - curSeconds);
+            todayEarnings = elapsed * perSecondRate;
+          } else {
+            todayStatusText = '오후반차 (퇴근완료) 🏖️';
+            todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
+          }
+        } else {
+          // 💼 일반 평일 근무 (09:00 ~ 18:00)
+          if (curSeconds < startSeconds) {
             todayWorkSeconds = 0;
             todayRemainingSeconds = 8 * 3600;
+            todayEarnings = 0;
             todayStatusText = '출근 전';
           } else if (curSeconds >= startSeconds && curSeconds <= endSeconds) {
-            // 근무 시간 중 (09:00 ~ 18:00)
             if (curSeconds < lunchStart) {
-              // 오전 근무 중
               todayWorkSeconds = curSeconds - startSeconds;
               todayRemainingSeconds = (lunchStart - curSeconds) + (endSeconds - lunchEnd);
               todayStatusText = '근무중 🔥';
             } else if (curSeconds <= lunchEnd) {
-              // 점심시간
               todayWorkSeconds = 3 * 3600;
               todayRemainingSeconds = 5 * 3600;
               todayStatusText = '점심시간 🍱';
             } else {
-              // 오후 근무 중 (13:00 ~ 18:00)
               todayWorkSeconds = 3 * 3600 + (curSeconds - lunchEnd);
               todayRemainingSeconds = endSeconds - curSeconds;
               todayStatusText = '근무중 🔥';
             }
+            todayEarnings = todayWorkSeconds * perSecondRate;
           } else {
-            // 18:00 이후 (퇴근 완료)
             todayWorkSeconds = 8 * 3600;
             todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
             const otToday = todayLog ? Number(todayLog.overtimeHours || 0) : 0;
             todayStatusText = otToday > 0 ? `야근중 (+${otToday}h)` : '퇴근 완료 🎉';
           }
-        } else {
-          todayStatusText = holiday ? holiday.name : (isWeekend ? '주말' : '연차');
-          todayRemainingSeconds = 0;
         }
       }
 
@@ -3684,13 +3740,10 @@
       const rSeconds = todayRemainingSeconds % 60;
       const timerStr = `${String(rHours).padStart(2, '0')}:${String(rMinutes).padStart(2, '0')}:${String(rSeconds).padStart(2, '0')}`;
 
-      const todayEarnings = todayWorkSeconds * perSecondRate;
-      const dailyBasePay = 8 * hourlyRate;
-      const pastBasePay = pastWorkdaysCount * dailyBasePay;
-      // No overtime pay (연장근무수당 없음, 야근 식대만 적용)
-      const totalOvertimePay = 0;
+      // 과거 평일 유급액 + 오늘 수입 + 야근 식대 누적액
+      const pastBasePay = pastPaidWeekdaysCount * dailyBasePay;
       const totalMealAllowance = overtimeDaysCount * mealRate;
-      const monthTotalEarnings = Math.round(pastBasePay + todayEarnings + totalMealAllowance);
+      const monthTotalEarnings = Math.min(monthlySalary + totalMealAllowance, Math.round(pastBasePay + todayEarnings + totalMealAllowance));
 
       // Update UI Elements
       const elTotal = document.getElementById('statMonthTotalEarnings');
@@ -3700,7 +3753,7 @@
       const elProgressBar = document.getElementById('salaryProgressBar');
       const pct = Math.min(100, (monthTotalEarnings / monthlySalary) * 100);
       if (elProgressPct) elProgressPct.innerText = `${pct.toFixed(1)}%`;
-      if (elProgressBar) elProgressBar.style.width = `${pct.toFixed(1)}%`;
+      if (elProgressBar) elProgressBar.style.width = `${pct}%`;
 
       const elRemToGoal = document.getElementById('statRemainingToGoal');
       if (elRemToGoal) {
@@ -3722,17 +3775,11 @@
       const elTodayStatus = document.getElementById('todayWorkStatusBadge');
       if (elTodayStatus) elTodayStatus.innerText = todayStatusText;
 
-      const elOtBadge = document.getElementById('statOvertimeHoursBadge');
-      if (elOtBadge) elOtBadge.innerText = `${totalOvertimeHoursInMonth.toFixed(1)}h`;
-
-      const elOtPay = document.getElementById('statOvertimePay');
-      if (elOtPay) elOtPay.innerText = Math.round(totalOvertimePay).toLocaleString();
-
       const elMealBadge = document.getElementById('statMealCountBadge');
       if (elMealBadge) elMealBadge.innerText = `${overtimeDaysCount}회`;
 
-      const elMealPay = document.getElementById('statMealAllowance');
-      if (elMealPay) elMealPay.innerText = totalMealAllowance.toLocaleString();
+      const elMealAllow = document.getElementById('statMealAllowance');
+      if (elMealAllow) elMealAllow.innerText = totalMealAllowance.toLocaleString();
     }
 
     function startLiveSalaryTicker() {
@@ -3902,7 +3949,7 @@
                 <div class="font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1">
                   <span>🏖️</span> 연차 (종일)
                 </div>
-                <div class="text-[9.5px] text-amber-700 font-medium mt-0.5">잔여 -1.0일 차감</div>
+                <div class="text-[9.5px] text-amber-800 font-medium mt-0.5">유급휴가 · 잔여 -1.0일</div>
               </div>
             `;
           } else if (log.type === 'half_am') {
@@ -3962,7 +4009,7 @@
                 <div class="font-bold text-[10.5px] sm:text-xs flex items-center gap-1 text-rose-700">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${holidayName}
                 </div>
-                <div class="text-[9.5px] text-rose-500 font-medium mt-0.5">법정공휴일 (휴무)</div>
+                <div class="text-[9.5px] text-rose-600 font-bold mt-0.5">법정공휴일 (100% 유급)</div>
               </div>
             `;
           } else if (!isSun && !isSat) {
