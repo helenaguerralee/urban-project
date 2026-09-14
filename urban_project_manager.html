@@ -851,7 +851,7 @@
                 <div>
                   <div class="flex items-center gap-2">
                     <h4 class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5 text-white">
-                      <span id="salaryMonthLabel">9월</span> 실시간 누적 수입 &amp; 근무 타이머
+                      <span id="salaryMonthLabel">9월</span> 실시간 누적 수입 &amp; 오늘 근무 타이머
                     </h4>
                     <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10.5px] font-bold flex items-center gap-1">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -859,15 +859,15 @@
                     </span>
                   </div>
                   <p class="text-[11.5px] text-indigo-200/70 mt-0.5">
-                    기본급 2,859,216원 기준 (시급 약 13,680원, 초당 약 3.8원) + 야근수당(1.5배) + 야근 식대(1만원) 실시간 정산
+                    월 기본급 2,859,216원 기준 (시급 약 13,680원, 초당 약 3.8원) + 야근 식대(1회당 1만원) 실시간 정산
                   </p>
                 </div>
               </div>
 
               <!-- Action buttons: Settings & Info -->
               <div class="flex items-center gap-2">
-                <span class="text-[11px] text-indigo-300/80 bg-indigo-950/60 px-3 py-1.5 rounded-xl border border-indigo-500/30 font-medium">
-                  🍱 야근 식대 <strong class="text-amber-300 font-bold">1회당 +10,000원</strong>
+                <span class="text-[11px] text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-400/30 font-bold flex items-center gap-1">
+                  🍱 야근 식대 <strong class="text-amber-200 underline decoration-amber-400 font-black">+10,000원 / 회</strong>
                 </span>
                 <button onclick="openSalaryConfigModal()" class="px-3 py-1.5 bg-indigo-600/60 hover:bg-indigo-600 text-white rounded-xl border border-indigo-400/40 text-xs font-bold transition flex items-center gap-1" title="기본급 설정">
                   ⚙️ 기본급 설정
@@ -875,91 +875,85 @@
               </div>
             </div>
 
-            <!-- 4 Metrics Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            <!-- 3 Metrics Grid (Total, Today Timer, Meal Allowance) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
               <!-- 1. Total Month Earnings -->
-              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
                 <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
-                  <span class="flex items-center gap-1.5">🎯 이번 달 총 누적 수입</span>
-                  <span id="salaryProgressPct" class="text-emerald-400 text-[11px] font-mono font-bold">0.0%</span>
+                  <span class="flex items-center gap-1.5 text-indigo-200 font-bold">🎯 이번 달 총 누적 수입</span>
+                  <span id="salaryProgressPct" class="text-emerald-400 text-xs font-mono font-black">0.0%</span>
                 </div>
-                <div class="space-y-1.5">
+                <div class="space-y-2">
                   <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-1">
                     <span id="statMonthTotalEarnings">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
                   </div>
                   <!-- Progress Bar -->
-                  <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700">
+                  <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
                     <div id="salaryProgressBar" class="bg-gradient-to-r from-blue-500 via-indigo-400 to-emerald-400 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
                   </div>
-                  <div class="flex justify-between text-[10px] text-indigo-300/70 font-mono">
-                    <span>목표: <span id="statMonthlyBaseDisplay">2,859,216</span>원</span>
-                    <span id="statRemainingToGoal">잔여: -</span>
+                  <div class="flex justify-between text-[11px] text-indigo-300/80 font-mono">
+                    <span>기본급: <span id="statMonthlyBaseDisplay">2,859,216</span>원</span>
+                    <span id="statRemainingToGoal" class="text-emerald-300 font-bold">잔여: -</span>
                   </div>
                 </div>
               </div>
 
               <!-- 2. Today Work Timer & Earnings -->
-              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
                 <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
-                  <span class="flex items-center gap-1.5">⏱️ 오늘 실시간 근무 &amp; 수입</span>
-                  <span id="todayWorkStatusBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">근무중</span>
+                  <span class="flex items-center gap-1.5 text-indigo-200 font-bold">⏱️ 오늘 실시간 근무 &amp; 번 돈</span>
+                  <span id="todayWorkStatusBadge" class="text-[10.5px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">근무중</span>
                 </div>
-                <div class="space-y-1">
-                  <div id="statTodayTimer" class="text-xl sm:text-2xl font-black font-mono text-emerald-400">
+                <div class="space-y-1.5">
+                  <div id="statTodayTimer" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">
                     00:00:00
                   </div>
-                  <div class="text-xs text-indigo-200 font-mono font-bold flex items-center justify-between pt-1 border-t border-indigo-500/20">
-                    <span class="text-[11px] text-indigo-300/80">오늘 번 돈:</span>
-                    <span class="text-sm font-black text-amber-300"><span id="statTodayEarnings">0</span>원</span>
+                  <div class="text-xs text-indigo-200 font-mono font-bold flex items-center justify-between pt-1.5 border-t border-indigo-500/20">
+                    <span class="text-[11.5px] text-indigo-300/80">오늘 번 돈 (초당 3.8원):</span>
+                    <span class="text-base font-black text-amber-300"><span id="statTodayEarnings">0</span>원</span>
                   </div>
                 </div>
               </div>
 
-              <!-- 3. Overtime Pay -->
-              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
+              <!-- 3. Overtime Meal Allowance (야근 식대 만원) -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
                 <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
-                  <span class="flex items-center gap-1.5">⚡ 연장근무 수당 (1.5x)</span>
-                  <span id="statOvertimeHoursBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">0.0h</span>
+                  <span class="flex items-center gap-1.5 text-indigo-200 font-bold">🍱 당월 야근 식대 누적</span>
+                  <span id="statMealCountBadge" class="text-[10.5px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/30 font-mono font-bold">0회</span>
                 </div>
-                <div class="space-y-1">
-                  <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-300 flex items-baseline gap-1">
-                    <span id="statOvertimePay">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
-                  </div>
-                  <p class="text-[10.5px] text-indigo-300/70 font-mono">
-                    야근 시급: 약 20,521원 / 시간
-                  </p>
-                </div>
-              </div>
-
-              <!-- 4. Overtime Meal Allowance -->
-              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
-                <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
-                  <span class="flex items-center gap-1.5">🍱 야근 식대 누적</span>
-                  <span id="statMealCountBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">0회</span>
-                </div>
-                <div class="space-y-1">
+                <div class="space-y-1.5">
                   <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-amber-300 flex items-baseline gap-1">
                     <span id="statMealAllowance">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
                   </div>
-                  <p class="text-[10.5px] text-indigo-300/70 font-mono">
-                    야근 시 1회당 1만원 정액 지급
+                  <p class="text-[11px] text-indigo-300/80 font-mono flex items-center justify-between pt-1 border-t border-indigo-500/20">
+                    <span>야근 1회당:</span>
+                    <span class="text-amber-300 font-bold">+10,000원 정액</span>
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Guest Confidentiality Protected Notice Card (Visible only in Guest Mode in Tab 5) -->
-          <div id="salaryGuestPrivacyNotice" class="hidden p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-2xs">
-            <div class="flex items-center gap-2.5">
-              <span class="text-lg">🔒</span>
+          <!-- Guest Confidentiality Notice Card in Tab 5 (with One-Click Login to Reveal) -->
+          <div id="salaryGuestPrivacyNotice" class="hidden p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white shadow-xl">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                🔒
+              </div>
               <div>
-                <strong class="font-bold text-amber-950">개인정보 보호 안내</strong>
-                <p class="text-amber-800 text-[11.5px] mt-0.5">실시간 누적 수입 및 급여 정산 데이터는 비공개 항목으로, 관리자 로그인 시에만 안전하게 확인하실 수 있습니다.</p>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm sm:text-base font-black text-white">
+                    5번 근무 캘린더 실시간 누적 수입 &amp; 타이머 (비공개 보호 중)
+                  </h4>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold">관리자 전용</span>
+                </div>
+                <p class="text-xs text-indigo-200/80 mt-1 leading-relaxed">
+                  월 기본급 2,859,216원(초당 3.8원) 실시간 수입 카운터와 야근 식대(+10,000원) 정산 데이터는 개인정보 보호를 위해 비공개 처리되어 있습니다.
+                </p>
               </div>
             </div>
-            <button onclick="showLoginPortal()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-xs transition">
-              🔑 관리자 로그인
+            <button onclick="openLoginModal()" class="shrink-0 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+              🔑 로그인하고 수입 위젯 보기
             </button>
           </div>
 
@@ -3655,9 +3649,10 @@
       const todayEarnings = todayWorkSeconds * perSecondRate;
       const dailyBasePay = 8 * hourlyRate;
       const pastBasePay = pastWorkdaysCount * dailyBasePay;
-      const totalOvertimePay = totalOvertimeHoursInMonth * overtimeHourlyRate;
+      // No overtime pay (연장근무수당 없음, 야근 식대만 적용)
+      const totalOvertimePay = 0;
       const totalMealAllowance = overtimeDaysCount * mealRate;
-      const monthTotalEarnings = Math.round(pastBasePay + todayEarnings + totalOvertimePay + totalMealAllowance);
+      const monthTotalEarnings = Math.round(pastBasePay + todayEarnings + totalMealAllowance);
 
       // Update UI Elements
       const elTotal = document.getElementById('statMonthTotalEarnings');
