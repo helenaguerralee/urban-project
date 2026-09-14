@@ -840,6 +840,129 @@
             </div>
           </div>
 
+          <!-- Real-time Salary & Work Timer Dashboard (Admin Only) -->
+          <div id="salaryTrackerSection" class="hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 rounded-3xl border border-indigo-500/30 shadow-xl space-y-5">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-indigo-500/20">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl shadow-inner">
+                  💰
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5 text-white">
+                      <span id="salaryMonthLabel">9월</span> 실시간 누적 수입 &amp; 근무 타이머
+                    </h4>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10.5px] font-bold flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      LIVE
+                    </span>
+                  </div>
+                  <p class="text-[11.5px] text-indigo-200/70 mt-0.5">
+                    기본급 2,859,216원 기준 (시급 약 13,680원, 초당 약 3.8원) + 야근수당(1.5배) + 야근 식대(1만원) 실시간 정산
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action buttons: Settings & Info -->
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-indigo-300/80 bg-indigo-950/60 px-3 py-1.5 rounded-xl border border-indigo-500/30 font-medium">
+                  🍱 야근 식대 <strong class="text-amber-300 font-bold">1회당 +10,000원</strong>
+                </span>
+                <button onclick="openSalaryConfigModal()" class="px-3 py-1.5 bg-indigo-600/60 hover:bg-indigo-600 text-white rounded-xl border border-indigo-400/40 text-xs font-bold transition flex items-center gap-1" title="기본급 설정">
+                  ⚙️ 기본급 설정
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 Metrics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+              <!-- 1. Total Month Earnings -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden group">
+                <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
+                  <span class="flex items-center gap-1.5">🎯 이번 달 총 누적 수입</span>
+                  <span id="salaryProgressPct" class="text-emerald-400 text-[11px] font-mono font-bold">0.0%</span>
+                </div>
+                <div class="space-y-1.5">
+                  <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-baseline gap-1">
+                    <span id="statMonthTotalEarnings">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
+                  </div>
+                  <!-- Progress Bar -->
+                  <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700">
+                    <div id="salaryProgressBar" class="bg-gradient-to-r from-blue-500 via-indigo-400 to-emerald-400 h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-indigo-300/70 font-mono">
+                    <span>목표: <span id="statMonthlyBaseDisplay">2,859,216</span>원</span>
+                    <span id="statRemainingToGoal">잔여: -</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Today Work Timer & Earnings -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
+                  <span class="flex items-center gap-1.5">⏱️ 오늘 실시간 근무 &amp; 수입</span>
+                  <span id="todayWorkStatusBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold">근무중</span>
+                </div>
+                <div class="space-y-1">
+                  <div id="statTodayTimer" class="text-xl sm:text-2xl font-black font-mono text-emerald-400">
+                    00:00:00
+                  </div>
+                  <div class="text-xs text-indigo-200 font-mono font-bold flex items-center justify-between pt-1 border-t border-indigo-500/20">
+                    <span class="text-[11px] text-indigo-300/80">오늘 번 돈:</span>
+                    <span class="text-sm font-black text-amber-300"><span id="statTodayEarnings">0</span>원</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Overtime Pay -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
+                  <span class="flex items-center gap-1.5">⚡ 연장근무 수당 (1.5x)</span>
+                  <span id="statOvertimeHoursBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-bold">0.0h</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-purple-300 flex items-baseline gap-1">
+                    <span id="statOvertimePay">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
+                  </div>
+                  <p class="text-[10.5px] text-indigo-300/70 font-mono">
+                    야근 시급: 약 20,521원 / 시간
+                  </p>
+                </div>
+              </div>
+
+              <!-- 4. Overtime Meal Allowance -->
+              <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-indigo-200/80 font-bold mb-2">
+                  <span class="flex items-center gap-1.5">🍱 야근 식대 누적</span>
+                  <span id="statMealCountBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">0회</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-amber-300 flex items-baseline gap-1">
+                    <span id="statMealAllowance">0</span><span class="text-xs text-indigo-300 font-bold">원</span>
+                  </div>
+                  <p class="text-[10.5px] text-indigo-300/70 font-mono">
+                    야근 시 1회당 1만원 정액 지급
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Guest Confidentiality Protected Notice Card (Visible only in Guest Mode in Tab 5) -->
+          <div id="salaryGuestPrivacyNotice" class="hidden p-4 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-2xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg">🔒</span>
+              <div>
+                <strong class="font-bold text-amber-950">개인정보 보호 안내</strong>
+                <p class="text-amber-800 text-[11.5px] mt-0.5">실시간 누적 수입 및 급여 정산 데이터는 비공개 항목으로, 관리자 로그인 시에만 안전하게 확인하실 수 있습니다.</p>
+              </div>
+            </div>
+            <button onclick="showLoginPortal()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow-xs transition">
+              🔑 관리자 로그인
+            </button>
+          </div>
+
           <!-- Annual Leave & Work Hours Dashboard (4 Stat Cards) -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
             <!-- 1. 잔여 연차 (핵심) -->
@@ -2294,6 +2417,7 @@
 
     function updateAuthUI() {
       const isAdmin = checkIsAdmin();
+      if (typeof updateLiveSalaryTracker === 'function') updateLiveSalaryTracker();
       
       // Desktop header auth container
       const desktopContainer = document.getElementById('desktopAuthStatus');
@@ -3315,7 +3439,277 @@
       renderWorkCalendar();
     }
 
+    
+    // ==========================================
+    // 💰 REAL-TIME SALARY & WORK TIMER ENGINE (v1.16.0)
+    // ==========================================
+    const DEFAULT_MONTHLY_SALARY = 2859216;
+    const DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME = 10000;
+    const STANDARD_MONTHLY_HOURS = 209; // 근로기준법 통상시급 산정 기준시간
+
+    let liveSalaryTimerInterval = null;
+
+    function getMonthlySalary() {
+      if (typeof store !== 'undefined' && store && store.monthlySalary) return Number(store.monthlySalary);
+      try {
+        const local = localStorage.getItem('urban_monthly_salary');
+        if (local) return Number(local);
+      } catch(e) {}
+      return DEFAULT_MONTHLY_SALARY;
+    }
+
+    function getMealAllowanceRate() {
+      if (typeof store !== 'undefined' && store && store.mealAllowance) return Number(store.mealAllowance);
+      try {
+        const local = localStorage.getItem('urban_meal_allowance');
+        if (local) return Number(local);
+      } catch(e) {}
+      return DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
+    }
+
+    function openSalaryConfigModal() {
+      if (!requireAdmin('기본급 설정')) return;
+      const modal = document.getElementById('salaryConfigModal');
+      if (!modal) return;
+      document.getElementById('cfgMonthlySalary').value = getMonthlySalary();
+      document.getElementById('cfgMealAllowance').value = getMealAllowanceRate();
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeSalaryConfigModal() {
+      const modal = document.getElementById('salaryConfigModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+
+    function saveSalaryConfig() {
+      if (!requireAdmin('기본급 설정 저장')) return;
+      const sal = Number(document.getElementById('cfgMonthlySalary').value) || DEFAULT_MONTHLY_SALARY;
+      const meal = Number(document.getElementById('cfgMealAllowance').value) || DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
+      if (!store) store = {};
+      store.monthlySalary = sal;
+      store.mealAllowance = meal;
+      try {
+        localStorage.setItem('urban_monthly_salary', String(sal));
+        localStorage.setItem('urban_meal_allowance', String(meal));
+      } catch(e) {}
+      saveStore();
+      closeSalaryConfigModal();
+      updateLiveSalaryTracker();
+      showAuthToast('✅ 기본급 및 정산 설정이 저장되었습니다.', false);
+    }
+
+    function updateLiveSalaryTracker() {
+      const salarySection = document.getElementById('salaryTrackerSection');
+      const guestNotice = document.getElementById('salaryGuestPrivacyNotice');
+      if (!salarySection) return;
+
+      const isAdmin = checkIsAdmin();
+      if (!isAdmin) {
+        salarySection.style.display = 'none';
+        salarySection.classList.add('hidden');
+        if (guestNotice) {
+          guestNotice.style.display = 'flex';
+          guestNotice.classList.remove('hidden');
+        }
+        if (liveSalaryTimerInterval) {
+          clearInterval(liveSalaryTimerInterval);
+          liveSalaryTimerInterval = null;
+        }
+        return;
+      }
+
+      // Admin Mode: Show salarySection, hide guestNotice
+      salarySection.style.display = 'block';
+      salarySection.classList.remove('hidden');
+      if (guestNotice) {
+        guestNotice.style.display = 'none';
+        guestNotice.classList.add('hidden');
+      }
+
+      // Calculations:
+      const monthlySalary = getMonthlySalary();
+      const hourlyRate = monthlySalary / STANDARD_MONTHLY_HOURS;
+      const perSecondRate = hourlyRate / 3600;
+      const overtimeHourlyRate = hourlyRate * 1.5;
+      const mealRate = getMealAllowanceRate();
+
+      // Current year & month
+      const now = new Date();
+      const curYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
+      const curMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
+      const curMonthPrefix = `${curYear}-${String(curMonth).padStart(2, '0')}`;
+      const todayStr = getTodayDateStr();
+
+      // Update title label
+      const monthLabel = document.getElementById('salaryMonthLabel');
+      if (monthLabel) monthLabel.innerText = `${curMonth}월`;
+
+      const baseDisp = document.getElementById('statMonthlyBaseDisplay');
+      if (baseDisp) baseDisp.innerText = monthlySalary.toLocaleString();
+
+      // 1. Calculate past days in current month up to yesterday
+      const daysInMonth = new Date(curYear, curMonth, 0).getDate();
+      let pastWorkdaysCount = 0;
+      let totalBusinessDaysInMonth = 0;
+      let totalOvertimeHoursInMonth = 0;
+      let overtimeDaysCount = 0;
+
+      const logsMap = {};
+      ((typeof store !== 'undefined' && store.workLogs) || []).forEach(w => {
+        if (w.date && w.date.startsWith(curMonthPrefix)) {
+          logsMap[w.date] = w;
+        }
+      });
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
+        const dt = new Date(curYear, curMonth - 1, d);
+        const dayOfWeek = dt.getDay(); // 0: Sun, 6: Sat
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const holiday = getKoreanPublicHoliday(dStr);
+        const isWorkday = !isWeekend && !holiday;
+
+        if (isWorkday) {
+          totalBusinessDaysInMonth++;
+        }
+
+        const log = logsMap[dStr];
+        const otHours = log && log.overtimeHours ? Number(log.overtimeHours) : 0;
+        if (otHours > 0) {
+          totalOvertimeHoursInMonth += otHours;
+          overtimeDaysCount++;
+        }
+
+        // If day is before today (or past days in viewing month):
+        if (dStr < todayStr) {
+          let leaveDeduct = log ? Number(log.deductLeave || 0) : 0;
+          if (isWorkday) {
+            pastWorkdaysCount += Math.max(0, 1 - leaveDeduct);
+          }
+        }
+      }
+
+      // 2. Today's live time & earnings calculation
+      let todayWorkSeconds = 0;
+      let todayStatusText = '근무 외';
+
+      const isRealCurrentMonth = (curYear === now.getFullYear() && curMonth === (now.getMonth() + 1));
+      if (isRealCurrentMonth) {
+        const todayLog = logsMap[todayStr];
+        const dayOfWeek = now.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const holiday = getKoreanPublicHoliday(todayStr);
+
+        const startHour = 9, startMin = 0;
+        const endHour = 18, endMin = 0;
+
+        const curHour = now.getHours();
+        const curMin = now.getMinutes();
+        const curSec = now.getSeconds();
+
+        const startSeconds = startHour * 3600;
+        const endSeconds = endHour * 3600;
+        const curSeconds = curHour * 3600 + curMin * 60 + curSec;
+
+        let todayLeaveDeduct = todayLog ? Number(todayLog.deductLeave || 0) : 0;
+
+        if (!isWeekend && !holiday && todayLeaveDeduct < 1.0) {
+          if (curSeconds >= startSeconds && curSeconds <= endSeconds) {
+            let elapsed = curSeconds - startSeconds;
+            const lunchStart = 12 * 3600;
+            const lunchEnd = 13 * 3600;
+            if (curSeconds > lunchEnd) {
+              elapsed -= 3600;
+            } else if (curSeconds > lunchStart) {
+              elapsed = lunchStart - startSeconds;
+            }
+            todayWorkSeconds = Math.max(0, elapsed);
+            todayStatusText = '근무중';
+          } else if (curSeconds > endSeconds) {
+            todayWorkSeconds = 8 * 3600;
+            todayStatusText = '근무종료';
+            const otToday = todayLog ? Number(todayLog.overtimeHours || 0) : 0;
+            if (otToday > 0) {
+              todayStatusText = `야근중 (+${otToday}h)`;
+            }
+          } else {
+            todayWorkSeconds = 0;
+            todayStatusText = '출근전';
+          }
+        } else {
+          todayStatusText = holiday ? holiday.name : (isWeekend ? '주말' : '연차');
+        }
+      }
+
+      // Format today's timer
+      const tHours = Math.floor(todayWorkSeconds / 3600);
+      const tMinutes = Math.floor((todayWorkSeconds % 3600) / 60);
+      const tSeconds = todayWorkSeconds % 60;
+      const timerStr = `${String(tHours).padStart(2, '0')}:${String(tMinutes).padStart(2, '0')}:${String(tSeconds).padStart(2, '0')}`;
+
+      const todayEarnings = todayWorkSeconds * perSecondRate;
+      const dailyBasePay = 8 * hourlyRate;
+      const pastBasePay = pastWorkdaysCount * dailyBasePay;
+      const totalOvertimePay = totalOvertimeHoursInMonth * overtimeHourlyRate;
+      const totalMealAllowance = overtimeDaysCount * mealRate;
+      const monthTotalEarnings = Math.round(pastBasePay + todayEarnings + totalOvertimePay + totalMealAllowance);
+
+      // Update UI Elements
+      const elTotal = document.getElementById('statMonthTotalEarnings');
+      if (elTotal) elTotal.innerText = monthTotalEarnings.toLocaleString();
+
+      const elProgressPct = document.getElementById('salaryProgressPct');
+      const elProgressBar = document.getElementById('salaryProgressBar');
+      const pct = Math.min(100, (monthTotalEarnings / monthlySalary) * 100);
+      if (elProgressPct) elProgressPct.innerText = `${pct.toFixed(1)}%`;
+      if (elProgressBar) elProgressBar.style.width = `${pct.toFixed(1)}%`;
+
+      const elRemToGoal = document.getElementById('statRemainingToGoal');
+      if (elRemToGoal) {
+        const rem = Math.max(0, monthlySalary - monthTotalEarnings);
+        elRemToGoal.innerText = `잔여: ${rem.toLocaleString()}원`;
+      }
+
+      const elTimer = document.getElementById('statTodayTimer');
+      if (elTimer) elTimer.innerText = timerStr;
+
+      const elTodayEarn = document.getElementById('statTodayEarnings');
+      if (elTodayEarn) elTodayEarn.innerText = Math.round(todayEarnings).toLocaleString();
+
+      const elTodayStatus = document.getElementById('todayWorkStatusBadge');
+      if (elTodayStatus) elTodayStatus.innerText = todayStatusText;
+
+      const elOtBadge = document.getElementById('statOvertimeHoursBadge');
+      if (elOtBadge) elOtBadge.innerText = `${totalOvertimeHoursInMonth.toFixed(1)}h`;
+
+      const elOtPay = document.getElementById('statOvertimePay');
+      if (elOtPay) elOtPay.innerText = Math.round(totalOvertimePay).toLocaleString();
+
+      const elMealBadge = document.getElementById('statMealCountBadge');
+      if (elMealBadge) elMealBadge.innerText = `${overtimeDaysCount}회`;
+
+      const elMealPay = document.getElementById('statMealAllowance');
+      if (elMealPay) elMealPay.innerText = totalMealAllowance.toLocaleString();
+    }
+
+    function startLiveSalaryTicker() {
+      if (liveSalaryTimerInterval) clearInterval(liveSalaryTimerInterval);
+      updateLiveSalaryTracker();
+      liveSalaryTimerInterval = setInterval(() => {
+        const panel = document.getElementById('panel-workhours');
+        if (panel && !panel.classList.contains('hidden') && checkIsAdmin()) {
+          updateLiveSalaryTracker();
+        }
+      }, 1000);
+    }
+
     function renderWorkCalendar() {
+      startLiveSalaryTicker();
       const grid = document.getElementById('workCalendarGrid');
       const titleElem = document.getElementById('workMonthTitle');
       if (!grid || !titleElem) return;
@@ -4098,6 +4492,22 @@
 
         
     const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.16.0',
+    date: '2026-09-14',
+    badge: '실시간 수입 & 야근식대 신설',
+    badgeColor: 'emerald',
+    title: '💰 5번 [근무 캘린더] 실시간 누적 수입 & 오늘 근무 타이머 & 야근 식대(+10,000원) 정산 시스템 신설 (게스트 모드 비공개)',
+    summary: '월 기본급 2,859,216원(시급 약 13,680원, 초당 약 3.8원)을 기준으로 오늘 출근부터 퇴근까지의 실시간 근무 타이머 및 초당 누적 수입을 실시간으로 추적하고, 연장근무 수당(1.5배)과 야근 발생 시 식대(+10,000원)가 자동 합산되는 라이브 수입 대시보드를 구축했습니다. (개인정보 보호를 위해 게스트 모드에서는 완전 비공개 처리)',
+    changes: [
+      '💰 [실시간 누적 수입 대시보드 신설]: 당월 누적 수입, 기본급 대비 실시간 달성률 게이지 바(%), 잔여 수입을 실시간 초당 누적(LIVE)으로 시각화.',
+      '⏱️ [오늘 실시간 근무 타이머 & 오늘 번 돈]: 09:00 출근부터 실시간 경과 타이머(HH:MM:SS)가 작동하며 초당 3.8원씩 올라가는 오늘 수입 카운터 제공.',
+      '🍱 [야근 식대 자동 합산 시스템]: 연장근무가 발생한 일자마다 식대 10,000원이 자동으로 누적 수입에 추가 정산.',
+      '⚡ [연장근무 수당 1.5배 산출]: 월간 야근 시간 합산액을 통상 시급(13,680원)의 1.5배(20,521원/h)로 정밀 계산.',
+      '🔒 [게스트 모드 철저 비공개 보호]: 로그인하지 않은 게스트 모드 접속 시에는 급여 및 수입 대시보드가 원천 숨김 처리되어 개인정보가 완벽히 보호됩니다.',
+      '⚙️ [기본급 & 식대 단가 설정 기능]: [⚙️ 기본급 설정] 모달을 통해 월 기본급과 야근 식대 단가를 언제든지 직접 수정 및 보존 가능.'
+    ]
+  },
   {
     version: 'v1.15.0',
     date: '2026-09-14',
@@ -7067,7 +7477,37 @@ saveStore();
   </div>
     
 
-  <!-- LOGIN MODAL -->
+    <!-- SALARY CONFIG MODAL -->
+  <div id="salaryConfigModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 hidden" style="display: none;">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="text-base font-bold text-slate-900">기본급 및 정산 설정</h3>
+        </div>
+        <button onclick="closeSalaryConfigModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">월 기본급 (원)</label>
+          <input type="number" id="cfgMonthlySalary" value="2859216" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <p class="text-[11px] text-slate-400 mt-1">기본값: 2,859,216원 (시급 약 13,680원)</p>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">야근 식대 (1회당, 원)</label>
+          <input type="number" id="cfgMealAllowance" value="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <button onclick="closeSalaryConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">취소</button>
+        <button onclick="saveSalaryConfig()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition">저장 완료</button>
+      </div>
+    </div>
+  </div>
+
+<!-- LOGIN MODAL -->
   <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-200">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100">
