@@ -223,11 +223,12 @@
           <button onclick="switchTab('summary')" id="mob-top-summary" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">📋 3. 업무정리</button>
 
           <button onclick="switchTab('calendar')" id="mob-top-calendar" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">🗓️ 4. 캘린더</button>
+          <button onclick="switchTab('workhours')" id="mob-top-workhours" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">⏰ 5. 근무캘린더</button>
 
-          <button onclick="switchTab('career')" id="mob-top-career" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">💼 5. 경력관리</button>
+          <button onclick="switchTab('career')" id="mob-top-career" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">💼 6. 경력관리</button>
 
-          <button onclick="switchTab('reporthelper')" id="mob-top-reporthelper" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">🛠️ 6. 업무툴</button>
-          <button onclick="switchTab('release')" id="mob-top-release" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">📜 7. 릴리즈</button>
+          <button onclick="switchTab('reporthelper')" id="mob-top-reporthelper" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">🛠️ 7. 업무툴</button>
+          <button onclick="switchTab('release')" id="mob-top-release" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">📜 8. 릴리즈</button>
 
         </div>
 
@@ -403,11 +404,16 @@
 
         </button>
 
+        <button onclick="switchTab('workhours')" id="tab-workhours" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>⏰</span> 5. 근무 캘린더 (근무 &amp; 연차)</span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+        </button>
+
 
 
         <button onclick="switchTab('career')" id="tab-career" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>💼</span> 5. 경력관리</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>💼</span> 6. 경력관리</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -417,14 +423,14 @@
 
         <button onclick="switchTab('reporthelper')" id="tab-reporthelper" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🛠️</span> 6. 업무 툴</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🛠️</span> 7. 업무 툴</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
         </button>
 
         <button onclick="switchTab('release')" id="tab-release" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📜</span> 7. 릴리즈 기록</span>
+          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📜</span> 8. 릴리즈 기록</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
@@ -659,6 +665,7 @@
             <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300">📤 자료송부</span>
 
             <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">📥 접수</span>
+            <span class="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-900 border border-teal-300 font-bold">🏖️ 연차 (휴가)</span>
 
           </div>
 
@@ -696,8 +703,142 @@
 
 
 
-        <!-- TAB 5: CAREER MANAGEMENT -->
+                <!-- TAB 5: WORK HOURS & ANNUAL LEAVE CALENDAR (NEW) -->
+        <div id="panel-workhours" class="tab-panel hidden space-y-5 w-full">
+          <!-- Top Header & Navigation -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-4 rounded-2xl border border-indigo-200 text-xs w-full shadow-xs">
+            <div>
+              <h3 class="font-black text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                <span>⏰ 내 근무 &amp; 연차 관리 캘린더</span>
+                <span class="text-[10.5px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full border border-blue-200">기본 09:00~18:00</span>
+              </h3>
+              <p class="text-slate-500 mt-1 leading-relaxed">
+                출퇴근 시간과 추가 근무(야근)를 기록하고, 연차 및 오전/오후 반차 차감 내역을 실시간으로 관리합니다.
+              </p>
+            </div>
 
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+              <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+                <button onclick="changeWorkMonth(-1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition text-xs">◀</button>
+                <span id="workMonthTitle" class="px-2.5 text-xs sm:text-sm font-mono font-black text-indigo-900 min-w-[95px] text-center">2026년 9월</span>
+                <button onclick="changeWorkMonth(1)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition text-xs">▶</button>
+                <button onclick="goToCurrentWorkMonth()" class="px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg transition text-[11px] ml-1">오늘</button>
+              </div>
+              <button onclick="openWorkLogModal(getTodayDateStr())" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5 text-xs">
+                <i data-lucide="plus" class="w-4 h-4"></i> 근무/연차 기록
+              </button>
+            </div>
+          </div>
+
+          <!-- Annual Leave & Work Hours Dashboard (4 Stat Cards) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            <!-- 1. 잔여 연차 (핵심) -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-emerald-300 shadow-sm relative overflow-hidden flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                  <span>🏖️</span> 잔여 연차
+                </span>
+                <span id="leaveRuleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">2026년 6개</span>
+              </div>
+              <div class="mt-2.5">
+                <div class="flex items-baseline gap-1">
+                  <span id="statRemainingLeave" class="text-2xl sm:text-3xl font-black text-emerald-600 font-mono tracking-tight">6.0</span>
+                  <span class="text-sm font-bold text-slate-600">일 남음</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between font-medium">
+                  <span>총 부여: <strong id="statTotalGrantedLeave" class="text-slate-700 font-mono">6.0일</strong></span>
+                  <span>차감: <strong id="statTotalDeductedLeave" class="text-amber-600 font-mono">0.0일</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 연차 사용 현황 -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <span>📋</span> 올해 연차 사용
+                </span>
+                <span class="text-[10px] font-bold text-slate-400">누적 집계</span>
+              </div>
+              <div class="mt-2.5">
+                <div class="flex items-baseline gap-1">
+                  <span id="statUsedLeave" class="text-2xl sm:text-3xl font-black text-amber-600 font-mono tracking-tight">0.0</span>
+                  <span class="text-sm font-bold text-slate-600">일</span>
+                </div>
+                <div id="statUsedLeaveDetail" class="text-[11px] text-slate-500 mt-1 font-medium">
+                  종일 연차 0회 · 반차 0회
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. 이번 달 실근무 시간 -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <span>⏰</span> 이번 달 총 근무
+                </span>
+                <span id="statWorkDaysCount" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">0일 출근</span>
+              </div>
+              <div class="mt-2.5">
+                <div class="flex items-baseline gap-1">
+                  <span id="statMonthWorkHours" class="text-2xl sm:text-3xl font-black text-blue-600 font-mono tracking-tight">0.0</span>
+                  <span class="text-sm font-bold text-slate-600">시간</span>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-1 font-medium">
+                  기본 근무 <span id="statMonthRegularHours" class="text-slate-800 font-bold font-mono">0.0h</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. 이번 달 추가(연장) 근무 -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <span>🔥</span> 추가 연장 근무
+                </span>
+                <span id="statOvertimeDaysCount" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">0회</span>
+              </div>
+              <div class="mt-2.5">
+                <div class="flex items-baseline gap-1">
+                  <span id="statMonthOvertimeHours" class="text-2xl sm:text-3xl font-black text-purple-600 font-mono tracking-tight">+0.0</span>
+                  <span class="text-sm font-bold text-slate-600">시간</span>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-1 font-medium">
+                  야근/휴일 추가 근무 합산
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend Bar -->
+          <div class="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700">
+            <span class="text-slate-400 mr-1">근무 구분:</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-300">💼 일반 근무 (09:00~18:00)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">🏖️ 연차 (종일, -1.0일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 border border-sky-300">🌤️ 오전 반차 (12:30~18:00, -0.5일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">⛅ 오후 반차 (09:00~11:30, -0.5일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-300">🔥 추가 연장 근무</span>
+            <span class="text-slate-400 text-[11px] ml-auto font-medium">💡 날짜를 클릭하면 해당 일자의 근무 형태 및 연장 시간을 등록/수정할 수 있습니다.</span>
+          </div>
+
+          <!-- Work Hours Monthly Grid Container -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-3 sm:p-5">
+            <!-- Day of Week Header -->
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs border-b border-slate-200 pb-2 mb-2">
+              <div class="text-rose-500">일</div>
+              <div class="text-slate-700">월</div>
+              <div class="text-slate-700">화</div>
+              <div class="text-slate-700">수</div>
+              <div class="text-slate-700">목</div>
+              <div class="text-slate-700">금</div>
+              <div class="text-blue-500">토</div>
+            </div>
+            <!-- Grid Days -->
+            <div id="workCalendarGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
+          </div>
+        </div>
+
+        <!-- TAB 6: CAREER MANAGEMENT -->
         <div id="panel-career" class="tab-panel hidden space-y-5 w-full">
 
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 p-3.5 sm:p-4 rounded-2xl border border-amber-200 text-xs w-full">
@@ -1220,6 +1361,104 @@
     </div>
   </div>
 
+    <!-- WORK & ANNUAL LEAVE LOG MODAL -->
+  <div id="workLogModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+          <span>⏰</span> <span id="workLogModalTitle">근무 &amp; 연차 일정 등록</span>
+        </h3>
+        <button onclick="closeWorkLogModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <!-- Date -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">근무/연차 일자</label>
+          <input type="date" id="workLogDate" onchange="handleWorkLogDateChange(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <!-- Work Type -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">근무 및 연차 형태 선택</label>
+          <div class="grid grid-cols-2 gap-2" id="workTypeSelectorGroup">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs font-bold transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/70 has-[:checked]:text-indigo-900">
+              <input type="radio" name="workLogType" value="work" onchange="onWorkTypeChange('work')" checked class="text-indigo-600 accent-indigo-600">
+              <span>💼 일반 근무<br><span class="text-[10px] font-normal text-slate-500">09:00 ~ 18:00 (8h)</span></span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs font-bold transition has-[:checked]:border-amber-600 has-[:checked]:bg-amber-50/70 has-[:checked]:text-amber-900">
+              <input type="radio" name="workLogType" value="annual_full" onchange="onWorkTypeChange('annual_full')" class="text-amber-600 accent-amber-600">
+              <span>🏖️ 연차 (종일)<br><span class="text-[10px] font-normal text-amber-700">잔여 연차 -1.0일</span></span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs font-bold transition has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50/70 has-[:checked]:text-sky-900">
+              <input type="radio" name="workLogType" value="half_am" onchange="onWorkTypeChange('half_am')" class="text-sky-600 accent-sky-600">
+              <span>🌤️ 오전 반차<br><span class="text-[10px] font-normal text-sky-700">12:30~18:00 (-0.5일)</span></span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs font-bold transition has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/70 has-[:checked]:text-purple-900">
+              <input type="radio" name="workLogType" value="half_pm" onchange="onWorkTypeChange('half_pm')" class="text-purple-600 accent-purple-600">
+              <span>⛅ 오후 반차<br><span class="text-[10px] font-normal text-purple-700">09:00~11:30 (-0.5일)</span></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Work Hours (Start & End Time) -->
+        <div id="workHoursTimeBox" class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-700">출퇴근 시간</span>
+            <span id="calculatedWorkHoursBadge" class="text-[11px] font-mono font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">8.0시간</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[11px] text-slate-500 block mb-0.5">출근 시간</span>
+              <input type="time" id="workLogStartTime" value="09:00" onchange="recalcModalWorkHours()" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-800">
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-500 block mb-0.5">퇴근 시간</span>
+              <input type="time" id="workLogEndTime" value="18:00" onchange="recalcModalWorkHours()" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-mono font-bold text-slate-800">
+            </div>
+          </div>
+        </div>
+
+        <!-- Overtime Hours -->
+        <div id="overtimeBox" class="bg-purple-50/70 p-3 rounded-xl border border-purple-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-purple-900 flex items-center gap-1">
+              <span>🔥</span> 추가 연장 근무 (야근)
+            </span>
+            <span class="text-[10px] text-purple-700 font-bold">기본 퇴근 이후 추가된 시간</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="number" id="workLogOvertime" min="0" max="15" step="0.5" value="0" onchange="recalcModalWorkHours()" class="w-24 bg-white border border-purple-300 rounded-lg px-3 py-1.5 font-mono font-bold text-purple-900 text-center text-sm">
+            <span class="font-bold text-purple-800">시간</span>
+            <div class="flex items-center gap-1 ml-auto">
+              <button type="button" onclick="addOvertimeStep(1)" class="px-2 py-1 bg-white hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-md font-bold text-[11px]">+1h</button>
+              <button type="button" onclick="addOvertimeStep(2)" class="px-2 py-1 bg-white hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-md font-bold text-[11px]">+2h</button>
+              <button type="button" onclick="addOvertimeStep(3)" class="px-2 py-1 bg-white hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-md font-bold text-[11px]">+3h</button>
+              <button type="button" onclick="resetOvertime()" class="px-1.5 py-1 bg-white hover:bg-slate-100 text-slate-500 border border-slate-300 rounded-md text-[11px]">초기화</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Memo -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">메모 / 연장 사유 (선택)</label>
+          <input type="text" id="workLogNote" placeholder="예: 작전역 부서협의 조치계획 야근, 개인 사유" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <button type="button" id="deleteWorkLogBtn" onclick="deleteCurrentWorkLog()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-200 transition">기록 초기화</button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button type="button" onclick="closeWorkLogModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition">취소</button>
+          <button type="button" onclick="saveWorkLogFromModal()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">저장 완료</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="addCalendarEventModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
 
     <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
@@ -1263,6 +1502,7 @@
             <select id="calEventType" onchange="toggleAttendeesBox(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-purple-700">
 
               <option value="출장" selected>🚗 출장</option>
+              <option value="연차">🏖️ 연차 (휴가)</option>
 
               <option value="자료 요청">📩 자료 요청</option>
 
@@ -1612,9 +1852,7 @@
 
       dailyTasks: [],
 
-      calendarEvents: [],
-
-      careerLogs: []
+      calendarEvents: [], careerLogs: [], workLogs: []
 
     };
 
@@ -1753,6 +1991,12 @@
 
             cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
             cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
+
+            // Merge workLogs safely
+            const mergedWorkMap = new Map();
+            (cleanRemote.workLogs || []).forEach(w => { if (w && w.date) mergedWorkMap.set(w.date, w); });
+            (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
+            cleanRemote.workLogs = Array.from(mergedWorkMap.values());
 
             if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
               store = cleanRemote;
@@ -2291,6 +2535,7 @@
         t.completed = t.items.length > 0 && t.items.every(it => it.completed);
       });
       if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
+      if (!Array.isArray(s.workLogs)) s.workLogs = s.workLogs ? Object.values(s.workLogs) : [];
       if (!Array.isArray(s.trashTasks)) s.trashTasks = s.trashTasks ? Object.values(s.trashTasks) : [];
       if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
       return JSON.parse(JSON.stringify(s));
@@ -2376,6 +2621,513 @@
     }
 
 
+
+    
+    // =========================================================================
+    // 5. WORK HOURS & ANNUAL LEAVE SYSTEM (근무 및 연차 관리)
+    // =========================================================================
+
+    let currentWorkCalYear = new Date().getFullYear();
+    let currentWorkCalMonth = new Date().getMonth() + 1; // 1-12
+    let currentEditingWorkDate = null;
+
+    // Rule: 올해(2026)는 잔여연차 기본 6개, 내년(2027부터)은 매년 1월 1일 15개
+    function getTotalAnnualLeaveForYear(year) {
+      const y = parseInt(year, 10) || 2026;
+      if (y <= 2026) return 6.0;
+      return 15.0;
+    }
+
+    function changeWorkMonth(offset) {
+      currentWorkCalMonth += offset;
+      if (currentWorkCalMonth > 12) {
+        currentWorkCalMonth = 1;
+        currentWorkCalYear++;
+      } else if (currentWorkCalMonth < 1) {
+        currentWorkCalMonth = 12;
+        currentWorkCalYear--;
+      }
+      renderWorkCalendar();
+    }
+
+    function goToCurrentWorkMonth() {
+      const now = new Date();
+      currentWorkCalYear = now.getFullYear();
+      currentWorkCalMonth = now.getMonth() + 1;
+      renderWorkCalendar();
+    }
+
+    function getWorkLogForDate(dateStr) {
+      if (!store.workLogs) store.workLogs = [];
+      return store.workLogs.find(w => w.date === dateStr);
+    }
+
+    function syncLeaveFromCalendar(dateStr, title) {
+      if (!dateStr) return;
+      if (!store.workLogs) store.workLogs = [];
+      let w = store.workLogs.find(x => x.date === dateStr);
+      if (!w) {
+        w = {
+          id: "work_" + dateStr,
+          date: dateStr,
+          type: "annual_full",
+          startTime: "-",
+          endTime: "-",
+          overtimeHours: 0,
+          note: title || "월간 일정 연차",
+          deductLeave: 1.0
+        };
+        store.workLogs.push(w);
+      } else {
+        w.type = "annual_full";
+        w.deductLeave = 1.0;
+        if (!w.note) w.note = title || "월간 일정 연차";
+      }
+      saveStore();
+      renderWorkCalendar();
+    }
+
+    function renderWorkCalendar() {
+      const grid = document.getElementById('workCalendarGrid');
+      const titleElem = document.getElementById('workMonthTitle');
+      if (!grid || !titleElem) return;
+
+      if (!store.workLogs) store.workLogs = [];
+
+      titleElem.innerText = `${currentWorkCalYear}년 ${currentWorkCalMonth}월`;
+
+      // 1. Calculate Annual Leave statistics for currentWorkCalYear
+      const totalGranted = getTotalAnnualLeaveForYear(currentWorkCalYear);
+      const yearPrefix = String(currentWorkCalYear);
+
+      // Sum all deductLeave in this year
+      let usedLeaveInYear = 0;
+      let fullDaysCount = 0;
+      let halfDaysCount = 0;
+
+      (store.workLogs || []).forEach(w => {
+        if (w.date && w.date.startsWith(yearPrefix)) {
+          const deduct = parseFloat(w.deductLeave) || 0;
+          usedLeaveInYear += deduct;
+          if (w.type === 'annual_full') fullDaysCount++;
+          else if (w.type === 'half_am' || w.type === 'half_pm') halfDaysCount++;
+        }
+      });
+
+      const remainingLeave = Math.max(0, +(totalGranted - usedLeaveInYear).toFixed(1));
+
+      // Update Leave Dashboard Cards
+      const statRemElem = document.getElementById('statRemainingLeave');
+      const statGrantedElem = document.getElementById('statTotalGrantedLeave');
+      const statDeductedElem = document.getElementById('statTotalDeductedLeave');
+      const statUsedElem = document.getElementById('statUsedLeave');
+      const statUsedDetailElem = document.getElementById('statUsedLeaveDetail');
+      const leaveRuleBadge = document.getElementById('leaveRuleBadge');
+
+      if (statRemElem) statRemElem.innerText = remainingLeave.toFixed(1);
+      if (statGrantedElem) statGrantedElem.innerText = `${totalGranted.toFixed(1)}일 (${currentWorkCalYear}년)`;
+      if (statDeductedElem) statDeductedElem.innerText = `${usedLeaveInYear.toFixed(1)}일`;
+      if (statUsedElem) statUsedElem.innerText = usedLeaveInYear.toFixed(1);
+      if (statUsedDetailElem) statUsedDetailElem.innerText = `종일 연차 ${fullDaysCount}회 · 반차 ${halfDaysCount}회`;
+      if (leaveRuleBadge) {
+        leaveRuleBadge.innerText = currentWorkCalYear <= 2026 ? '2026년 6개' : `${currentWorkCalYear}년 15개 부여`;
+      }
+
+      // 2. Calculate Monthly Work Hours for currentWorkCalMonth
+      const monthPrefix = `${currentWorkCalYear}-${String(currentWorkCalMonth).padStart(2, '0')}`;
+      let totalMonthRegularHours = 0;
+      let totalMonthOvertimeHours = 0;
+      let workedDaysInMonth = 0;
+      let overtimeDaysInMonth = 0;
+
+      // Determine days in month
+      const firstDay = new Date(currentWorkCalYear, currentWorkCalMonth - 1, 1);
+      const lastDay = new Date(currentWorkCalYear, currentWorkCalMonth, 0);
+      const daysInMonth = lastDay.getDate();
+      const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
+
+      // Calculate for every day in month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+        const dateObj = new Date(currentWorkCalYear, currentWorkCalMonth - 1, day);
+        const dayOfWeek = dateObj.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+        const log = getWorkLogForDate(dStr);
+
+        if (log) {
+          if (log.type === 'work') {
+            totalMonthRegularHours += 8.0;
+            workedDaysInMonth++;
+          } else if (log.type === 'half_am') {
+            // 오전 반차: 12:30 ~ 18:00 (5.5시간)
+            totalMonthRegularHours += 5.5;
+            workedDaysInMonth++;
+          } else if (log.type === 'half_pm') {
+            // 오후 반차: 09:00 ~ 11:30 (2.5시간)
+            totalMonthRegularHours += 2.5;
+            workedDaysInMonth++;
+          }
+          const ot = parseFloat(log.overtimeHours) || 0;
+          if (ot > 0) {
+            totalMonthOvertimeHours += ot;
+            overtimeDaysInMonth++;
+          }
+        } else {
+          // If no custom log on weekday, default is 09:00~18:00 (8h)
+          if (!isWeekend) {
+            totalMonthRegularHours += 8.0;
+            workedDaysInMonth++;
+          }
+        }
+      }
+
+      const totalMonthWorkHours = totalMonthRegularHours + totalMonthOvertimeHours;
+
+      const statMonthWorkElem = document.getElementById('statMonthWorkHours');
+      const statMonthRegElem = document.getElementById('statMonthRegularHours');
+      const statWorkDaysElem = document.getElementById('statWorkDaysCount');
+      const statMonthOverElem = document.getElementById('statMonthOvertimeHours');
+      const statOverDaysElem = document.getElementById('statOvertimeDaysCount');
+
+      if (statMonthWorkElem) statMonthWorkElem.innerText = totalMonthWorkHours.toFixed(1);
+      if (statMonthRegElem) statMonthRegElem.innerText = `${totalMonthRegularHours.toFixed(1)}h`;
+      if (statWorkDaysElem) statWorkDaysElem.innerText = `${workedDaysInMonth}일 근무`;
+      if (statMonthOverElem) statMonthOverElem.innerText = `+${totalMonthOvertimeHours.toFixed(1)}`;
+      if (statOverDaysElem) statOverDaysElem.innerText = `${overtimeDaysInMonth}회`;
+
+      // 3. Render Calendar Grid Cells
+      grid.innerHTML = '';
+      const todayStr = getTodayDateStr();
+
+      // Empty lead cells
+      for (let i = 0; i < startDayOfWeek; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'min-h-[100px] sm:min-h-[120px] bg-slate-50/50 rounded-xl border border-dashed border-slate-100';
+        grid.appendChild(emptyCell);
+      }
+
+      // Day cells
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+        const dateObj = new Date(currentWorkCalYear, currentWorkCalMonth - 1, day);
+        const dayOfWeek = dateObj.getDay();
+        const isSun = (dayOfWeek === 0);
+        const isSat = (dayOfWeek === 6);
+        const isToday = (dStr === todayStr);
+
+        const log = getWorkLogForDate(dStr);
+
+        const cell = document.createElement('div');
+        cell.className = `min-h-[105px] sm:min-h-[125px] p-2 rounded-xl border transition flex flex-col justify-between cursor-pointer group hover:shadow-md ${
+          isToday ? 'bg-indigo-50/30 border-indigo-500 ring-2 ring-indigo-500/20' : 
+          (isSun || isSat) ? 'bg-slate-50/70 border-slate-200' : 'bg-white border-slate-200'
+        }`;
+        cell.onclick = () => openWorkLogModal(dStr);
+
+        // Day Top Header
+        let dayColorClass = 'text-slate-700';
+        if (isSun) dayColorClass = 'text-rose-500 font-bold';
+        else if (isSat) dayColorClass = 'text-blue-500 font-bold';
+        if (isToday) dayColorClass = 'text-indigo-600 font-black';
+
+        // Badge content
+        let badgeHtml = '';
+        if (log) {
+          if (log.type === 'annual_full') {
+            badgeHtml = `
+              <div class="bg-amber-100 text-amber-900 border border-amber-300 rounded-lg p-1.5 text-center shadow-xs">
+                <div class="font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1">
+                  <span>🏖️</span> 연차 (종일)
+                </div>
+                <div class="text-[9.5px] text-amber-700 font-medium mt-0.5">잔여 -1.0일 차감</div>
+              </div>
+            `;
+          } else if (log.type === 'half_am') {
+            const otBadge = log.overtimeHours > 0 ? `<span class="text-rose-600 font-bold ml-1">+연장${log.overtimeHours}h</span>` : '';
+            badgeHtml = `
+              <div class="bg-sky-50 text-sky-900 border border-sky-300 rounded-lg p-1.5 shadow-xs">
+                <div class="font-bold text-[10.5px] sm:text-[11.5px] flex items-center justify-between">
+                  <span>🌤️ 오전반차</span>
+                  <span class="text-[9.5px] bg-sky-200 px-1 rounded text-sky-800 font-mono">-0.5일</span>
+                </div>
+                <div class="text-[10px] text-sky-700 font-mono mt-0.5">12:30 ~ 18:00 (5.5h) ${otBadge}</div>
+              </div>
+            `;
+          } else if (log.type === 'half_pm') {
+            const otBadge = log.overtimeHours > 0 ? `<span class="text-rose-600 font-bold ml-1">+연장${log.overtimeHours}h</span>` : '';
+            badgeHtml = `
+              <div class="bg-purple-50 text-purple-900 border border-purple-300 rounded-lg p-1.5 shadow-xs">
+                <div class="font-bold text-[10.5px] sm:text-[11.5px] flex items-center justify-between">
+                  <span>⛅ 오후반차</span>
+                  <span class="text-[9.5px] bg-purple-200 px-1 rounded text-purple-800 font-mono">-0.5일</span>
+                </div>
+                <div class="text-[10px] text-purple-700 font-mono mt-0.5">09:00 ~ 11:30 (2.5h) ${otBadge}</div>
+              </div>
+            `;
+          } else if (log.type === 'holiday') {
+            badgeHtml = `
+              <div class="bg-slate-100 text-slate-500 border border-slate-200 rounded-lg p-1 text-center text-[10px] font-bold">
+                🛋️ 휴무 / 휴일
+              </div>
+            `;
+          } else {
+            // log.type === 'work'
+            const sTime = log.startTime || '09:00';
+            const eTime = log.endTime || '18:00';
+            const ot = parseFloat(log.overtimeHours) || 0;
+            badgeHtml = `
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 space-y-1">
+                <div class="flex items-center justify-between text-[10.5px] text-slate-700 font-bold">
+                  <span>💼 ${sTime}~${eTime}</span>
+                  <span class="font-mono text-slate-500">8.0h</span>
+                </div>
+                ${ot > 0 ? `
+                  <div class="bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center justify-between">
+                    <span>🔥 추가연장</span>
+                    <span class="font-mono">+${ot}h (총 ${(8 + ot).toFixed(1)}h)</span>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }
+        } else {
+          // Default for unlogged days: Weekdays = 09:00~18:00 (8h)
+          if (!isSun && !isSat) {
+            badgeHtml = `
+              <div class="bg-slate-50/70 border border-slate-200/80 rounded-lg p-1 text-[10px] text-slate-500 flex items-center justify-between group-hover:bg-indigo-50/50 transition">
+                <span>💼 기본근무</span>
+                <span class="font-mono font-semibold">09-18 (8h)</span>
+              </div>
+            `;
+          } else {
+            badgeHtml = `
+              <div class="text-[10px] text-slate-400 text-center py-1">휴무</div>
+            `;
+          }
+        }
+
+        cell.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs sm:text-sm font-mono ${dayColorClass}">${day}</span>
+              ${isToday ? '<span class="text-[9px] font-bold bg-indigo-600 text-white px-1.5 py-0.2 rounded-full">TODAY</span>' : ''}
+            </div>
+            ${badgeHtml}
+          </div>
+          ${log && log.note ? `<div class="text-[9.5px] text-slate-400 truncate mt-1" title="${log.note}">📝 ${log.note}</div>` : '<div class="h-1"></div>'}
+        `;
+
+        grid.appendChild(cell);
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Modal Operations
+    function openWorkLogModal(dateStr) {
+      currentEditingWorkDate = dateStr || getTodayDateStr();
+      const modal = document.getElementById('workLogModal');
+      const titleElem = document.getElementById('workLogModalTitle');
+      const dateInput = document.getElementById('workLogDate');
+      if (!modal || !dateInput) return;
+
+      dateInput.value = currentEditingWorkDate;
+      if (titleElem) titleElem.innerText = `📅 ${currentEditingWorkDate} 근무 &amp; 연차 설정`;
+
+      const log = getWorkLogForDate(currentEditingWorkDate);
+      const dateObj = new Date(currentEditingWorkDate);
+      const isWeekend = (dateObj.getDay() === 0 || dateObj.getDay() === 6);
+
+      const typeToSet = log ? log.type : 'work';
+
+      // Set radio
+      const radios = document.getElementsByName('workLogType');
+      radios.forEach(r => {
+        r.checked = (r.value === typeToSet);
+      });
+
+      // Set times
+      const sInput = document.getElementById('workLogStartTime');
+      const eInput = document.getElementById('workLogEndTime');
+      const otInput = document.getElementById('workLogOvertime');
+      const noteInput = document.getElementById('workLogNote');
+
+      if (log) {
+        if (sInput) sInput.value = log.startTime || '09:00';
+        if (eInput) eInput.value = log.endTime || '18:00';
+        if (otInput) otInput.value = log.overtimeHours || 0;
+        if (noteInput) noteInput.value = log.note || '';
+      } else {
+        if (sInput) sInput.value = '09:00';
+        if (eInput) eInput.value = '18:00';
+        if (otInput) otInput.value = 0;
+        if (noteInput) noteInput.value = '';
+      }
+
+      onWorkTypeChange(typeToSet, false);
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeWorkLogModal() {
+      const modal = document.getElementById('workLogModal');
+      if (modal) modal.classList.add('hidden');
+      currentEditingWorkDate = null;
+    }
+
+    function handleWorkLogDateChange(newDate) {
+      if (!newDate) return;
+      currentEditingWorkDate = newDate;
+      const titleElem = document.getElementById('workLogModalTitle');
+      if (titleElem) titleElem.innerText = `📅 ${newDate} 근무 &amp; 연차 설정`;
+
+      const log = getWorkLogForDate(newDate);
+      if (log) {
+        const radios = document.getElementsByName('workLogType');
+        radios.forEach(r => { r.checked = (r.value === log.type); });
+        onWorkTypeChange(log.type, false);
+        document.getElementById('workLogStartTime').value = log.startTime || '09:00';
+        document.getElementById('workLogEndTime').value = log.endTime || '18:00';
+        document.getElementById('workLogOvertime').value = log.overtimeHours || 0;
+        document.getElementById('workLogNote').value = log.note || '';
+      }
+    }
+
+    function onWorkTypeChange(type, autoUpdateTimes = true) {
+      const timeBox = document.getElementById('workHoursTimeBox');
+      const overtimeBox = document.getElementById('overtimeBox');
+      const sInput = document.getElementById('workLogStartTime');
+      const eInput = document.getElementById('workLogEndTime');
+
+      if (type === 'annual_full') {
+        if (timeBox) timeBox.classList.add('hidden');
+        if (overtimeBox) overtimeBox.classList.add('hidden');
+        if (sInput) sInput.value = '-';
+        if (eInput) eInput.value = '-';
+      } else if (type === 'half_am') {
+        // 오전 반차: 12:30 출근 ~ 18:00 퇴근
+        if (timeBox) timeBox.classList.remove('hidden');
+        if (overtimeBox) overtimeBox.classList.remove('hidden');
+        if (autoUpdateTimes) {
+          if (sInput) sInput.value = '12:30';
+          if (eInput) eInput.value = '18:00';
+        }
+      } else if (type === 'half_pm') {
+        // 오후 반차: 09:00 출근 ~ 11:30 퇴근
+        if (timeBox) timeBox.classList.remove('hidden');
+        if (overtimeBox) overtimeBox.classList.remove('hidden');
+        if (autoUpdateTimes) {
+          if (sInput) sInput.value = '09:00';
+          if (eInput) eInput.value = '11:30';
+        }
+      } else {
+        // 일반 근무: 09:00 ~ 18:00
+        if (timeBox) timeBox.classList.remove('hidden');
+        if (overtimeBox) overtimeBox.classList.remove('hidden');
+        if (autoUpdateTimes) {
+          if (sInput) sInput.value = '09:00';
+          if (eInput) eInput.value = '18:00';
+        }
+      }
+      recalcModalWorkHours();
+    }
+
+    function recalcModalWorkHours() {
+      const radios = document.getElementsByName('workLogType');
+      let type = 'work';
+      radios.forEach(r => { if (r.checked) type = r.value; });
+
+      const badge = document.getElementById('calculatedWorkHoursBadge');
+      if (!badge) return;
+
+      const otInput = document.getElementById('workLogOvertime');
+      const ot = Math.max(0, parseFloat(otInput ? otInput.value : 0) || 0);
+
+      if (type === 'annual_full') {
+        badge.innerText = '연차 (0.0h)';
+      } else if (type === 'half_am') {
+        const total = 5.5 + ot;
+        badge.innerText = `기본 5.5h ${ot > 0 ? '+ 연장 ' + ot + 'h = 총 ' + total.toFixed(1) + 'h' : ''}`;
+      } else if (type === 'half_pm') {
+        const total = 2.5 + ot;
+        badge.innerText = `기본 2.5h ${ot > 0 ? '+ 연장 ' + ot + 'h = 총 ' + total.toFixed(1) + 'h' : ''}`;
+      } else {
+        const total = 8.0 + ot;
+        badge.innerText = `기본 8.0h ${ot > 0 ? '+ 연장 ' + ot + 'h = 총 ' + total.toFixed(1) + 'h' : ''}`;
+      }
+    }
+
+    function addOvertimeStep(h) {
+      const otInput = document.getElementById('workLogOvertime');
+      if (!otInput) return;
+      const cur = parseFloat(otInput.value) || 0;
+      otInput.value = Math.min(15, +(cur + h).toFixed(1));
+      recalcModalWorkHours();
+    }
+
+    function resetOvertime() {
+      const otInput = document.getElementById('workLogOvertime');
+      if (otInput) otInput.value = 0;
+      recalcModalWorkHours();
+    }
+
+    function saveWorkLogFromModal() {
+      if (!currentEditingWorkDate) return;
+      store = sanitizeStore(store);
+      if (!store.workLogs) store.workLogs = [];
+
+      const radios = document.getElementsByName('workLogType');
+      let type = 'work';
+      radios.forEach(r => { if (r.checked) type = r.value; });
+
+      const sInput = document.getElementById('workLogStartTime');
+      const eInput = document.getElementById('workLogEndTime');
+      const otInput = document.getElementById('workLogOvertime');
+      const noteInput = document.getElementById('workLogNote');
+
+      const startTime = sInput ? sInput.value : '09:00';
+      const endTime = eInput ? eInput.value : '18:00';
+      const overtimeHours = Math.max(0, parseFloat(otInput ? otInput.value : 0) || 0);
+      const note = noteInput ? noteInput.value.trim() : '';
+
+      // Deduction logic
+      let deductLeave = 0;
+      if (type === 'annual_full') deductLeave = 1.0;
+      else if (type === 'half_am' || type === 'half_pm') deductLeave = 0.5;
+
+      const existingIdx = store.workLogs.findIndex(w => w.date === currentEditingWorkDate);
+      const logObj = {
+        id: "work_" + currentEditingWorkDate,
+        date: currentEditingWorkDate,
+        type: type,
+        startTime: startTime,
+        endTime: endTime,
+        overtimeHours: overtimeHours,
+        note: note,
+        deductLeave: deductLeave
+      };
+
+      if (existingIdx >= 0) {
+        store.workLogs[existingIdx] = logObj;
+      } else {
+        store.workLogs.push(logObj);
+      }
+
+      saveStore();
+      closeWorkLogModal();
+      renderWorkCalendar();
+    }
+
+    function deleteCurrentWorkLog() {
+      if (!currentEditingWorkDate) return;
+      if (!confirm("해당 일자의 근무/연차 설정을 기본 상태로 초기화하시겠습니까?")) return;
+      store = sanitizeStore(store);
+      store.workLogs = (store.workLogs || []).filter(w => w.date !== currentEditingWorkDate);
+      saveStore();
+      closeWorkLogModal();
+      renderWorkCalendar();
+    }
 
     function cleanTaskText(txt) {
       if (!txt) return '';
@@ -2703,32 +3455,64 @@
         
     const SYSTEM_RELEASE_LOGS = [
   {
+    version: 'v1.13.0',
+    date: '2026-09-14',
+    badge: '근무캘린더 & 연차관리 신설',
+    badgeColor: 'purple',
+    title: '⏰ 5번 [근무 캘린더] 신설 (기본 09~18시 근무, 연장근무 관리, 연차/오전·오후반차 0.5일 차감, 잔여 연차 대시보드) & 릴리즈 기록 표기 오류 수정',
+    summary: '내 근무 시간(09:00~18:00)과 추가 연장 근무를 직관적으로 관리하고, 연차(1일) 및 반차(오전 12:30~18:00 0.5일, 오후 09:00~11:30 0.5일) 사용 시 2026년 잔여 6일 / 2027년 15일 기준에서 자동 차감되는 근무 캘린더를 신설했습니다.',
+    changes: [
+      '⏰ [5번 근무 캘린더 신설]: 주간/월간 내 근무 시간 관리, 기본 09:00~18:00 자동 설정 및 추가 연장 근무(야근) 직접 기재 지원.',
+      '🏖️ [연차 & 오전/오후 반차 차감 시스템]: 연차(종일 1.0일), 오전 반차(12:30~18:00, 0.5일), 오후 반차(09:00~11:30, 0.5일) 선택 시 잔여 연차에서 실시간 자동 차감.',
+      '📊 [연도별 잔여 연차 대시보드]: 2026년(올해) 잔여 연차 기본 6개 시작, 2027년부터 매년 1월 1일 15개 자동 부여 및 캘린더 상단 잔여/사용/실근무 통계 카드 완비.',
+      '🗓️ [4번 월간 일정 캘린더 연차 항목 추가]: 일정 구분에 [🏖️ 연차 (휴가)] 항목을 추가하여 프로젝트 일정과 연차 일정을 통합 조회 가능.',
+      '🛠️ [릴리즈 기록 undefined 표기 수정]: 릴리즈 기록 표의 증상/원인/조치 컬럼이 undefined로 표시되던 현상을 안전 폴백 매핑으로 완벽 수정.'
+    ],
+    issues: [
+      {
+        symptom: '릴리즈 기록 탭에서 표 컬럼에 undefined가 표시되는 현상',
+        cause: '릴리즈 데이터 객체의 필드명(tag, title, desc)과 렌더러의 참조 필드명(symptom, cause, solution) 간 불일치',
+        solution: '데이터 표준화 및 렌더러에 안전 폴백 매핑(iss.symptom || iss.title)을 적용하여 원천 해결'
+      },
+      {
+        symptom: '내 근무 시간(09~18시) 및 야근/연장 근무를 캘린더로 관리하고 연차 잔여 일수를 추적할 전용 뷰 부재',
+        cause: '기존 4번 캘린더는 프로젝트 출장/접수/자료 송수신 중심의 팀 일정 뷰였음',
+        solution: '5번 위치에 [근무 캘린더]를 신설하고, 기본 09~18시 설정, 연장근무 기록, 오전(12:30~18:00)/오후(09:00~11:30) 반차 및 2026년 6개/2027년 15개 잔여 연차 차감 대시보드 구축'
+      },
+      {
+        symptom: '4번 월간 일정 캘린더에 연차 구분이 없어 휴가 일정을 팀 일정에 등록하기 어려움',
+        cause: '일정 종류 셀렉트 옵션이 출장, 자료 요청, 자료송부, 접수로 한정되어 있었음',
+        solution: '일정 종류에 🏖️ 연차(휴가)를 추가하고 에메랄드 전용 배지 스타일 적용'
+      }
+    ]
+  },
+  {
     version: 'v1.12.0',
     date: '2026-09-10',
     badge: '경력기술서·STAR·면접Q&A 전자동 구축',
     badgeColor: 'emerald',
     title: '5번 [경력관리] 실무 맞춤형 전자동 업그레이드 (경력기술서/STAR/면접Q&A/성과 4종 분류 완비)',
     summary: '2번 탭에서 할 일 체크 시 단순 할 일 문구를 복사하는 대신, 도시계획 실무 경력기술서·STAR 문제해결·면접 Q&A/자소서 문구·주요 성과 4종 분류에 최적화된 고급 실무 멘트로 전자동 생성 및 동기화합니다.',
+    changes: [
+      '경력기술서 요약, STAR 문제해결 경험, 면접 Q&A/자소서 문구, 주요 성과 4개 카테고리별 전문 멘트 동시 자동 생성',
+      '단순 할 일 텍스트 복사를 배제하고 도시계획 실무 지침, 조서 정합성, 대관 설득 등 고품질 이직용 포트폴리오 문체 적용',
+      '할 일 체크 및 수정 시 실시간 양방향 동기화 및 무결점 정합성 보장'
+    ],
     issues: [
       {
-        tag: '자동생성',
-        title: '경력기술서 요약·STAR·면접Q&A 탭별 맞춤 내용 자동 생성',
-        desc: '완료된 할 일에 대해 4개 카테고리(경력기술서 요약, STAR 문제해결 경험, 면접 Q&A/자소서 문구, 주요 성과)별로 특화된 전문 실무 멘트가 전자동 생성되어 각 필터 메뉴가 완벽히 채워집니다.'
+        symptom: '경력관리 탭에서 [경력기술서 요약], [STAR 문제해결], [면접 Q&A] 필터 클릭 시 등록된 소스가 없다는 빈 화면 노출',
+        cause: '기존 동기화 함수가 오직 [주요 성과] 1개 카테고리만 생성하여 타 카테고리 필터링 시 데이터가 0건이었음',
+        solution: 'synthesizeCareerEntries 지능형 생성 엔진을 도입하여 업무 완료 시 4개 카테고리 전용 문구를 동시에 자동 생성 및 동기화'
       },
       {
-        tag: '문체혁신',
-        title: '단순 할 일 텍스트 복사 배제 및 실무형 고품질 포트폴리오 문체 전환',
-        desc: '도시계획시설 결정(변경) 조서, 정합성 검증, 기반시설 총괄표, 인허가 조치계획, 입지 타당성 데이터 논리 등 전문 실무 경력 문체로 정제되어 이직 및 면접에 즉시 활용 가능합니다.'
-      },
-      {
-        tag: '실시간동기화',
-        title: '체크 완료 및 수정 시 5번 경력관리 탭 자동 반영 및 정합성 보장',
-        desc: '일자별 업무 체크/해제, 세부 체크리스트 완료 시 경력 소스가 실시간으로 자동 갱신되며, 고아 데이터 방지 및 무결점 동기화를 지원합니다.'
+        symptom: '자동 기록된 경력 소스에 단순 일자별 메모(예: 1. 주차장 결정 조서...)가 그대로 들어가 이직용으로 쓰기 미흡',
+        cause: '할 일의 title과 items 텍스트를 그대로 role/content에 단순 주입함',
+        solution: '도시계획 전문 포트폴리오 형식([과업 개요]-[핵심 실무 수행]-[성과 및 지표])으로 지능 변환하는 템플릿 엔진 구축'
       }
     ]
   },
-{
-        version: "v1.6.0",
+  {
+    version: "v1.6.0",
         date: "2026-09-10",
         title: "🛡️ 데이터 유실 방지 5중 안전망(타임머신 복구함/휴지통/양방향 머지), 📋 전체 날짜 모아보기, 🏷️ '경력 소스' 배지 통일",
         changes: [
@@ -3045,7 +3829,7 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 바뀐 점 및 신규 기능
               </h4>
               <ul class="text-xs sm:text-sm text-slate-700 space-y-2 list-disc list-inside leading-relaxed pl-1">
-                ${(latest.changes || []).map(c => `<li>${c}</li>`).join('')}
+                ${(latest.changes && latest.changes.length > 0 ? latest.changes : [latest.summary || '상세 개선 내역이 반영되었습니다.']).map(c => `<li>${c}</li>`).join('')}
               </ul>
             </div>
 
@@ -3067,9 +3851,9 @@
                     <tbody class="divide-y divide-slate-100 text-slate-800 leading-relaxed">
                       ${latest.issues.map(iss => `
                         <tr class="hover:bg-slate-50/50">
-                          <td class="p-3 font-semibold text-slate-900 align-top">${iss.symptom}</td>
-                          <td class="p-3 text-slate-600 align-top">${iss.cause}</td>
-                          <td class="p-3 text-slate-700 align-top"><strong>${iss.solution}</strong></td>
+                          <td class="p-3 font-semibold text-slate-900 align-top">${iss.symptom || iss.title || iss.tag || '개선 사항'}</td>
+                          <td class="p-3 text-slate-600 align-top">${iss.cause || iss.desc || '시스템 고도화 및 안정성 보강'}</td>
+                          <td class="p-3 text-slate-700 align-top"><strong>${iss.solution || iss.desc || iss.title || '조치 완료'}</strong></td>
                         </tr>
                       `).join('')}
                     </tbody>
@@ -3112,9 +3896,9 @@
                       <tbody class="divide-y divide-slate-100 text-slate-700 leading-relaxed">
                         ${rel.issues.map(iss => `
                           <tr class="hover:bg-slate-50/50">
-                            <td class="p-2.5 font-medium text-slate-900 align-top">${iss.symptom}</td>
-                            <td class="p-2.5 text-slate-600 align-top">${iss.cause}</td>
-                            <td class="p-2.5 text-slate-800 align-top"><strong>${iss.solution}</strong></td>
+                            <td class="p-2.5 font-medium text-slate-900 align-top">${iss.symptom || iss.title || iss.tag || '개선 사항'}</td>
+                            <td class="p-2.5 text-slate-600 align-top">${iss.cause || iss.desc || '시스템 고도화 및 안정성 보강'}</td>
+                            <td class="p-2.5 text-slate-800 align-top"><strong>${iss.solution || iss.desc || iss.title || '조치 완료'}</strong></td>
                           </tr>
                         `).join('')}
                       </tbody>
@@ -3144,6 +3928,7 @@
 
       if (targetPanel) targetPanel.classList.remove('hidden');
       if (tabKey === 'release') renderReleaseNotes();
+      if (tabKey === 'workhours') renderWorkCalendar();
       if (tabKey === 'career') {
         autoSyncCareerFromCompletedTasks();
         renderCareerLogs();
@@ -5027,7 +5812,11 @@
         store.calendarEvents.push(newEv);
       }
 
-      saveStore();
+      
+      if (type === '연차' && selectedAttendees.includes('나')) {
+        syncLeaveFromCalendar(document.getElementById('calEventDate').value, title);
+      }
+saveStore();
       closeAddCalendarEventModal();
       renderCalendar();
     }
@@ -5432,25 +6221,16 @@
 
 
     function renderAll() {
-
       updateAllProjectDropdowns();
-
       renderSummaryHeader();
-
       renderMasterCards();
-
       renderDailyTasks();
-
       renderProjectSummaryBoard();
-
       renderCalendar();
-
+      renderWorkCalendar();
       renderCareerLogs();
-
       lucide.createIcons();
-
     }
-
 
 
     document.getElementById('dailyLogDatePicker').value = getTodayDateStr();
@@ -5505,6 +6285,11 @@
 
       <span class="text-[10px] font-bold mt-0.5 tracking-tight">캘린더</span>
 
+    </button>
+
+    <button onclick="switchTab('workhours'); window.scrollTo({top:0, behavior:'smooth'});" id="mob-tab-workhours" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 font-medium transition">
+      <span class="text-base">⏰</span>
+      <span class="text-[10px] font-bold mt-0.5 tracking-tight">근무/연차</span>
     </button>
 
 
