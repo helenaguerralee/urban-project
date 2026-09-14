@@ -982,7 +982,7 @@
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <span>⏰</span> 이번 달 총 근무
+                  <span>⏰</span> 이달 누적 근무시간
                 </span>
                 <span id="statWorkDaysCount" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">0일 출근</span>
               </div>
@@ -3601,10 +3601,25 @@
       }
       if (totalPaidWeekdaysInMonth === 0) totalPaidWeekdaysInMonth = 20;
 
-      // 1일 유급 일급 및 통상 시급/초당 단가
-      const dailyBasePay = monthlySalary / totalPaidWeekdaysInMonth;
-      const hourlyRate = dailyBasePay / 8;
-      const perSecondRate = hourlyRate / 3600;
+      // 사용자 실근무 기준 시급 (2,859,216원 ÷ 4주 ÷ 5일 ÷ 8시간 = 160시간 기준 시급 약 17,870.1원)
+      // 당월 총 실근무일수(공휴일·연차 제외)에 맞춰 160시간(20일x8h) 기준 정밀 산출
+      let totalHolidaysCount = 0;
+      let totalLeaveCount = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
+        const dt = new Date(curYear, curMonth - 1, d);
+        const isWk = (dt.getDay() !== 0 && dt.getDay() !== 6);
+        if (isWk) {
+          if (getKoreanPublicHoliday(dStr)) totalHolidaysCount++;
+          const l = logsMap[dStr];
+          if (l && l.deductLeave) totalLeaveCount += parseFloat(l.deductLeave) || 0;
+        }
+      }
+      const netWorkDays = Math.max(1, totalPaidWeekdaysInMonth - totalHolidaysCount - totalLeaveCount);
+      const totalMonthWorkHours = netWorkDays * 8; // e.g. 20일 x 8h = 160시간
+      const hourlyRate = monthlySalary / totalMonthWorkHours; // 2,859,216 / 160 = 17,870.1원
+      const dailyBasePay = hourlyRate * 8; // 142,960.8원
+      const perSecondRate = hourlyRate / 3600; // 약 4.964원/초
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
@@ -3840,20 +3855,23 @@
         leaveRuleBadge.innerText = currentWorkCalYear <= 2026 ? '2026년 총 10개' : `${currentWorkCalYear}년 15개 부여`;
       }
 
-      // 2. Calculate Monthly Work Hours for currentWorkCalMonth
+      // 2. Calculate Monthly Work Hours & Net Work Days (공휴일·연차 제외) for currentWorkCalMonth
       const monthPrefix = `${currentWorkCalYear}-${String(currentWorkCalMonth).padStart(2, '0')}`;
-      let totalMonthRegularHours = 0;
-      let totalMonthOvertimeHours = 0;
-      let workedDaysInMonth = 0;
-      let overtimeDaysInMonth = 0;
-
-      // Determine days in month
       const firstDay = new Date(currentWorkCalYear, currentWorkCalMonth - 1, 1);
       const lastDay = new Date(currentWorkCalYear, currentWorkCalMonth, 0);
       const daysInMonth = lastDay.getDate();
       const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
+      const todayStr = getTodayDateStr();
 
-      // Calculate for every day in month
+      let totalWeekdaysInMonth = 0;
+      let totalHolidaysInMonth = 0;
+      let totalLeaveDaysInMonth = 0;
+
+      let accumulatedWorkedHoursSoFar = 0;
+      let pastWorkedDaysCount = 0;
+      let totalOvertimeHoursInMonth = 0;
+      let overtimeDaysInMonth = 0;
+
       for (let day = 1; day <= daysInMonth; day++) {
         const dStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
         const dateObj = new Date(currentWorkCalYear, currentWorkCalMonth - 1, day);
@@ -3861,53 +3879,111 @@
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
         const holidayName = getKoreanPublicHoliday(dStr);
         const isHoliday = !!holidayName;
-
         const log = getWorkLogForDate(dStr);
 
+        if (!isWeekend) {
+          totalWeekdaysInMonth++;
+          if (isHoliday) {
+            totalHolidaysInMonth++;
+          }
+        }
+
         if (log) {
-          if (log.type === 'work') {
-            totalMonthRegularHours += 8.0;
-            workedDaysInMonth++;
-          } else if (log.type === 'half_am') {
-            // 오전 반차: 12:30 ~ 18:00 (5.5시간)
-            totalMonthRegularHours += 5.5;
-            workedDaysInMonth++;
-          } else if (log.type === 'half_pm') {
-            // 오후 반차: 09:00 ~ 11:30 (2.5시간)
-            totalMonthRegularHours += 2.5;
-            workedDaysInMonth++;
+          const deduct = parseFloat(log.deductLeave) || 0;
+          if (deduct > 0) {
+            totalLeaveDaysInMonth += deduct;
           }
           const ot = parseFloat(log.overtimeHours) || 0;
           if (ot > 0) {
-            totalMonthOvertimeHours += ot;
+            totalOvertimeHoursInMonth += ot;
             overtimeDaysInMonth++;
           }
-        } else {
-          // If no custom log: Weekday AND NOT public holiday = 09:00~18:00 (8h)
+        }
+
+        // 지금까지 일한 누적 시간 (과거 일자 + 오늘 실시간)
+        if (dStr < todayStr) {
+          if (log) {
+            if (log.type === 'work') {
+              accumulatedWorkedHoursSoFar += 8.0;
+              pastWorkedDaysCount++;
+            } else if (log.type === 'half_am') {
+              accumulatedWorkedHoursSoFar += 5.5;
+              pastWorkedDaysCount += 0.5;
+            } else if (log.type === 'half_pm') {
+              accumulatedWorkedHoursSoFar += 2.5;
+              pastWorkedDaysCount += 0.5;
+            }
+            const ot = parseFloat(log.overtimeHours) || 0;
+            accumulatedWorkedHoursSoFar += ot;
+          } else {
+            // 기록 없는 평일: 공휴일이 아니면 기본 8h
+            if (!isWeekend && !isHoliday) {
+              accumulatedWorkedHoursSoFar += 8.0;
+              pastWorkedDaysCount++;
+            }
+          }
+        } else if (dStr === todayStr) {
           if (!isWeekend && !isHoliday) {
-            totalMonthRegularHours += 8.0;
-            workedDaysInMonth++;
+            const now = new Date();
+            const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            const startSec = 9 * 3600;
+            const endSec = 18 * 3600;
+            const lunchStart = 12 * 3600;
+            const lunchEnd = 13 * 3600;
+
+            let todayElapsedHours = 0;
+            if (curSeconds >= endSec) {
+              todayElapsedHours = 8.0;
+              pastWorkedDaysCount += 1.0;
+            } else if (curSeconds > startSec) {
+              let sec = curSeconds - startSec;
+              if (curSeconds > lunchEnd) {
+                sec -= 3600;
+              } else if (curSeconds > lunchStart) {
+                sec = lunchStart - startSec;
+              }
+              todayElapsedHours = Math.max(0, sec / 3600);
+              pastWorkedDaysCount += Math.min(1.0, +(todayElapsedHours / 8).toFixed(1));
+            }
+
+            const ot = log ? (parseFloat(log.overtimeHours) || 0) : 0;
+            accumulatedWorkedHoursSoFar += todayElapsedHours + ot;
           }
         }
       }
 
-      const totalMonthWorkHours = totalMonthRegularHours + totalMonthOvertimeHours;
+      // 이달 총 근무일 = 평일 - 법정공휴일 - 연차 사용 일수
+      const totalNetWorkDaysInMonth = Math.max(0, totalWeekdaysInMonth - totalHolidaysInMonth - totalLeaveDaysInMonth);
 
+      // Card 3 & 4 Elements Update
       const statMonthWorkElem = document.getElementById('statMonthWorkHours');
       const statMonthRegElem = document.getElementById('statMonthRegularHours');
       const statWorkDaysElem = document.getElementById('statWorkDaysCount');
       const statMonthOverElem = document.getElementById('statMonthOvertimeHours');
       const statOverDaysElem = document.getElementById('statOvertimeDaysCount');
 
-      if (statMonthWorkElem) statMonthWorkElem.innerText = totalMonthWorkHours.toFixed(1);
-      if (statMonthRegElem) statMonthRegElem.innerText = `${totalMonthRegularHours.toFixed(1)}h`;
-      if (statWorkDaysElem) statWorkDaysElem.innerText = `${workedDaysInMonth}일 근무`;
-      if (statMonthOverElem) statMonthOverElem.innerText = `+${totalMonthOvertimeHours.toFixed(1)}`;
+      // 1. 위에 크게 나오는 것: 지금까지 일한 누적 시간
+      if (statMonthWorkElem) statMonthWorkElem.innerText = accumulatedWorkedHoursSoFar.toFixed(1);
+
+      // 2. 아래: 이달 총 근무일 (공휴일, 연차 제외)
+      if (statMonthRegElem) {
+        let deductArr = [];
+        if (totalHolidaysInMonth > 0) deductArr.push(`공휴일 ${totalHolidaysInMonth}일`);
+        if (totalLeaveDaysInMonth > 0) deductArr.push(`연차 ${totalLeaveDaysInMonth}일`);
+        const deductText = deductArr.length > 0 ? ` (${deductArr.join('·')} 제외)` : '';
+        statMonthRegElem.innerHTML = `이달 총 근무일 <strong class="text-blue-700 font-mono font-black">${totalNetWorkDaysInMonth}일</strong>${deductText}`;
+      }
+
+      // 3. 우측 상단 뱃지: 진행 일수 / 총 근무일
+      if (statWorkDaysElem) {
+        statWorkDaysElem.innerText = `진행 ${Math.ceil(pastWorkedDaysCount)}일 / 총 ${totalNetWorkDaysInMonth}일`;
+      }
+
+      if (statMonthOverElem) statMonthOverElem.innerText = `+${totalOvertimeHoursInMonth.toFixed(1)}`;
       if (statOverDaysElem) statOverDaysElem.innerText = `${overtimeDaysInMonth}회`;
 
       // 3. Render Calendar Grid Cells
       grid.innerHTML = '';
-      const todayStr = getTodayDateStr();
 
       // Empty lead cells
       for (let i = 0; i < startDayOfWeek; i++) {
