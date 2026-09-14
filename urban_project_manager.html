@@ -368,7 +368,7 @@
 
         <button onclick="switchTab('master')" id="tab-master" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-between gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📌</span> 1. 프로젝트 마스터</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>📌</span> 1. 프로젝트 마스터</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4"></i>
 
@@ -378,7 +378,7 @@
 
         <button onclick="switchTab('daily')" id="tab-daily" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📅</span> 2. 일자별 업무 &amp; 체크</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>📅</span> 2. 일자별 업무 &amp; 체크</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -388,7 +388,7 @@
 
         <button onclick="switchTab('summary')" id="tab-summary" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📋</span> 3. 프로젝트별 업무 정리</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>📋</span> 3. 프로젝트별 업무 정리</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -398,22 +398,25 @@
 
         <button onclick="switchTab('calendar')" id="tab-calendar" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🗓️</span> 4. 월간 일정 캘린더</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>🗓️</span> 4. 월간 일정 캘린더</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
         </button>
 
         <button onclick="switchTab('workhours')" id="tab-workhours" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>⏰</span> 5. 근무 캘린더 (근무 &amp; 연차)</span>
-          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden">
+            <span class="text-base shrink-0">⏰</span>
+            <span class="font-bold truncate">5. 근무 캘린더</span>
+          </span>
+          <i data-lucide="chevron-right" class="w-4 h-4 opacity-0 shrink-0"></i>
         </button>
 
 
 
         <button onclick="switchTab('career')" id="tab-career" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>💼</span> 6. 경력관리</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>💼</span> 6. 경력관리</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -423,14 +426,14 @@
 
         <button onclick="switchTab('reporthelper')" id="tab-reporthelper" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>🛠️</span> 7. 업무 툴</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>🛠️</span> 7. 업무 툴</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
         </button>
 
         <button onclick="switchTab('release')" id="tab-release" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
-          <span class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end"><span>📜</span> 8. 릴리즈 기록</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>📜</span> 8. 릴리즈 기록</span>
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
         </button>
 
@@ -738,7 +741,7 @@
                 <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
                   <span>🏖️</span> 잔여 연차
                 </span>
-                <span id="leaveRuleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">2026년 6개</span>
+                <span id="leaveRuleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">2026년 총 10개</span>
               </div>
               <div class="mt-2.5">
                 <div class="flex items-baseline gap-1">
@@ -2627,16 +2630,123 @@
     // 5. WORK HOURS & ANNUAL LEAVE SYSTEM (근무 및 연차 관리)
     // =========================================================================
 
-    let currentWorkCalYear = new Date().getFullYear();
-    let currentWorkCalMonth = new Date().getMonth() + 1; // 1-12
-    let currentEditingWorkDate = null;
+    // Statutory Korean Public Holidays (법정공휴일)
+    const KOREAN_PUBLIC_HOLIDAYS = {
+      // 2025
+      "2025-01-01": "신정",
+      "2025-01-28": "설날 연휴",
+      "2025-01-29": "설날",
+      "2025-01-30": "설날 연휴",
+      "2025-03-01": "삼일절",
+      "2025-03-03": "대체공휴일 (삼일절)",
+      "2025-05-05": "어린이날",
+      "2025-05-06": "부처님오신날",
+      "2025-06-06": "현충일",
+      "2025-08-15": "광복절",
+      "2025-10-03": "개천절",
+      "2025-10-05": "추석 연휴",
+      "2025-10-06": "추석",
+      "2025-10-07": "추석 연휴",
+      "2025-10-08": "대체공휴일 (추석)",
+      "2025-10-09": "한글날",
+      "2025-12-25": "성탄절",
 
-    // Rule: 올해(2026)는 잔여연차 기본 6개, 내년(2027부터)은 매년 1월 1일 15개
+      // 2026
+      "2026-01-01": "신정",
+      "2026-02-16": "설날 연휴",
+      "2026-02-17": "설날",
+      "2026-02-18": "설날 연휴",
+      "2026-03-01": "삼일절",
+      "2026-03-02": "대체공휴일 (삼일절)",
+      "2026-05-05": "어린이날",
+      "2026-05-24": "부처님오신날",
+      "2026-05-25": "대체공휴일 (부처님오신날)",
+      "2026-06-06": "현충일",
+      "2026-08-15": "광복절",
+      "2026-08-17": "대체공휴일 (광복절)",
+      "2026-09-24": "추석 연휴",
+      "2026-09-25": "추석",
+      "2026-09-26": "추석 연휴",
+      "2026-10-03": "개천절",
+      "2026-10-05": "대체공휴일 (개천절)",
+      "2026-10-09": "한글날",
+      "2026-12-25": "성탄절",
+
+      // 2027
+      "2027-01-01": "신정",
+      "2027-02-06": "설날 연휴",
+      "2027-02-07": "설날",
+      "2027-02-08": "설날 연휴",
+      "2027-02-09": "대체공휴일 (설날)",
+      "2027-03-01": "삼일절",
+      "2027-05-05": "어린이날",
+      "2027-05-13": "부처님오신날",
+      "2027-06-06": "현충일",
+      "2027-06-07": "대체공휴일 (현충일)",
+      "2027-08-15": "광복절",
+      "2027-08-16": "대체공휴일 (광복절)",
+      "2027-09-14": "추석 연휴",
+      "2027-09-15": "추석",
+      "2027-09-16": "추석 연휴",
+      "2027-10-03": "개천절",
+      "2027-10-04": "대체공휴일 (개천절)",
+      "2027-10-09": "한글날",
+      "2027-10-11": "대체공휴일 (한글날)",
+      "2027-12-25": "성탄절"
+    };
+
+    function getKoreanPublicHoliday(dateStr) {
+      if (!dateStr) return null;
+      if (KOREAN_PUBLIC_HOLIDAYS[dateStr]) return KOREAN_PUBLIC_HOLIDAYS[dateStr];
+      const mmdd = dateStr.substring(5);
+      if (mmdd === "01-01") return "신정";
+      if (mmdd === "03-01") return "삼일절";
+      if (mmdd === "05-05") return "어린이날";
+      if (mmdd === "06-06") return "현충일";
+      if (mmdd === "08-15") return "광복절";
+      if (mmdd === "10-03") return "개천절";
+      if (mmdd === "10-09") return "한글날";
+      if (mmdd === "12-25") return "성탄절";
+      return null;
+    }
+
+    // Rule: 올해(2026)는 총연차 10개(사용 4개, 잔여 6개), 내년(2027부터)은 매년 1월 1일 15개
     function getTotalAnnualLeaveForYear(year) {
       const y = parseInt(year, 10) || 2026;
-      if (y <= 2026) return 6.0;
+      if (y <= 2026) return 10.0;
       return 15.0;
     }
+
+    // Ensure user's historical 2026 leave days are seeded
+    function ensureInitialUserLeaveLogs() {
+      if (!store.workLogs) store.workLogs = [];
+      const userLeaves2026 = [
+        { date: "2026-05-04", note: "개인 연차 (5월 황금연휴)" },
+        { date: "2026-07-20", note: "하계 휴가 (연차)" },
+        { date: "2026-07-21", note: "하계 휴가 (연차)" },
+        { date: "2026-07-22", note: "하계 휴가 (연차)" }
+      ];
+
+      let added = false;
+      userLeaves2026.forEach(ul => {
+        const exists = store.workLogs.some(w => w.date === ul.date);
+        if (!exists) {
+          store.workLogs.push({
+            id: "work_" + ul.date,
+            date: ul.date,
+            type: "annual_full",
+            startTime: "-",
+            endTime: "-",
+            overtimeHours: 0,
+            note: ul.note,
+            deductLeave: 1.0
+          });
+          added = true;
+        }
+      });
+      return added;
+    }
+
 
     function changeWorkMonth(offset) {
       currentWorkCalMonth += offset;
@@ -2730,7 +2840,7 @@
       if (statUsedElem) statUsedElem.innerText = usedLeaveInYear.toFixed(1);
       if (statUsedDetailElem) statUsedDetailElem.innerText = `종일 연차 ${fullDaysCount}회 · 반차 ${halfDaysCount}회`;
       if (leaveRuleBadge) {
-        leaveRuleBadge.innerText = currentWorkCalYear <= 2026 ? '2026년 6개' : `${currentWorkCalYear}년 15개 부여`;
+        leaveRuleBadge.innerText = currentWorkCalYear <= 2026 ? '2026년 총 10개' : `${currentWorkCalYear}년 15개 부여`;
       }
 
       // 2. Calculate Monthly Work Hours for currentWorkCalMonth
@@ -2752,6 +2862,8 @@
         const dateObj = new Date(currentWorkCalYear, currentWorkCalMonth - 1, day);
         const dayOfWeek = dateObj.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const holidayName = getKoreanPublicHoliday(dStr);
+        const isHoliday = !!holidayName;
 
         const log = getWorkLogForDate(dStr);
 
@@ -2774,8 +2886,8 @@
             overtimeDaysInMonth++;
           }
         } else {
-          // If no custom log on weekday, default is 09:00~18:00 (8h)
-          if (!isWeekend) {
+          // If no custom log: Weekday AND NOT public holiday = 09:00~18:00 (8h)
+          if (!isWeekend && !isHoliday) {
             totalMonthRegularHours += 8.0;
             workedDaysInMonth++;
           }
@@ -2892,8 +3004,18 @@
             `;
           }
         } else {
-          // Default for unlogged days: Weekdays = 09:00~18:00 (8h)
-          if (!isSun && !isSat) {
+          // Default for unlogged days:
+          const holidayName = getKoreanPublicHoliday(dStr);
+          if (holidayName) {
+            badgeHtml = `
+              <div class="bg-rose-50 text-rose-700 border border-rose-200 rounded-lg p-1.5 shadow-2xs">
+                <div class="font-bold text-[10.5px] sm:text-xs flex items-center gap-1 text-rose-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${holidayName}
+                </div>
+                <div class="text-[9.5px] text-rose-500 font-medium mt-0.5">법정공휴일 (휴무)</div>
+              </div>
+            `;
+          } else if (!isSun && !isSat) {
             badgeHtml = `
               <div class="bg-slate-50/70 border border-slate-200/80 rounded-lg p-1 text-[10px] text-slate-500 flex items-center justify-between group-hover:bg-indigo-50/50 transition">
                 <span>💼 기본근무</span>
@@ -2902,7 +3024,7 @@
             `;
           } else {
             badgeHtml = `
-              <div class="text-[10px] text-slate-400 text-center py-1">휴무</div>
+              <div class="text-[10px] text-slate-400 text-center py-1 font-medium">주말 휴무</div>
             `;
           }
         }
