@@ -379,7 +379,7 @@
 
         </div>
 
-        <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
+        <div id="headerStatCareer" class="bg-amber-50 border border-amber-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-center">
 
           <span class="text-amber-600 block text-[10px] font-bold">경력 소스</span>
 
@@ -523,7 +523,7 @@
 
         <button onclick="switchTab('career')" id="tab-career" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>💼</span> 6. 경력관리</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span id="tabCareerIcon">💼</span> <span id="tabCareerText">6. 경력관리</span></span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -1025,30 +1025,34 @@
             <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 border border-sky-300">🌤️ 오전 반차 (12:30~18:00, -0.5일)</span>
             <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">⛅ 오후 반차 (09:00~11:30, -0.5일)</span>
             <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-300">🔥 추가 연장 근무</span>
-            <span class="text-slate-400 text-[11px] ml-auto font-medium">💡 날짜를 클릭하면 해당 일자의 근무 형태 및 연장 시간을 등록/수정할 수 있습니다.</span>
+            <span class="text-slate-400 text-[11px] ml-auto font-medium hidden sm:inline">💡 날짜를 클릭하면 해당 일자의 근무 형태 및 연장 시간을 등록/수정할 수 있습니다.</span>
+            <span class="text-indigo-600 font-bold text-[11px] sm:hidden w-full text-right mt-1">👉 좌우로 스크롤하여 캘린더 전체를 확인하세요</span>
           </div>
 
-          <!-- Work Hours Monthly Grid Container -->
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-3 sm:p-5">
-            <!-- Day of Week Header -->
-            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs border-b border-slate-200 pb-2 mb-2">
-              <div class="text-rose-500">일</div>
-              <div class="text-slate-700">월</div>
-              <div class="text-slate-700">화</div>
-              <div class="text-slate-700">수</div>
-              <div class="text-slate-700">목</div>
-              <div class="text-slate-700">금</div>
-              <div class="text-blue-500">토</div>
+          <!-- Work Hours Monthly Grid Container (Responsive: Horizontal scroll on mobile) -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto p-3 sm:p-5 w-full">
+            <div class="min-w-[680px]">
+              <!-- Day of Week Header -->
+              <div class="grid grid-cols-7 gap-1.5 text-center font-bold text-xs text-slate-600 border-b border-slate-200 pb-2.5 mb-2.5">
+                <div class="text-rose-500 font-bold bg-rose-50/50 py-1 rounded-lg">일 (Sun)</div>
+                <div class="py-1">월 (Mon)</div>
+                <div class="py-1">화 (Tue)</div>
+                <div class="py-1">수 (Wed)</div>
+                <div class="py-1">목 (Thu)</div>
+                <div class="py-1">금 (Fri)</div>
+                <div class="text-blue-500 font-bold bg-blue-50/50 py-1 rounded-lg">토 (Sat)</div>
+              </div>
+              <!-- Grid Days -->
+              <div id="workCalendarGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
             </div>
-            <!-- Grid Days -->
-            <div id="workCalendarGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
           </div>
         </div>
 
         <!-- TAB 6: CAREER MANAGEMENT -->
         <div id="panel-career" class="tab-panel hidden space-y-5 w-full">
-
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 p-3.5 sm:p-4 rounded-2xl border border-amber-200 text-xs w-full">
+          <!-- Admin Content View -->
+          <div id="careerAdminContent" class="space-y-5 w-full">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 p-3.5 sm:p-4 rounded-2xl border border-amber-200 text-xs w-full">
 
             <div class="w-full sm:w-auto">
 
@@ -1105,8 +1109,32 @@
           <div id="careerLogsGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-5 w-full"></div>
 
         </div>
+          </div>
 
-
+          <!-- Guest Confidential Privacy Lock Card -->
+          <div id="careerGuestLockedView" class="hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-8 sm:p-12 rounded-3xl border border-indigo-500/30 shadow-2xl text-center space-y-6 max-w-2xl mx-auto my-8">
+            <div class="w-16 h-16 rounded-3xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-3xl mx-auto shadow-inner">
+              🔒
+            </div>
+            <div class="space-y-2">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-bold">
+                👑 관리자 전용 비공개 항목
+              </div>
+              <h3 class="text-xl sm:text-2xl font-black tracking-tight text-white">
+                6. 경력관리 &amp; 이직 소스 보관함
+              </h3>
+              <p class="text-xs sm:text-sm text-indigo-200/80 max-w-md mx-auto leading-relaxed">
+                개인 경력기술서 요약, 프로젝트 수행 실적, STAR 문제해결 경험, 면접/자소서 소스는 개인정보 보호를 위해 비공개 처리되어 있습니다.
+              </p>
+            </div>
+            <div class="pt-2">
+              <button onclick="openLoginModal()" class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl text-sm shadow-xl hover:shadow-2xl transition inline-flex items-center gap-2 cursor-pointer">
+                <i data-lucide="key" class="w-4 h-4"></i>
+                <span>관리자 로그인하고 경력관리 열기</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- TAB 6: REPORT HELPER INTEGRATION -->
 
@@ -2380,6 +2408,43 @@
     function updateAuthUI() {
       const isAdmin = checkIsAdmin();
       if (typeof updateLiveSalaryTracker === 'function') updateLiveSalaryTracker();
+
+      // Tab 6 (Career) Guest Privacy Control
+      const headerStatCareer = document.getElementById('headerStatCareer');
+      if (headerStatCareer) {
+        headerStatCareer.style.display = isAdmin ? '' : 'none';
+      }
+
+      const tabCareerIcon = document.getElementById('tabCareerIcon');
+      const tabCareerText = document.getElementById('tabCareerText');
+      if (tabCareerIcon && tabCareerText) {
+        if (isAdmin) {
+          tabCareerIcon.textContent = '💼';
+          tabCareerText.innerHTML = '6. 경력관리';
+        } else {
+          tabCareerIcon.textContent = '🔒';
+          tabCareerText.innerHTML = '6. 경력관리 <span class="text-[10px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-md font-bold ml-1">비공개</span>';
+        }
+      }
+
+      const mobTopCareer = document.getElementById('mob-top-career');
+      if (mobTopCareer) {
+        mobTopCareer.innerHTML = isAdmin ? '💼 6. 경력관리' : '🔒 6. 경력관리';
+      }
+
+      const mobTabCareer = document.getElementById('mob-tab-career');
+      if (mobTabCareer) {
+        const spanLabel = mobTabCareer.querySelector('span:last-child');
+        if (spanLabel) {
+          spanLabel.textContent = isAdmin ? '경력관리' : '경력(비공개)';
+        }
+      }
+
+      // If currently on Tab 6, re-render career logs view
+      const panelCareer = document.getElementById('panel-career');
+      if (panelCareer && !panelCareer.classList.contains('hidden')) {
+        renderCareerLogs();
+      }
       
       // Desktop header auth container
       const desktopContainer = document.getElementById('desktopAuthStatus');
@@ -3902,9 +3967,9 @@
             `;
           } else if (!isSun && !isSat) {
             badgeHtml = `
-              <div class="bg-slate-50/70 border border-slate-200/80 rounded-lg p-1 text-[10px] text-slate-500 flex items-center justify-between group-hover:bg-indigo-50/50 transition">
-                <span>💼 기본근무</span>
-                <span class="font-mono font-semibold">09-18 (8h)</span>
+              <div class="bg-slate-50/80 border border-slate-200/80 rounded-lg p-1 text-[10px] text-slate-600 flex items-center justify-between group-hover:bg-indigo-50/50 transition">
+                <span class="truncate">💼 기본근무</span>
+                <span class="font-mono font-semibold shrink-0 ml-1">09-18(8h)</span>
               </div>
             `;
           } else {
@@ -3918,7 +3983,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs sm:text-sm font-mono ${dayColorClass}">${day}</span>
-              ${isToday ? '<span class="text-[9px] font-bold bg-indigo-600 text-white px-1.5 py-0.2 rounded-full">TODAY</span>' : ''}
+              ${isToday ? '<span class="text-[9px] font-bold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full shrink-0">TODAY</span>' : ''}
             </div>
             ${badgeHtml}
           </div>
@@ -4385,6 +4450,7 @@
     }
 
     function autoSyncCareerFromCompletedTasks() {
+      if (!checkIsAdmin()) return;
       if (!store.careerLogs) store.careerLogs = [];
       const completedTasks = (store.dailyTasks || []).filter(t => t.completed);
 
@@ -6948,10 +7014,30 @@ saveStore();
 
 
     function renderCareerLogs() {
-
+      const isAdmin = checkIsAdmin();
+      const adminContent = document.getElementById('careerAdminContent');
+      const lockedView = document.getElementById('careerGuestLockedView');
       const grid = document.getElementById('careerLogsGrid');
 
-      grid.innerHTML = '';
+      if (!isAdmin) {
+        if (adminContent) adminContent.style.display = 'none';
+        if (lockedView) {
+          lockedView.style.display = 'block';
+          lockedView.classList.remove('hidden');
+        }
+        if (grid) grid.innerHTML = '';
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      if (adminContent) adminContent.style.display = 'block';
+      if (lockedView) {
+        lockedView.style.display = 'none';
+        lockedView.classList.add('hidden');
+      }
+
+      if (!grid) return;
+grid.innerHTML = '';
 
 
 
