@@ -180,7 +180,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.2.0</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.14.0</span>
 
           </div>
 
@@ -188,6 +188,7 @@
 
           <div class="flex items-center gap-1.5 shrink-0">
 
+            <div id="mobileAuthContainer" class="inline-flex items-center gap-1"></div>
             <button onclick="openCloudSyncModal()" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold border border-indigo-200 flex items-center gap-1">
 
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="mobSyncDot"></span>
@@ -340,11 +341,32 @@
 
         </button>
 
+        <!-- Desktop Auth Status & Login/Logout Controls -->
+        <div id="desktopAuthStatus" class="flex items-center gap-2"></div>
+
       </div>
 
       </div>
 
     </header>
+
+    <!-- Guest Mode Floating Notice Banner (Visible only in Guest Mode) -->
+    <div id="guestModeBanner" class="hidden mb-4 p-3 sm:p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-center justify-between gap-3 text-xs text-amber-900 shadow-xs backdrop-blur-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="text-base shrink-0">👀</span>
+        <div class="truncate">
+          <strong class="font-bold text-amber-950">현재 게스트(조회 전용) 모드입니다.</strong>
+          <span class="hidden sm:inline text-amber-800/90 ml-1.5">모든 프로젝트, 캘린더, 근무/연차 데이터를 자유롭게 열람하실 수 있으며, 데이터 수정 및 추가는 관리자 로그인 후 이용 가능합니다.</span>
+        </div>
+      </div>
+      <button onclick="openLoginModal()" class="shrink-0 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-xs transition text-xs flex items-center gap-1">
+        🔑 관리자 로그인
+      </button>
+    </div>
+
+    <!-- Global Notification Toast Container -->
+    <div id="authToastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-[90%] max-w-md"></div>
+
 
 
 
@@ -1845,6 +1867,291 @@
 
   <script>
 
+    // ==========================================
+    // 🔑 AUTHENTICATION & GUEST MODE SYSTEM (v1.14.0)
+    // ==========================================
+    const DEFAULT_MASTER_PASSWORD = 'urban2026';
+
+    function getMasterPassword() {
+      if (typeof store !== 'undefined' && store && store.masterPassword) {
+        return String(store.masterPassword);
+      }
+      try {
+        const local = localStorage.getItem('urban_admin_passcode');
+        if (local) return String(local);
+      } catch(e) {}
+      return DEFAULT_MASTER_PASSWORD;
+    }
+
+    function setMasterPassword(newPass) {
+      if (!newPass || !newPass.trim()) return false;
+      const pass = newPass.trim();
+      try {
+        localStorage.setItem('urban_admin_passcode', pass);
+      } catch(e) {}
+      if (typeof store !== 'undefined' && store) {
+        store.masterPassword = pass;
+        if (typeof saveStore === 'function') saveStore();
+      }
+      return true;
+    }
+
+    function checkIsAdmin() {
+      try {
+        return localStorage.getItem('urban_auth_session') === 'admin' ||
+               sessionStorage.getItem('urban_auth_session') === 'admin';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function requireAdmin(actionName = '데이터 변경') {
+      if (checkIsAdmin()) return true;
+      showAuthToast(`🔒 게스트(조회 전용) 모드입니다.\n[${actionName}] 기능은 관리자 로그인 후 이용하실 수 있습니다.`, true);
+      return false;
+    }
+
+    function showAuthToast(msg, showLoginBtn = true) {
+      const container = document.getElementById('authToastContainer');
+      if (!container) {
+        alert(msg);
+        return;
+      }
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto flex items-center gap-3 bg-slate-900/95 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 transition-all duration-300 transform translate-y-2 opacity-0';
+      
+      const icon = document.createElement('span');
+      icon.className = 'text-lg shrink-0';
+      icon.textContent = '🔒';
+      toast.appendChild(icon);
+
+      const text = document.createElement('div');
+      text.className = 'flex-1 leading-snug whitespace-pre-line font-medium';
+      text.textContent = msg;
+      toast.appendChild(text);
+
+      if (showLoginBtn) {
+        const btn = document.createElement('button');
+        btn.className = 'shrink-0 px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition whitespace-nowrap';
+        btn.textContent = '🔑 로그인';
+        btn.onclick = () => {
+          if (toast.parentNode) container.removeChild(toast);
+          openLoginModal();
+        };
+        toast.appendChild(btn);
+      }
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'text-slate-400 hover:text-white p-1 rounded transition shrink-0 text-base leading-none';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.onclick = () => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      };
+      toast.appendChild(closeBtn);
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.classList.add('opacity-0', '-translate-y-2');
+          setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+        }
+      }, 4500);
+    }
+
+    function openLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (!modal) return;
+      const err = document.getElementById('loginErrorMsg');
+      if (err) err.classList.add('hidden');
+      const input = document.getElementById('loginPasswordInput');
+      if (input) input.value = '';
+      modal.classList.remove('hidden');
+      setTimeout(() => { if (input) input.focus(); }, 100);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleLoginSubmit() {
+      const input = document.getElementById('loginPasswordInput');
+      const remember = document.getElementById('loginRememberMe');
+      const err = document.getElementById('loginErrorMsg');
+      const val = input ? input.value : '';
+      const currentMaster = getMasterPassword();
+
+      if (val === currentMaster) {
+        if (remember && remember.checked) {
+          localStorage.setItem('urban_auth_session', 'admin');
+          sessionStorage.removeItem('urban_auth_session');
+        } else {
+          sessionStorage.setItem('urban_auth_session', 'admin');
+          localStorage.removeItem('urban_auth_session');
+        }
+        closeLoginModal();
+        updateAuthUI();
+        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
+      } else {
+        if (err) {
+          err.classList.remove('hidden');
+        } else {
+          alert('비밀번호가 일치하지 않습니다.');
+        }
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+    }
+
+    function handleLogout() {
+      if (!confirm('로그아웃하시겠습니까?\n게스트(조회 전용) 모드로 전환됩니다.')) return;
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+      } catch(e) {}
+      updateAuthUI();
+      showAuthToast('👀 게스트 모드로 전환되었습니다. (조회 전용)', false);
+    }
+
+    function openChangePasswordModal() {
+      if (!requireAdmin('비밀번호 변경')) return;
+      const modal = document.getElementById('changePasswordModal');
+      if (!modal) return;
+      const err = document.getElementById('changePasswordErrorMsg');
+      if (err) err.classList.add('hidden');
+      ['curPasswordInput', 'newPasswordInput', 'confirmNewPasswordInput'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeChangePasswordModal() {
+      const modal = document.getElementById('changePasswordModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handleChangePasswordSubmit() {
+      const cur = document.getElementById('curPasswordInput').value;
+      const newPass = document.getElementById('newPasswordInput').value;
+      const confirmPass = document.getElementById('confirmNewPasswordInput').value;
+      const err = document.getElementById('changePasswordErrorMsg');
+
+      const setError = (msg) => {
+        if (err) {
+          err.textContent = '⚠️ ' + msg;
+          err.classList.remove('hidden');
+        } else {
+          alert(msg);
+        }
+      };
+
+      if (cur !== getMasterPassword()) {
+        setError('현재 비밀번호가 일치하지 않습니다.');
+        return;
+      }
+      if (!newPass || newPass.trim().length < 3) {
+        setError('새 비밀번호를 3자 이상 입력해 주세요.');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        setError('새 비밀번호가 서로 일치하지 않습니다.');
+        return;
+      }
+
+      setMasterPassword(newPass);
+      closeChangePasswordModal();
+      showAuthToast('✅ 관리자 비밀번호가 성공적으로 변경되었습니다.', false);
+    }
+
+    function updateAuthUI() {
+      const isAdmin = checkIsAdmin();
+      
+      // Desktop header auth container
+      const desktopContainer = document.getElementById('desktopAuthStatus');
+      if (desktopContainer) {
+        if (isAdmin) {
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                👑 관리자 모드
+              </span>
+              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1" title="관리자 비밀번호 변경">
+                ⚙️ 비번 변경
+              </button>
+              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1" title="로그아웃 (게스트 모드로 전환)">
+                🚪 로그아웃
+              </button>
+            </div>
+          `;
+        } else {
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-3 py-1.5 bg-amber-50 text-amber-800 font-bold border border-amber-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                👀 게스트 (조회 전용)
+              </span>
+              <button onclick="openLoginModal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition text-xs flex items-center gap-1.5">
+                🔑 관리자 로그인
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // Mobile header auth container
+      const mobContainer = document.getElementById('mobileAuthContainer');
+      if (mobContainer) {
+        if (isAdmin) {
+          mobContainer.innerHTML = `
+            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg text-[11px] font-bold">👑 관리자</span>
+            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold" title="로그아웃">🚪</button>
+          `;
+        } else {
+          mobContainer.innerHTML = `
+            <button onclick="openLoginModal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1">🔑 로그인</button>
+          `;
+        }
+      }
+
+      // Guest banner visibility
+      const guestBanner = document.getElementById('guestModeBanner');
+      if (guestBanner) {
+        if (isAdmin) {
+          guestBanner.classList.add('hidden');
+        } else {
+          guestBanner.classList.remove('hidden');
+        }
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+
     function openMobileModal() { document.getElementById('mobileModal').classList.remove('hidden'); lucide.createIcons(); }
 
     function closeMobileModal() { document.getElementById('mobileModal').classList.add('hidden'); }
@@ -1914,6 +2221,7 @@
 
 
     function saveFirebaseConfig() {
+      if (!requireAdmin("클라우드 동기화 설정 변경")) return;
 
       const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
 
@@ -2477,6 +2785,7 @@
     }
 
     function restoreDefaultProjectsData() {
+      if (!requireAdmin("기본 데이터 복구")) return;
       store.projects = getInitialDefaultProjects();
       store.calendarEvents = getInitialDefaultEvents();
       store.dailyTasks = getInitialDefaultTasks();
@@ -3052,6 +3361,7 @@
 
     // Modal Operations
     function openWorkLogModal(dateStr) {
+      if (!requireAdmin("근무/연차 기록 수정")) return;
       currentEditingWorkDate = dateStr || getTodayDateStr();
       const modal = document.getElementById('workLogModal');
       const titleElem = document.getElementById('workLogModalTitle');
@@ -3199,6 +3509,7 @@
     }
 
     function saveWorkLogFromModal() {
+      if (!requireAdmin("근무/연차 기록 저장")) return;
       if (!currentEditingWorkDate) return;
       store = sanitizeStore(store);
       if (!store.workLogs) store.workLogs = [];
@@ -3246,6 +3557,7 @@
     }
 
     function deleteCurrentWorkLog() {
+      if (!requireAdmin("근무 기록 삭제")) return;
       if (!currentEditingWorkDate) return;
       if (!confirm("해당 일자의 근무/연차 설정을 기본 상태로 초기화하시겠습니까?")) return;
       store = sanitizeStore(store);
@@ -3545,6 +3857,7 @@
 
 
     function clearAllData() {
+      if (!requireAdmin("전체 데이터 초기화")) return;
 
       if (confirm("정말로 모든 프로젝트, 일정, 출장 및 경력 관리 이력을 초기화하시겠습니까?")) {
 
@@ -3580,6 +3893,21 @@
 
         
     const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.14.0',
+    date: '2026-09-14',
+    badge: '보안 & 권한관리 신설',
+    badgeColor: 'blue',
+    title: '👑 관리자 로그인 & 👀 게스트(조회 전용) 모드 권한 분리 시스템 전면 도입',
+    summary: '비로그인 사용자를 위한 안전한 [게스트 조회 전용 모드]를 신설하여 타인에게 화면을 공유하거나 열람하게 할 때 자유로운 실시간 확인은 보장하면서 실수에 의한 데이터 변조 및 삭제를 완벽히 차단하고, 관리자 비밀번호(초기: urban2026) 로그인을 통해 안전하게 수정할 수 있는 권한 관리 시스템을 완성했습니다.',
+    changes: [
+      '👀 [게스트 조회 전용 모드 기본 적용]: 비로그인 접속 시 모든 8개 탭(프로젝트, 일자별 To-Do, 캘린더, 근무/연차, 경력관리 등)의 데이터를 100% 정상 열람할 수 있으나 수정/삭제/추가는 원천 차단됩니다.',
+      '👑 [관리자 마스터 비밀번호 인증 체계]: 직관적인 간편 인증(초기 비밀번호: urban2026)을 적용하여 복잡한 설정 없이 PC/모바일 어디서든 즉시 로그인하여 수정 권한을 활성화할 수 있습니다.',
+      '🔒 [데이터 조작 원천 방어 및 알림 토스트]: 게스트 상태에서 할 일 체크박스 클릭, 일정/업무/근무시간 수정 시도 시 부드러운 안내 토스트와 함께 원클릭 로그인 모달이 제공됩니다.',
+      '⚙️ [비밀번호 변경 & 원클릭 로그아웃]: 관리자 로그인 후 상단 헤더의 [⚙️ 비번 변경] 버튼을 통해 언제든지 비밀번호를 변경할 수 있으며, [🚪 로그아웃] 시 즉시 게스트 모드로 안전 복귀합니다.',
+      '📱 [PC & 모바일 반응형 헤더 권한 배지]: 상단 헤더에 현재 접속 상태(관리자/게스트)가 직관적인 컬러 배지로 표시되며 모바일 화면에서도 편리하게 로그인할 수 있도록 최적화했습니다.'
+    ]
+  },
   {
     version: 'v1.13.0',
     date: '2026-09-14',
@@ -4299,6 +4627,10 @@
 
 
     function toggleMilestoneStatus(projId, mIdx) {
+      if (!requireAdmin("마일스톤 상태 변경")) {
+        renderMasterCards();
+        return;
+      }
 
       const p = store.projects.find(x => x.id === projId);
 
@@ -4635,6 +4967,7 @@
 
 
     function openEditProjectModal(id) {
+      if (!requireAdmin("프로젝트 수정")) return;
 
       const p = store.projects.find(x => x.id === id);
 
@@ -4671,6 +5004,7 @@
 
 
     function saveEditProject() {
+      if (!requireAdmin("프로젝트 수정")) return;
 
       const id = document.getElementById('editProjId').value;
 
@@ -4773,6 +5107,10 @@
 
 
     function updateProjectProgress(id, val) {
+      if (!requireAdmin("진행률 변경")) {
+        renderMasterCards();
+        return;
+      }
 
       const p = store.projects.find(x => x.id === id);
 
@@ -4789,6 +5127,7 @@
 
 
     function deleteProject(id) {
+      if (!requireAdmin("프로젝트 삭제")) return;
 
       if (confirm("이 프로젝트를 삭제하시겠습니까?")) {
 
@@ -4806,11 +5145,13 @@
 
 
 
-    function openAddProjectModal() { document.getElementById('addProjectModal').classList.remove('hidden'); }
+    function openAddProjectModal() {
+      if (!requireAdmin("신규 프로젝트 등록")) return; document.getElementById('addProjectModal').classList.remove('hidden'); }
 
     function closeAddProjectModal() { document.getElementById('addProjectModal').classList.add('hidden'); }
 
     function saveNewProject() {
+      if (!requireAdmin("신규 프로젝트 등록")) return;
 
       const name = document.getElementById('newProjName').value.trim();
 
@@ -4989,6 +5330,10 @@
 
 
     function toggleTaskDone(id) {
+      if (!requireAdmin("업무 완료 상태 변경")) {
+        renderDailyTasks();
+        return;
+      }
       store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
       if (t) {
@@ -5010,6 +5355,7 @@
 
 
     function deleteTask(id) {
+      if (!requireAdmin("업무 삭제")) return;
       if (!confirm("해당 업무를 삭제하시겠습니까?\n(삭제된 업무는 안전 복구함에 안전하게 보관되며 언제든 복구할 수 있습니다)")) return;
       store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
@@ -5102,6 +5448,10 @@
     }
 
     function toggleChecklistItem(taskId, itemId) {
+      if (!requireAdmin("체크리스트 상태 변경")) {
+        renderDailyTasks();
+        return;
+      }
       store = sanitizeStore(store);
       const task = store.dailyTasks.find(t => t.id === taskId);
       if (!task || !task.items) return;
@@ -5162,6 +5512,7 @@
     }
 
     function takeManualSnapshot() {
+      if (!requireAdmin("스냅샷 생성")) return;
       store = sanitizeStore(store);
       const now = Date.now();
       const snap = {
@@ -5299,6 +5650,7 @@
     }
 
     function restoreFromSnapshot(timestamp) {
+      if (!requireAdmin("스냅샷 복원")) return;
       if (!confirm("선택한 시점의 데이터로 복원하시겠습니까?\n(현재 상태도 새 스냅샷으로 자동 보관됩니다)")) return;
       try {
         const raw = localStorage.getItem('urban_snapshot_history_v1');
@@ -5318,6 +5670,7 @@
     }
 
     function restoreLegacyData(key) {
+      if (!requireAdmin("데이터 복구")) return;
       if (!confirm("선택한 이전 버전 데이터로 복구하시겠습니까?")) return;
       try {
         const raw = localStorage.getItem(key);
@@ -5332,6 +5685,7 @@
     }
 
     function restoreFromTrash(taskId) {
+      if (!requireAdmin("휴지통 복구")) return;
       store = sanitizeStore(store);
       if (!store.trashTasks) return;
       const idx = store.trashTasks.findIndex(t => t.id === taskId);
@@ -5348,6 +5702,7 @@
     }
   
     function openAddTaskModal() {
+      if (!requireAdmin("업무 등록")) return;
       const sel = document.getElementById('newTaskProjId');
       sel.innerHTML = '';
       if (!store.projects || store.projects.length === 0) {
@@ -5378,6 +5733,7 @@
     }
 
     function saveNewTask() {
+      if (!requireAdmin("업무 등록")) return;
       store = sanitizeStore(store);
       const themeEl = document.getElementById('newTaskTheme');
       const dateEl = document.getElementById('newTaskDate');
@@ -5424,6 +5780,7 @@
     }
 
     function openEditTaskModal(id) {
+      if (!requireAdmin("업무 수정")) return;
       store = sanitizeStore(store);
       const t = store.dailyTasks.find(x => x.id === id);
       if (!t) {
@@ -5469,6 +5826,7 @@
     }
 
     function saveEditTask() {
+      if (!requireAdmin("업무 수정")) return;
       store = sanitizeStore(store);
       const id = document.getElementById('editTaskId').value;
       const t = store.dailyTasks.find(x => x.id === id);
@@ -5816,6 +6174,7 @@
     let currentEditingCalendarEventId = null;
 
     function openAddCalendarEventModal() {
+      if (!requireAdmin("캘린더 일정 등록")) return;
       currentEditingCalendarEventId = null;
       const titleElem = document.getElementById('calEventModalHeaderTitle');
       if (titleElem) titleElem.innerText = '🗓️ 캘린더 일정 및 출장 동행자 직접 등록';
@@ -5849,6 +6208,7 @@
     }
 
     function openEditCalendarEventModal(eventId) {
+      if (!requireAdmin("일정 수정")) return;
       const ev = (store.calendarEvents || []).find(e => e.id === eventId);
       if (!ev) return;
 
@@ -5899,6 +6259,7 @@
     }
 
     function saveCalendarEvent() {
+      if (!requireAdmin("캘린더 일정 등록/수정")) return;
       const title = document.getElementById('calEventTitle').value.trim();
       if (!title) { alert("일정 제목을 입력해 주세요."); return; }
 
@@ -5948,6 +6309,7 @@ saveStore();
     }
 
     function deleteCalendarEvent() {
+      if (!requireAdmin("일정 삭제")) return;
       if (!currentEditingCalendarEventId) return;
       if (!confirm("정말 이 일정을 삭제하시겠습니까?")) return;
 
@@ -6125,6 +6487,7 @@ saveStore();
 
 
     function openAddCareerModal() {
+      if (!requireAdmin("경력 소스 등록")) return;
 
       const sel = document.getElementById('careerProjId');
 
@@ -6151,6 +6514,7 @@ saveStore();
 
 
     function saveCareerLog() {
+      if (!requireAdmin("경력 소스 등록")) return;
 
       const role = document.getElementById('careerRole').value.trim();
 
@@ -6205,6 +6569,7 @@ saveStore();
 
 
     function deleteCareerLog(id) {
+      if (!requireAdmin("경력 소스 삭제")) return;
 
       if (confirm("이 경력 소스를 삭제하시겠습니까?")) {
 
@@ -6347,6 +6712,7 @@ saveStore();
 
 
     function renderAll() {
+      updateAuthUI();
       updateAllProjectDropdowns();
       renderSummaryHeader();
       renderMasterCards();
@@ -6480,6 +6846,101 @@ saveStore();
     </div>
   </div>
     
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-bold text-lg shadow-xs">
+            🔑
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">관리자 로그인</h3>
+            <p class="text-xs text-slate-500">데이터 등록, 수정, 삭제 권한을 획득합니다.</p>
+          </div>
+        </div>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); handleLoginSubmit();" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 마스터 비밀번호</label>
+          <div class="relative">
+            <input type="password" id="loginPasswordInput" placeholder="비밀번호를 입력하세요 (기본: urban2026)" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10" autocomplete="current-password" required>
+            <button type="button" onclick="togglePasswordVisibility('loginPasswordInput', 'eyeIconLogin')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+              <i data-lucide="eye" id="eyeIconLogin" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p id="loginErrorMsg" class="hidden text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+            <span>⚠️</span> <span>비밀번호가 일치하지 않습니다. 다시 확인해 주세요.</span>
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <label class="flex items-center gap-2 cursor-pointer selection:none">
+            <input type="checkbox" id="loginRememberMe" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+            <span>이 기기에서 로그인 상태 유지</span>
+          </label>
+          <span class="text-[11px] text-slate-400">초기 암호: urban2026</span>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeLoginModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
+            게스트로 계속 둘러보기
+          </button>
+          <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1.5">
+            🔑 로그인 완료
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="changePasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center font-bold text-lg shadow-xs">
+            ⚙️
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">관리자 비밀번호 변경</h3>
+            <p class="text-xs text-slate-500">새로운 관리자 비밀번호를 설정합니다.</p>
+          </div>
+        </div>
+        <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); handleChangePasswordSubmit();" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">현재 비밀번호</label>
+          <input type="password" id="curPasswordInput" placeholder="현재 비밀번호 입력" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:outline-none" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">새로운 비밀번호</label>
+          <input type="password" id="newPasswordInput" placeholder="새로운 비밀번호 (4자 이상 권장)" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:outline-none" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">새 비밀번호 확인</label>
+          <input type="password" id="confirmNewPasswordInput" placeholder="새로운 비밀번호 다시 입력" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:outline-none" required>
+        </div>
+
+        <p id="changePasswordErrorMsg" class="hidden text-xs text-rose-600 font-bold flex items-center gap-1"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">취소</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md transition flex items-center gap-1.5">
+            💾 비밀번호 저장
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 
 </html>
