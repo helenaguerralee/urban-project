@@ -3894,8 +3894,8 @@
         const holidayName = getKoreanPublicHoliday(todayStr);
 
         const startSeconds = 9 * 3600;   // 09:00 출근
-        const lunchStart = 12 * 3600;    // 12:00 점심 시작
-        const lunchEnd = 13 * 3600;      // 13:00 점심 종료
+        const lunchStart = 11 * 3600 + 30 * 60; // 11:30 점심 시작
+        const lunchEnd = 12 * 3600 + 30 * 60;   // 12:30 점심 종료
         const endSeconds = 18 * 3600;    // 18:00 퇴근
 
         const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -3967,11 +3967,11 @@
               todayRemainingSeconds = (lunchStart - curSeconds) + (endSeconds - lunchEnd);
               todayStatusText = '근무중 🔥';
             } else if (curSeconds <= lunchEnd) {
-              todayWorkSeconds = 3 * 3600;
-              todayRemainingSeconds = 5 * 3600;
+              todayWorkSeconds = 2.5 * 3600;
+              todayRemainingSeconds = 5.5 * 3600;
               todayStatusText = '점심시간 🍱';
             } else {
-              todayWorkSeconds = 3 * 3600 + (curSeconds - lunchEnd);
+              todayWorkSeconds = 2.5 * 3600 + (curSeconds - lunchEnd);
               todayRemainingSeconds = endSeconds - curSeconds;
               todayStatusText = '근무중 🔥';
             }
@@ -4165,8 +4165,8 @@
             const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
             const startSec = 9 * 3600;
             const endSec = 18 * 3600;
-            const lunchStart = 12 * 3600;
-            const lunchEnd = 13 * 3600;
+            const lunchStart = 11 * 3600 + 30 * 60; // 11:30
+            const lunchEnd = 12 * 3600 + 30 * 60;   // 12:30
 
             let todayElapsedHours = 0;
             if (curSeconds >= endSec) {
