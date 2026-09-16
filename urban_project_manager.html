@@ -1478,7 +1478,102 @@
 
 
 
-  <div id="addTaskModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <!-- ADD PROJECT MODAL -->
+  <div id="addProjectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">📌 신규 프로젝트 직접 등록</h3>
+        <button onclick="closeAddProjectModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">프로젝트명 <span class="text-rose-500">*</span></label>
+          <input type="text" id="newProjName" placeholder="예: 광명시 광명동 재개발사업" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:bg-white focus:border-blue-500 transition">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">구분/카테고리</label>
+            <input type="text" id="newProjCategory" placeholder="예: 재개발사업, 기본계획 등" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">초기 공정률 (%)</label>
+            <input type="number" id="newProjProgress" min="0" max="100" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-blue-600 focus:bg-white focus:border-blue-500 transition">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">시작일 (예: '26.05)</label>
+            <input type="text" id="newProjStart" placeholder="예: '26.05" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">목표 완료일 (예: '27.06 또는 미정)</label>
+            <input type="text" id="newProjEnd" placeholder="예: '27.06 또는 미정" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-blue-500 transition">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-600 font-bold mb-1">비고 및 세부 추진 마일스톤 (여러 줄 작성 가능)</label>
+          <textarea id="newProjDesc" rows="4" placeholder="∘착수 : '26.05.&#10;∘접수 : '26.09.&#10;∘주민공람 : '26.10. ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-xs leading-relaxed focus:bg-white focus:border-blue-500 transition"></textarea>
+          <p class="text-[10.5px] text-slate-400 mt-1">💡 "∘마일스톤명 : '26.09." 형식으로 여러 줄을 작성하시면 마일스톤 카드로 자동 생성됩니다.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveNewProject()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">저장 및 프로젝트 등록</button>
+        <button onclick="closeAddProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROJECT MODAL -->
+  <div id="editProjectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">✏️ 프로젝트 및 세부 일정 수정</h3>
+        <button onclick="closeEditProjectModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <input type="hidden" id="editProjId">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">프로젝트명 <span class="text-rose-500">*</span></label>
+          <input type="text" id="editProjName" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:bg-white focus:border-blue-500 transition">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">구분/카테고리</label>
+            <input type="text" id="editProjCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">공정률 (%)</label>
+            <input type="number" id="editProjProgress" min="0" max="100" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono font-bold text-blue-600 focus:bg-white focus:border-blue-500 transition">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">시작일 (예: '26.05)</label>
+            <input type="text" id="editProjStart" placeholder="'26.05" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">목표 완료일 (예: '27.06)</label>
+            <input type="text" id="editProjEnd" placeholder="'27.06" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold focus:bg-white focus:border-blue-500 transition">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">세부 추진 일정 &amp; 비고 (여러 줄 작성 가능)</label>
+          <textarea id="editProjDesc" rows="7" placeholder="∘최종보고 : '26.09.&#10;∘주민공람 : '26.10.(14일간) ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-mono text-xs leading-relaxed focus:bg-white focus:border-blue-500 transition"></textarea>
+          <p class="text-[10.5px] text-slate-400 mt-1">💡 "∘마일스톤명 : '26.09." 형식으로 여러 줄을 작성하시면 마일스톤 카드로 자동 생성됩니다.</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveEditProject()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition">수정사항 저장</button>
+        <button onclick="closeEditProjectModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl border border-slate-200 transition">취소</button>
+      </div>
+    </div>
+  </div>
+
+<div id="addTaskModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
 
     <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
 
@@ -6023,145 +6118,59 @@
 
 
 
-    function openEditProjectModal(id) {
+        function openEditProjectModal(id) {
       if (!requireAdmin("프로젝트 수정")) return;
 
       const p = store.projects.find(x => x.id === id);
-
       if (!p) return;
 
+      const modal = document.getElementById('editProjectModal');
+      if (!modal) {
+        alert("프로젝트 수정 모달 요소를 찾을 수 없습니다.");
+        return;
+      }
+
       document.getElementById('editProjId').value = p.id;
-
-      document.getElementById('editProjName').value = p.name;
-
+      document.getElementById('editProjName').value = p.name || '';
       document.getElementById('editProjCategory').value = p.category || '';
-
       document.getElementById('editProjProgress').value = p.progress || 0;
-
       document.getElementById('editProjStart').value = p.startDate || '';
-
       document.getElementById('editProjEnd').value = p.endDate || '';
-
       document.getElementById('editProjDesc').value = p.desc || '';
 
-      document.getElementById('editProjectModal').classList.remove('hidden');
-
-      lucide.createIcons();
-
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
     }
-
-
 
     function closeEditProjectModal() {
-
-      document.getElementById('editProjectModal').classList.add('hidden');
-
+      const modal = document.getElementById('editProjectModal');
+      if (modal) modal.classList.add('hidden');
     }
-
-
 
     function saveEditProject() {
       if (!requireAdmin("프로젝트 수정")) return;
 
       const id = document.getElementById('editProjId').value;
-
       const p = store.projects.find(x => x.id === id);
-
       if (!p) return;
 
+      const name = document.getElementById('editProjName').value.trim();
+      if (!name) { alert("프로젝트명을 입력해 주세요."); return; }
 
-
-      p.name = document.getElementById('editProjName').value.trim() || p.name;
-
+      p.name = name;
       p.category = document.getElementById('editProjCategory').value.trim() || '기본';
-
       p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
-
       p.startDate = document.getElementById('editProjStart').value.trim();
-
       p.endDate = document.getElementById('editProjEnd').value.trim();
-
       p.desc = document.getElementById('editProjDesc').value.trim();
-
       p.milestones = null; // force re-parse from new desc
 
-
-
       saveStore();
-
       closeEditProjectModal();
-
+      renderMasterCards();
+      updateAllProjectDropdowns();
+      alert(`'${p.name}' 프로젝트 정보가 성공적으로 수정되었습니다!`);
     }
-
-
-
-    function openEditProjectModal(id) {
-
-      const p = store.projects.find(x => x.id === id);
-
-      if (!p) return;
-
-      document.getElementById('editProjId').value = p.id;
-
-      document.getElementById('editProjName').value = p.name;
-
-      document.getElementById('editProjCategory').value = p.category || '';
-
-      document.getElementById('editProjProgress').value = p.progress || 0;
-
-      document.getElementById('editProjStart').value = p.startDate || '';
-
-      document.getElementById('editProjEnd').value = p.endDate || '';
-
-      document.getElementById('editProjDesc').value = p.desc || '';
-
-      document.getElementById('editProjectModal').classList.remove('hidden');
-
-      lucide.createIcons();
-
-    }
-
-
-
-    function closeEditProjectModal() {
-
-      document.getElementById('editProjectModal').classList.add('hidden');
-
-    }
-
-
-
-    function saveEditProject() {
-
-      const id = document.getElementById('editProjId').value;
-
-      const p = store.projects.find(x => x.id === id);
-
-      if (!p) return;
-
-
-
-      p.name = document.getElementById('editProjName').value.trim() || p.name;
-
-      p.category = document.getElementById('editProjCategory').value.trim() || '기본';
-
-      p.progress = Math.min(100, Math.max(0, parseInt(document.getElementById('editProjProgress').value) || 0));
-
-      p.startDate = document.getElementById('editProjStart').value.trim();
-
-      p.endDate = document.getElementById('editProjEnd').value.trim();
-
-      p.desc = document.getElementById('editProjDesc').value.trim();
-
-
-
-      saveStore();
-
-      closeEditProjectModal();
-
-    }
-
-
 
     function updateProjectProgress(id, val) {
       if (!requireAdmin("진행률 변경")) {
@@ -6170,80 +6179,72 @@
       }
 
       const p = store.projects.find(x => x.id === id);
-
       if (p) {
-
         p.progress = Math.min(100, Math.max(0, parseInt(val) || 0));
-
         saveStore();
-
       }
-
     }
-
-
 
     function deleteProject(id) {
       if (!requireAdmin("프로젝트 삭제")) return;
 
       if (confirm("이 프로젝트를 삭제하시겠습니까?")) {
-
         store.projects = store.projects.filter(p => p.id !== id);
-
         store.dailyTasks = store.dailyTasks.filter(t => t.projId !== id);
-
         store.calendarEvents = store.calendarEvents.filter(e => e.projId !== id);
-
         saveStore();
-
+        renderMasterCards();
+        updateAllProjectDropdowns();
       }
-
     }
 
-
-
     function openAddProjectModal() {
-      if (!requireAdmin("신규 프로젝트 등록")) return; document.getElementById('addProjectModal').classList.remove('hidden'); }
+      if (!requireAdmin("신규 프로젝트 등록")) return;
+      const modal = document.getElementById('addProjectModal');
+      if (!modal) {
+        alert("신규 프로젝트 등록 모달 요소를 찾을 수 없습니다.");
+        return;
+      }
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
 
-    function closeAddProjectModal() { document.getElementById('addProjectModal').classList.add('hidden'); }
+    function closeAddProjectModal() {
+      const modal = document.getElementById('addProjectModal');
+      if (modal) modal.classList.add('hidden');
+    }
 
     function saveNewProject() {
       if (!requireAdmin("신규 프로젝트 등록")) return;
 
       const name = document.getElementById('newProjName').value.trim();
-
       if (!name) { alert("프로젝트명을 입력해 주세요."); return; }
 
-
+      const desc = document.getElementById('newProjDesc').value.trim();
 
       const newP = {
-
         id: "p_" + Date.now(),
-
         name: name,
-
-        category: document.getElementById('newProjCategory').value || "일반",
-
-        progress: parseInt(document.getElementById('newProjProgress').value) || 0,
-
-        startDate: document.getElementById('newProjStart').value,
-
-        endDate: document.getElementById('newProjEnd').value,
-
-        desc: document.getElementById('newProjDesc').value
-
+        category: document.getElementById('newProjCategory').value.trim() || "일반",
+        progress: Math.min(100, Math.max(0, parseInt(document.getElementById('newProjProgress').value) || 0)),
+        startDate: document.getElementById('newProjStart').value.trim(),
+        endDate: document.getElementById('newProjEnd').value.trim(),
+        desc: desc,
+        milestones: null
       };
 
-
-
       store.projects.push(newP);
-
       saveStore();
-
       closeAddProjectModal();
-
       document.getElementById('newProjName').value = '';
-
+      document.getElementById('newProjCategory').value = '';
+      document.getElementById('newProjProgress').value = '0';
+      document.getElementById('newProjStart').value = '';
+      document.getElementById('newProjEnd').value = '';
+      document.getElementById('newProjDesc').value = '';
+      renderMasterCards();
+      updateAllProjectDropdowns();
+      alert(`'${newP.name}' 프로젝트가 성공적으로 등록되었습니다! 🎉`);
     }
 
 
