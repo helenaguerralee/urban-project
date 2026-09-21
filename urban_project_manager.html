@@ -769,21 +769,16 @@
 
 
 
-          <div class="flex flex-wrap items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs font-semibold">
-
+          <div class="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-xl border border-slate-200 text-xs font-semibold">
             <span class="text-slate-500 font-bold">범례 안내:</span>
-
+            <span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 border border-rose-300 font-bold flex items-center gap-1">🔴 공휴일 (법정휴일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-900 border border-teal-300 font-bold flex items-center gap-1">🏖️ 연차 (종일)</span>
+            <span class="px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 border border-sky-300 font-bold flex items-center gap-1">🌤️ 반차</span>
             <span class="px-2.5 py-1 rounded-lg bg-purple-600 text-white font-bold shadow-sm">🚗 출장 (나 동행 - 강조)</span>
-
             <span class="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">🚗 출장 (타인)</span>
-
             <span class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">📩 자료 요청</span>
-
             <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300">📤 자료송부</span>
-
             <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-300">📥 접수</span>
-            <span class="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-900 border border-teal-300 font-bold">🏖️ 연차 (휴가)</span>
-
           </div>
 
 
@@ -7063,150 +7058,160 @@
     // 4. MONTHLY CALENDAR
 
     function renderCalendar() {
-
       const year = calendarCurrentDate.getFullYear();
-
       const month = calendarCurrentDate.getMonth();
-
       document.getElementById('calendarMonthTitle').innerText = `${year}년 ${month + 1}월`;
 
-
-
       const grid = document.getElementById('calendarGridBody');
-
       grid.innerHTML = '';
 
-
-
       const firstDay = new Date(year, month, 1).getDay();
-
       const lastDate = new Date(year, month + 1, 0).getDate();
-
-
+      const todayStr = getTodayDateStr();
 
       for (let i = 0; i < firstDay; i++) {
-
         grid.innerHTML += `<div class="min-h-[105px] bg-slate-50/50 border border-slate-100 rounded-xl"></div>`;
-
       }
 
-
-
       for (let d = 1; d <= lastDate; d++) {
-
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dateObj = new Date(year, month, d);
+        const dayOfWeek = dateObj.getDay();
+        const isSun = (dayOfWeek === 0);
+        const isSat = (dayOfWeek === 6);
+        const isToday = (dateStr === todayStr);
 
-        const dayTasks = store.dailyTasks.filter(t => t.date === dateStr);
+        const holidayName = getKoreanPublicHoliday(dateStr);
+        const isHoliday = !!holidayName;
 
+        const dayTasks = (store.dailyTasks || []).filter(t => t.date === dateStr);
         const dayEvents = (store.calendarEvents || []).filter(e => e.date === dateStr);
-
-        const dayProjects = store.projects.filter(p => p.endDate === dateStr);
-
-
+        const dayProjects = (store.projects || []).filter(p => p.endDate === dateStr);
+        const workLog = (store.workLogs || []).find(w => w.date === dateStr);
 
         let badgesHtml = '';
 
+        // 1. 🔴 Statutory Korean Public Holiday (법정공휴일)
+        if (holidayName) {
+          badgesHtml += `
+            <div title="${holidayName} (법정공휴일·유급)" class="text-[9.5px] font-bold truncate px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+              <span class="truncate font-black">${holidayName}</span>
+            </div>
+          `;
+        }
 
+        // 2. 🏖️ Work Log Annual Leave / Half Leave (근무/연차 관리 기록)
+        if (workLog) {
+          if (workLog.type === 'annual_full') {
+            const noteStr = workLog.note ? ` (${workLog.note})` : '';
+            badgesHtml += `
+              <div onclick="event.stopPropagation(); openWorkLogModal('${dateStr}')" title="연차 (종일)${noteStr} - 클릭 시 근무/연차 기록 확인" class="text-[9.5px] font-bold truncate px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-900 border border-teal-300 hover:opacity-85 hover:ring-2 hover:ring-teal-400 cursor-pointer transition shadow-2xs flex items-center gap-1">
+                <span>🏖️</span> <span class="truncate font-black">연차 (종일)${noteStr}</span>
+              </div>
+            `;
+          } else if (workLog.type === 'half_am') {
+            badgesHtml += `
+              <div onclick="event.stopPropagation(); openWorkLogModal('${dateStr}')" title="오전반차 (12:30~18:00 근무) - 클릭 시 확인" class="text-[9.5px] font-bold truncate px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-900 border border-sky-300 hover:opacity-85 hover:ring-2 hover:ring-sky-400 cursor-pointer transition shadow-2xs flex items-center gap-1">
+                <span>🌤️</span> <span class="truncate font-black">오전반차 (12:30~)</span>
+              </div>
+            `;
+          } else if (workLog.type === 'half_pm') {
+            badgesHtml += `
+              <div onclick="event.stopPropagation(); openWorkLogModal('${dateStr}')" title="오후반차 (09:00~11:30 근무) - 클릭 시 확인" class="text-[9.5px] font-bold truncate px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-300 hover:opacity-85 hover:ring-2 hover:ring-purple-400 cursor-pointer transition shadow-2xs flex items-center gap-1">
+                <span>⛅</span> <span class="truncate font-black">오후반차 (~11:30)</span>
+              </div>
+            `;
+          } else if (workLog.type === 'holiday') {
+            badgesHtml += `
+              <div onclick="event.stopPropagation(); openWorkLogModal('${dateStr}')" title="휴무/휴일 - 클릭 시 확인" class="text-[9.5px] font-bold truncate px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 hover:opacity-85 cursor-pointer transition shadow-2xs flex items-center gap-1">
+                <span>🛋️</span> <span class="truncate">휴무</span>
+              </div>
+            `;
+          }
+        }
 
+        // 3. 🗓️ Calendar Events (월간 일정)
         dayEvents.forEach(e => {
-
           let isMyTrip = e.type === '출장' && (e.attendees || []).includes('나');
-
-          let colorClass = 'bg-slate-100 text-slate-800';
-
-
+          let colorClass = 'bg-slate-100 text-slate-800 border border-slate-200';
+          let icon = '📌';
 
           if (e.type === '출장') {
-
             colorClass = isMyTrip 
-
               ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md ring-1 ring-purple-400' 
-
               : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold';
-
+            icon = '🚗';
+          } else if (e.type === '연차') {
+            colorClass = 'bg-teal-100 text-teal-900 border border-teal-300 font-bold';
+            icon = '🏖️';
           } else if (e.type === '자료 요청') {
-
             colorClass = 'bg-blue-100 text-blue-900 border border-blue-300 font-semibold';
-
+            icon = '📩';
           } else if (e.type === '자료송부') {
-
             colorClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-semibold';
-
+            icon = '📤';
           } else if (e.type === '접수') {
-
             colorClass = 'bg-indigo-100 text-indigo-900 border border-indigo-300 font-semibold';
-
+            icon = '📥';
           }
-
-
-
-          let icon = e.type === '출장' ? '🚗' : e.type === '자료 요청' ? '📩' : e.type === '자료송부' ? '📤' : '📥';
 
           let attStr = (e.attendees && e.attendees.length > 0) ? ` (${e.attendees.join(', ')})` : '';
 
-
-
           badgesHtml += `
-
             <div onclick="event.stopPropagation(); openEditCalendarEventModal('${e.id}')" title="${e.title}${attStr} (클릭 시 수정/삭제)" class="text-[9.5px] truncate px-1.5 py-0.5 rounded-lg ${colorClass} hover:opacity-80 hover:ring-2 hover:ring-purple-400 cursor-pointer transition shadow-2xs font-semibold">
-
               ${icon} ${e.title}${attStr}
-
             </div>
-
           `;
-
         });
 
-
-
+        // 4. ☑️ Daily Tasks (일자별 세부 업무)
         dayTasks.forEach(t => {
-
           badgesHtml += `
-
-            <div title="${t.title}" class="text-[9px] truncate px-1.5 py-0.5 rounded ${t.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-slate-100 text-slate-800 border border-slate-200'}">
-
+            <div onclick="event.stopPropagation(); switchTab('daily'); document.getElementById('dailyLogDatePicker').value = '${dateStr}'; renderDailyTasks();" title="${t.title} (클릭 시 2번 일자별 업무로 이동)" class="text-[9px] truncate px-1.5 py-0.5 rounded cursor-pointer hover:border-blue-400 transition ${t.completed ? 'bg-slate-100 text-slate-400 line-through' : 'bg-slate-50 text-slate-800 border border-slate-200'}">
               ☑ ${t.theme ? '[' + t.theme + '] ' : ''}${t.title}
-
             </div>
-
           `;
-
         });
 
-
-
+        // 5. 🏁 Project Deadlines (프로젝트 마감)
         dayProjects.forEach(p => {
-
           badgesHtml += `<div class="text-[9px] truncate px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-300">🏁 마감: ${p.name}</div>`;
-
         });
 
+        // Day Number Header Styling
+        let dayNumHtml = `<span class="font-mono font-bold">${d}</span>`;
+        if (isToday) {
+          dayNumHtml = `<span class="px-1.5 py-0.2 bg-indigo-600 text-white rounded-md text-[11px] font-mono font-black shadow-xs">${d} 오늘</span>`;
+        } else if (isHoliday || isSun) {
+          dayNumHtml = `<span class="text-rose-600 font-mono font-black">${d}</span>`;
+        } else if (isSat) {
+          dayNumHtml = `<span class="text-blue-600 font-mono font-bold">${d}</span>`;
+        }
 
+        // Cell Background & Border Styling
+        let cellBgClass = 'bg-white border-slate-200';
+        if (isToday) {
+          cellBgClass = 'bg-indigo-50/20 border-indigo-400 ring-2 ring-indigo-400/20';
+        } else if (isHoliday) {
+          cellBgClass = 'bg-rose-50/25 border-rose-200';
+        } else if (isSun) {
+          cellBgClass = 'bg-slate-50/60 border-slate-200';
+        } else if (isSat) {
+          cellBgClass = 'bg-slate-50/30 border-slate-200';
+        }
 
         grid.innerHTML += `
-
-          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[125px] bg-white border border-slate-200 hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group shadow-2xs">
-
-            <div class="flex justify-between items-center font-mono font-bold text-xs text-slate-700">
-
-              <span>${d}</span>
-
+          <div onclick="clickCalendarCell('${dateStr}')" class="min-h-[125px] ${cellBgClass} hover:border-purple-400 rounded-xl p-1.5 space-y-1 cursor-pointer transition flex flex-col justify-between group shadow-2xs">
+            <div class="flex justify-between items-center text-xs text-slate-700">
+              ${dayNumHtml}
               <span class="text-[10px] text-purple-600 opacity-0 group-hover:opacity-100 font-normal">+추가</span>
-
             </div>
-
             <div class="space-y-1 overflow-hidden flex-1">${badgesHtml}</div>
-
           </div>
-
         `;
-
       }
-
     }
-
-
 
     function changeCalendarMonth(delta) {
 
