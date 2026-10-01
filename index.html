@@ -861,7 +861,7 @@
                     </span>
                   </div>
                   <p class="text-[11.5px] text-indigo-200/70 mt-0.5">
-                    월 기본급 기준 실시간 수입 카운터 (법정공휴일·연차 100% 유급 보장) + 야근 식대(+10,000원/회) 자동 정산
+                    매월 25일 월급날 기준 (25일~24일 주기) 실시간 수입 카운터 · 법정공휴일·연차 100% 유급 보장 + 야근 식대(+10,000원/회) 자동 정산
                   </p>
                 </div>
               </div>
@@ -3804,6 +3804,44 @@
 
     let liveSalaryTimerInterval = null;
 
+    
+    function getSalaryCyclePeriod(calYear, calMonth) {
+      // 25-25 급여 주기: (calMonth-1)월 25일 ~ calMonth월 24일 (지급일: calMonth월 25일)
+      const startDate = new Date(calYear, calMonth - 2, 25);
+      const endDate = new Date(calYear, calMonth - 1, 24);
+
+      const startYear = startDate.getFullYear();
+      const startMonth = startDate.getMonth() + 1;
+      const endYear = endDate.getFullYear();
+      const endMonth = endDate.getMonth() + 1;
+
+      const startStr = `${startYear}-${String(startMonth).padStart(2, '0')}-25`;
+      const endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-24`;
+
+      const dates = [];
+      let cur = new Date(startDate);
+      while (cur <= endDate) {
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, '0');
+        const d = String(cur.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${d}`);
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      return {
+        payYear: calYear,
+        payMonth: calMonth,
+        payDay: 25,
+        startDate,
+        endDate,
+        startStr,
+        endStr,
+        dates,
+        shortLabel: `${calMonth}월 (${startMonth}.25~${endMonth}.24)`,
+        fullLabel: `${startYear}.${startMonth}.25 ~ ${endYear}.${endMonth}.24 (월급날 ${calMonth}월 25일)`
+      };
+    }
+
     function getMonthlySalary() {
       if (typeof store !== 'undefined' && store && store.monthlySalary) return Number(store.monthlySalary);
       try {
@@ -3890,94 +3928,93 @@
       const monthlySalary = getMonthlySalary();
       const mealRate = getMealAllowanceRate();
 
-      // Current year & month
+      // Current year & month from work calendar or now
       const now = new Date();
-      const curYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
-      const curMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
-      const curMonthPrefix = `${curYear}-${String(curMonth).padStart(2, '0')}`;
+      const calYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
+      const calMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
       const todayStr = getTodayDateStr();
 
-      // Update title label
+      // 25-25 급여 산정 주기 (월급날 25일 기준: 전월 25일 ~ 당월 24일)
+      const cycle = getSalaryCyclePeriod(calYear, calMonth);
+
+      // Update title label with the 25-25 cycle range
       const monthLabel = document.getElementById('salaryMonthLabel');
-      if (monthLabel) monthLabel.innerText = `${curMonth}월`;
+      if (monthLabel) {
+        monthLabel.innerText = cycle.shortLabel;
+      }
 
       const baseDisp = document.getElementById('statMonthlyBaseDisplay');
       if (baseDisp) baseDisp.innerText = monthlySalary.toLocaleString();
 
-      const daysInMonth = new Date(curYear, curMonth, 0).getDate();
-      let totalPaidWeekdaysInMonth = 0;
-      let pastPaidWeekdaysCount = 0;
-      let totalOvertimeHoursInMonth = 0;
-      let overtimeDaysCount = 0;
-
+      // Map workLogs across all dates in cycle
       const logsMap = {};
       ((typeof store !== 'undefined' && store.workLogs) || []).forEach(w => {
-        if (w.date && w.date.startsWith(curMonthPrefix)) {
+        if (w.date && cycle.dates.includes(w.date)) {
           logsMap[w.date] = w;
         }
       });
 
-      // 월급제 기준: 평일(월~금)은 근무일, 법정공휴일, 연차 모두 100% 유급휴일/유급휴가로 급여 전액 지급
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dt = new Date(curYear, curMonth - 1, d);
+      let totalPaidWeekdaysInCycle = 0;
+      let totalHolidaysInCycle = 0;
+      let totalLeaveCountInCycle = 0;
+      let pastPaidWeekdaysCount = 0;
+      let totalOvertimeHoursInCycle = 0;
+      let overtimeDaysCount = 0;
+
+      cycle.dates.forEach(dStr => {
+        const parts = dStr.split('-').map(Number);
+        const dt = new Date(parts[0], parts[1] - 1, parts[2]);
         const dayOfWeek = dt.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        if (!isWeekend) {
-          totalPaidWeekdaysInMonth++;
-        }
-      }
-      if (totalPaidWeekdaysInMonth === 0) totalPaidWeekdaysInMonth = 20;
-
-      // 사용자 실근무 기준 시급 (2,859,216원 ÷ 4주 ÷ 5일 ÷ 8시간 = 160시간 기준 시급 약 17,870.1원)
-      // 당월 총 실근무일수(공휴일·연차 제외)에 맞춰 160시간(20일x8h) 기준 정밀 산출
-      let totalHolidaysCount = 0;
-      let totalLeaveCount = 0;
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
-        const dt = new Date(curYear, curMonth - 1, d);
-        const isWk = (dt.getDay() !== 0 && dt.getDay() !== 6);
-        if (isWk) {
-          if (getKoreanPublicHoliday(dStr)) totalHolidaysCount++;
-          const l = logsMap[dStr];
-          if (l && l.deductLeave) totalLeaveCount += parseFloat(l.deductLeave) || 0;
-        }
-      }
-      const netWorkDays = Math.max(1, totalPaidWeekdaysInMonth - totalHolidaysCount - totalLeaveCount);
-      const totalMonthWorkHours = netWorkDays * 8; // e.g. 20일 x 8h = 160시간
-      const hourlyRate = monthlySalary / totalMonthWorkHours; // 2,859,216 / 160 = 17,870.1원
-      const dailyBasePay = hourlyRate * 8; // 142,960.8원
-      const perSecondRate = hourlyRate / 3600; // 약 4.964원/초
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const dStr = `${curMonthPrefix}-${String(d).padStart(2, '0')}`;
-        const dt = new Date(curYear, curMonth - 1, d);
-        const dayOfWeek = dt.getDay();
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-
+        const holidayName = getKoreanPublicHoliday(dStr);
         const log = logsMap[dStr];
-        const otHours = log && log.overtimeHours ? Number(log.overtimeHours) : 0;
-        if (otHours > 0) {
-          totalOvertimeHoursInMonth += otHours;
-          overtimeDaysCount++;
+
+        if (!isWeekend) {
+          totalPaidWeekdaysInCycle++;
+          if (holidayName) {
+            totalHolidaysInCycle++;
+          }
+          if (log && log.deductLeave) {
+            totalLeaveCountInCycle += parseFloat(log.deductLeave) || 0;
+          }
         }
 
-        // 과거 일자 (1일 ~ 어제)
+        if (log && log.overtimeHours) {
+          const ot = Number(log.overtimeHours);
+          if (ot > 0) {
+            totalOvertimeHoursInCycle += ot;
+            overtimeDaysCount++;
+          }
+        }
+
+        // 과거 일자 (cycle.startStr ~ 어제)
         if (dStr < todayStr) {
           // 법정공휴일과 연차도 모두 유급이므로 평일이면 일급 100% 정상 누적
           if (!isWeekend) {
             pastPaidWeekdaysCount++;
           }
         }
-      }
+      });
 
-      // 2. Today's live time & remaining countdown calculation (오늘 남은 근무시간 카운트다운)
+      if (totalPaidWeekdaysInCycle === 0) totalPaidWeekdaysInCycle = 20;
+
+      // 사용자 실근무 기준 시급 (2,859,216원 ÷ 실근무일수 ÷ 8시간)
+      // 당 주기 총 실근무일수(공휴일·연차 제외)에 맞춰 160시간(20일x8h) 기준 정밀 산출
+      const netWorkDays = Math.max(1, totalPaidWeekdaysInCycle - totalHolidaysInCycle - totalLeaveCountInCycle);
+      const totalMonthWorkHours = netWorkDays * 8;
+      const hourlyRate = monthlySalary / totalMonthWorkHours;
+      const dailyBasePay = hourlyRate * 8;
+      const perSecondRate = hourlyRate / 3600;
+
+      // 2. Today's live time & remaining countdown calculation
       let todayWorkSeconds = 0;
       let todayRemainingSeconds = 0;
       let todayEarnings = 0;
       let todayStatusText = '근무 외';
 
-      const isRealCurrentMonth = (curYear === now.getFullYear() && curMonth === (now.getMonth() + 1));
-      if (isRealCurrentMonth) {
+      const isTodayInCycle = (todayStr >= cycle.startStr && todayStr <= cycle.endStr);
+
+      if (isTodayInCycle) {
         const todayLog = logsMap[todayStr];
         const dayOfWeek = now.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
@@ -3999,17 +4036,14 @@
           todayRemainingSeconds = 0;
           todayEarnings = 0;
         } else if (holidayName) {
-          // 🔴 법정공휴일: 100% 유급휴일! 하루 일급 전액 그대로 지급
           todayStatusText = `${holidayName} (유급) 🏖️`;
           todayRemainingSeconds = 0;
           todayEarnings = dailyBasePay;
         } else if (isFullAnnualLeave) {
-          // 🏖️ 연차: 100% 유급휴가! 하루 일급 전액 그대로 지급
           todayStatusText = '연차 (유급) 🏖️';
           todayRemainingSeconds = 0;
           todayEarnings = dailyBasePay;
         } else if (isHalfAm) {
-          // 🌤️ 오전반차 (12:30~18:00 근무, 오전 4h는 유급 보장)
           const halfPaid = dailyBasePay * 0.5;
           const halfWorkStart = 12 * 3600 + 30 * 60; // 12:30
           if (curSeconds < halfWorkStart) {
@@ -4027,7 +4061,6 @@
             todayEarnings = dailyBasePay;
           }
         } else if (isHalfPm) {
-          // ⛅ 오후반차 (09:00~11:30 근무, 오후는 유급 보장)
           const halfPaid = dailyBasePay * 0.5;
           const halfWorkEnd = 11 * 3600 + 30 * 60; // 11:30
           if (curSeconds < startSeconds) {
@@ -4045,7 +4078,7 @@
             todayEarnings = dailyBasePay;
           }
         } else {
-          // 💼 일반 평일 근무 (09:00 ~ 18:00)
+          // 💼 일반 평일 근무 (09:00 ~ 18:00, 점심 11:30 ~ 12:30)
           if (curSeconds < startSeconds) {
             todayWorkSeconds = 0;
             todayRemainingSeconds = 8 * 3600;
@@ -4074,6 +4107,18 @@
             todayStatusText = otToday > 0 ? `야근중 (+${otToday}h)` : '퇴근 완료 🎉';
           }
         }
+      } else if (todayStr > cycle.endStr) {
+        // 과거 주기
+        pastPaidWeekdaysCount = totalPaidWeekdaysInCycle;
+        todayStatusText = '급여 지급 완료 💰';
+        todayRemainingSeconds = 0;
+        todayEarnings = 0;
+      } else {
+        // 미래 주기
+        pastPaidWeekdaysCount = 0;
+        todayStatusText = '시작 전 ⏳';
+        todayRemainingSeconds = 0;
+        todayEarnings = 0;
       }
 
       // Format remaining countdown timer (HH:MM:SS)
@@ -4085,7 +4130,14 @@
       // 과거 평일 유급액 + 오늘 수입 + 야근 식대 누적액
       const pastBasePay = pastPaidWeekdaysCount * dailyBasePay;
       const totalMealAllowance = overtimeDaysCount * mealRate;
-      const monthTotalEarnings = Math.min(monthlySalary + totalMealAllowance, Math.round(pastBasePay + todayEarnings + totalMealAllowance));
+      let monthTotalEarnings = 0;
+      if (todayStr > cycle.endStr) {
+        monthTotalEarnings = monthlySalary + totalMealAllowance;
+      } else if (todayStr < cycle.startStr) {
+        monthTotalEarnings = 0;
+      } else {
+        monthTotalEarnings = Math.min(monthlySalary + totalMealAllowance, Math.round(pastBasePay + todayEarnings + totalMealAllowance));
+      }
 
       // Update UI Elements
       const elTotal = document.getElementById('statMonthTotalEarnings');
@@ -4100,7 +4152,7 @@
       const elRemToGoal = document.getElementById('statRemainingToGoal');
       if (elRemToGoal) {
         const rem = Math.max(0, monthlySalary - monthTotalEarnings);
-        elRemToGoal.innerText = `잔여: ${rem.toLocaleString()}원`;
+        elRemToGoal.innerText = `잔여: ${rem.toLocaleString()}원 (${calMonth}.25 지급)`;
       }
 
       const elTimer = document.getElementById('statTodayTimer');
@@ -4182,13 +4234,15 @@
         leaveRuleBadge.innerText = currentWorkCalYear <= 2026 ? '2026년 총 10개' : `${currentWorkCalYear}년 15개 부여`;
       }
 
-      // 2. Calculate Monthly Work Hours & Net Work Days (공휴일·연차 제외) for currentWorkCalMonth
+      // 2. Calculate Monthly Work Hours & Net Work Days based on 25-25 Cycle (월급날 25일 기준: 전월 25일 ~ 당월 24일)
       const monthPrefix = `${currentWorkCalYear}-${String(currentWorkCalMonth).padStart(2, '0')}`;
       const firstDay = new Date(currentWorkCalYear, currentWorkCalMonth - 1, 1);
       const lastDay = new Date(currentWorkCalYear, currentWorkCalMonth, 0);
       const daysInMonth = lastDay.getDate();
       const startDayOfWeek = firstDay.getDay(); // 0(Sun) - 6(Sat)
       const todayStr = getTodayDateStr();
+
+      const cycle = getSalaryCyclePeriod(currentWorkCalYear, currentWorkCalMonth);
 
       let totalWeekdaysInMonth = 0;
       let totalHolidaysInMonth = 0;
@@ -4199,9 +4253,9 @@
       let totalOvertimeHoursInMonth = 0;
       let overtimeDaysInMonth = 0;
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
-        const dateObj = new Date(currentWorkCalYear, currentWorkCalMonth - 1, day);
+      cycle.dates.forEach(dStr => {
+        const parts = dStr.split('-').map(Number);
+        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
         const dayOfWeek = dateObj.getDay();
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
         const holidayName = getKoreanPublicHoliday(dStr);
@@ -4250,6 +4304,7 @@
             }
           }
         } else if (dStr === todayStr) {
+          // 오늘 실시간 누적 근무시간 계산
           if (!isWeekend && !isHoliday) {
             const now = new Date();
             const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -4277,9 +4332,9 @@
             accumulatedWorkedHoursSoFar += todayElapsedHours + ot;
           }
         }
-      }
+      });
 
-      // 이달 총 근무일 = 평일 - 법정공휴일 - 연차 사용 일수
+      // 이달(25-25 주기) 총 근무일 = 평일 - 법정공휴일 - 연차 사용 일수
       const totalNetWorkDaysInMonth = Math.max(0, totalWeekdaysInMonth - totalHolidaysInMonth - totalLeaveDaysInMonth);
 
       // Card 3 & 4 Elements Update
@@ -4298,7 +4353,7 @@
         if (totalHolidaysInMonth > 0) deductArr.push(`공휴일 ${totalHolidaysInMonth}일`);
         if (totalLeaveDaysInMonth > 0) deductArr.push(`연차 ${totalLeaveDaysInMonth}일`);
         const deductText = deductArr.length > 0 ? ` (${deductArr.join('·')} 제외)` : '';
-        statMonthRegElem.innerHTML = `이달 총 근무일 <strong class="text-blue-700 font-mono font-black">${totalNetWorkDaysInMonth}일</strong>${deductText}`;
+        statMonthRegElem.innerHTML = `급여주기(25~24일) 총 근무일 <strong class="text-blue-700 font-mono font-black">${totalNetWorkDaysInMonth}일</strong>${deductText}`;
       }
 
       // 3. 우측 상단 뱃지: 진행 일수 / 총 근무일
@@ -4433,6 +4488,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs sm:text-sm font-mono ${dayColorClass}">${day}</span>
+              ${day === 25 ? '<span class="text-[9.5px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded-md shrink-0 shadow-2xs">💰 월급날</span>' : ''}
               ${isToday ? '<span class="text-[9px] font-bold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full shrink-0">TODAY</span>' : ''}
             </div>
             ${badgeHtml}
@@ -7090,6 +7146,15 @@
         const workLog = (store.workLogs || []).find(w => w.date === dateStr);
 
         let badgesHtml = '';
+
+        // 0. 💰 Payday (월급날 25일)
+        if (d === 25) {
+          badgesHtml += `
+            <div title="💰 정기 급여일 (25일)" class="text-[9.5px] font-black truncate px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs flex items-center gap-1">
+              <span>💰</span> <span class="truncate font-black">월급날</span>
+            </div>
+          `;
+        }
 
         // 1. 🔴 Statutory Korean Public Holiday (법정공휴일)
         if (holidayName) {
