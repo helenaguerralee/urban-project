@@ -171,7 +171,7 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>v1.15.0 Enterprise Workspace</span>
+          <span>v1.19.0 Enterprise Workspace</span>
         </div>
       </div>
 
@@ -260,7 +260,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.14.0</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.19.0</span>
 
           </div>
 
@@ -1187,14 +1187,14 @@
               </h2>
               <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
             </div>
-            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.6.0</span>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.19.0</span>
           </div>
 
           <!-- 3 Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
-              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.6.0</div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.19.0</div>
               <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -5036,7 +5036,85 @@
 
 
         
-    const SYSTEM_RELEASE_LOGS = [
+        const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.19.0',
+    date: '2026-10-01',
+    badge: '25일 월급날 주기 전면 개편',
+    badgeColor: 'amber',
+    title: '💰 월급 및 근무시간 계산 기준을 25일 월급날(25일~24일 주기)로 전면 개편 & 캘린더 월급날 배지 탑재',
+    summary: '월 기본급 및 근무시간 집계 주기를 기존 1일~말일 달력 기준에서 실제 회사의 월급날인 매월 25일 기준(전월 25일 ~ 당월 24일)으로 전면 개편하여, 10월 1일이 되어도 9월 25일 이후 근무분이 리셋되지 않고 실시간 누적되도록 완벽 개선했습니다.',
+    changes: [
+      '💰 [25-25 급여 주기 전면 개편]: 급여 산정 주기를 매월 25일~익월 24일(10월 25일 월급 = 09.25 ~ 10.24)로 정렬하여 10월 1일에도 9월 25일 이후 일한 4일치 급여(약 63만 원)가 0원으로 초기화되지 않고 22.2%부터 실시간 누적되도록 개선.',
+      '⏰ [근무/연차 관리 통계 동기화]: 1번 탭의 이달 누적 근무시간(기본 24h + 오늘 실시간) 및 총 근무일수(18일)를 25-25 급여 주기와 100% 일치시켜 시급 및 일급 정합성 확보.',
+      '🏷️ [캘린더 25일 월급날 배지 신설]: 1번 근무 캘린더 및 4번 월간 일정 캘린더의 매월 25일 날짜 칸에 귀여운 [💰 월급날] 배지가 자동 표시되도록 시각화.',
+      '🎯 [실시간 트래커 직관적 라벨]: 상단 수입 대시보드에 [10월 (9.25~10.24)] 주기 및 [잔여: OOO원 (10.25 지급)] 안내 텍스트 표시.'
+    ],
+    issues: [
+      {
+        symptom: '10월 1일이 되자마자 9월 25일 이후에 일한 근무분이 사라지고 이번 달 수입이 0원으로 초기화되는 현상',
+        cause: '급여 산정 로직이 월급날(25일)을 고려하지 않고 단순 달력 기준(1일~30일)으로 하드코딩되어 있었음',
+        solution: 'getSalaryCyclePeriod 헬퍼를 도입하여 (calMonth-1)월 25일 ~ calMonth월 24일 주기로 전면 개편하고, 10월 1일에도 9월 25~30일 근무분(4일)이 100% 정상 누적 반영되도록 수정'
+      },
+      {
+        symptom: '캘린더에서 월급날(25일)이 언제인지 한눈에 확인하기 어려움',
+        cause: '공휴일과 연차 배지만 표시되고 정기 급여일 배지가 부재했음',
+        solution: '1번 및 4번 캘린더 매월 25일 셀에 [💰 월급날] 전용 앰버 배지를 자동 렌더링하도록 탑재'
+      }
+    ]
+  },
+  {
+    version: 'v1.18.0',
+    date: '2026-09-21',
+    badge: '공휴일 & 연차 캘린더 연동',
+    badgeColor: 'rose',
+    title: '🗓️ 4번 월간 일정 캘린더 법정공휴일(추석 등) 및 연차/반차 실시간 자동 연동 & 전용 범례 탑재',
+    summary: '4번 월간 일정 캘린더에 법정공휴일(추석, 개천절, 한글날 등)과 1번 탭의 근무/연차 기록(종일 연차, 오전/오후 반차)을 실시간으로 뱃지 연동하고, 일정 등록 모달에 연차 구분을 신설했습니다.',
+    changes: [
+      '🔴 [법정공휴일 자동 연동]: 추석 연휴(9/24~26), 개천절, 한글날 등 대한민국의 모든 공휴일을 붉은색 뱃지(🔴) 및 날짜 붉은색 글씨로 시각화.',
+      '🏖️ [근무/연차 기록 4번 캘린더 연동]: 1번 탭에 등록된 종일 연차(🏖️), 오전 반차(🌤️), 오후 반차(⛅)가 4번 캘린더에 실시간 자동 동기화되어 표시되며 클릭 시 상세 모달 오픈.',
+      '🏷️ [캘린더 범례(Legend) 바 보강]: 캘린더 상단에 [🔴 공휴일 (법정휴일)], [🏖️ 연차 (종일)], [🌤️ 반차] 안내 칩 추가.'
+    ],
+    issues: [
+      {
+        symptom: '4번 월간 일정 캘린더에서 팀 일정만 나오고 공휴일이나 개인 연차 일정이 보이지 않아 일정 조율에 불편함',
+        cause: '4번 캘린더 렌더러가 store.calendarEvents만 순회하고 getKoreanPublicHoliday 및 store.workLogs를 연동하지 않았음',
+        solution: 'renderCalendar에 공휴일 및 workLog 연차/반차 자동 뱃지 생성 로직을 추가하고 상단 범례 바를 최신화하여 완벽 해결'
+      }
+    ]
+  },
+  {
+    version: 'v1.17.0',
+    date: '2026-09-18',
+    badge: '모바일 반응형 & 실무 정밀화',
+    badgeColor: 'purple',
+    title: '🔒 경력관리 게스트 비공개 보안 강화, 4번 캘린더 모바일 밀림 해소, 점심시간(11:30~12:30) 및 시급 공식 정밀화',
+    summary: '비로그인 게스트 접속 시 경력관리 탭을 철저히 비공개로 보호하고, 모바일에서 4번 캘린더가 가로로 깨지는 현상을 해결하였으며, 점심시간(11:30~12:30) 보정 및 160시간 기준 시급 정합성을 확보했습니다.',
+    changes: [
+      '🔒 [경력관리 게스트 모드 비공개 전환]: 포트폴리오, 경력기술서, STAR 면접 Q&A 등 핵심 대외비 이직 데이터를 비로그인 게스트에게 원천 숨김 처리.',
+      '📱 [4번 캘린더 모바일 레이아웃 최적화]: 스마트폰 환경에서 요일 그리드가 밀리는 현상을 min-w-[720px] 전용 가로 스크롤 컨테이너로 완벽 해결.',
+      '🍱 [실제 점심시간 보정]: 기존 12:00~13:00 기준을 실제 점심시간인 11:30~12:30으로 수정하여 실시간 근무 타이머 및 수입 계산 정확도 극대화.',
+      '💵 [160시간 기준 시급 산출 공식 정밀화]: 기본급 2,859,216원 ÷ 20일 ÷ 8시간 = 160시간 기준 시급(약 17,870원) 산출 및 공휴일·연차 100% 유급 보장 반영.',
+      '📁 [프로젝트 마스터 및 필터 복원]: 광명 등 누락 프로젝트 복원, 2번 탭 프로젝트 필터 드롭다운 연동 및 카드-업무 간 2way 바로가기 단축 이동 복원.'
+    ],
+    issues: [
+      {
+        symptom: '비로그인 상태에서 경력관리 탭 접속 시 개인 이직용 경력기술서 및 면접 문구가 그대로 노출되는 보안 위험',
+        cause: '급여 대시보드만 게스트 비공개 처리되어 있고 경력관리 패널에는 비공개 가드가 누락되어 있었음',
+        solution: 'checkIsAdmin() 검증을 경력관리 탭에 적용하여 게스트 모드 시 [🔒 관리자 전용 비공개 데이터] 안내 카드만 표시되도록 차단'
+      },
+      {
+        symptom: '모바일 화면에서 4번 캘린더 탭의 날짜 그리드가 우측으로 밀리며 세로로 찌그러지는 현상',
+        cause: '7열 고정 그리드가 좁은 모바일 뷰포트에서 반응형 최소 너비 없이 압축되었음',
+        solution: 'overflow-x-auto min-w-[720px] 래퍼를 적용하여 모바일에서도 부드러운 가로 스크롤로 원형 캘린더를 유지하도록 수정'
+      },
+      {
+        symptom: '실제 점심시간이 11:30~12:30인데 타이머가 12:00~13:00에 멈추는 오류',
+        cause: '하드코딩된 점심시간 시작/종료 초가 12:00(12*3600), 13:00(13*3600)으로 설정되어 있었음',
+        solution: 'lunchStart = 11*3600 + 30*60 (11:30), lunchEnd = 12*3600 + 30*60 (12:30)으로 실무에 맞게 정확히 교체'
+      }
+    ]
+  },
   {
     version: 'v1.16.0',
     date: '2026-09-14',
