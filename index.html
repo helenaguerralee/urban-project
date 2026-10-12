@@ -171,7 +171,7 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>v1.19.0 Enterprise Workspace</span>
+          <span>v1.20.0 Enterprise Workspace</span>
         </div>
       </div>
 
@@ -260,7 +260,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.19.0</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.20.0</span>
 
           </div>
 
@@ -1187,14 +1187,14 @@
               </h2>
               <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
             </div>
-            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.19.0</span>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.20.0</span>
           </div>
 
           <!-- 3 Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
-              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.19.0</div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.20.0</div>
               <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -3805,6 +3805,30 @@
     let liveSalaryTimerInterval = null;
 
     
+    
+    function getActualPayDate(calYear, calMonth) {
+      // 기본 급여일은 해당 월 25일
+      let dt = new Date(calYear, calMonth - 1, 25);
+      // 25일이 주말(토/일)이거나 법정공휴일이면 직전 평일(근무일)로 앞당김
+      while (true) {
+        const dayOfWeek = dt.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const dStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+        const isHoliday = !!getKoreanPublicHoliday(dStr);
+        if (!isWeekend && !isHoliday) {
+          break; // 유효한 평일(근무일)
+        }
+        dt.setDate(dt.getDate() - 1);
+      }
+      return {
+        year: dt.getFullYear(),
+        month: dt.getMonth() + 1,
+        day: dt.getDate(),
+        dateStr: `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`,
+        isMoved: (dt.getDate() !== 25)
+      };
+    }
+
     function getSalaryCyclePeriod(calYear, calMonth) {
       // 25-25 급여 주기: (calMonth-1)월 25일 ~ calMonth월 24일 (지급일: calMonth월 25일)
       const startDate = new Date(calYear, calMonth - 2, 25);
@@ -3933,6 +3957,7 @@
       const calYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
       const calMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
       const todayStr = getTodayDateStr();
+      const actualPay = getActualPayDate(currentWorkCalYear, currentWorkCalMonth);
 
       // 25-25 급여 산정 주기 (월급날 25일 기준: 전월 25일 ~ 당월 24일)
       const cycle = getSalaryCyclePeriod(calYear, calMonth);
@@ -4488,7 +4513,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs sm:text-sm font-mono ${dayColorClass}">${day}</span>
-              ${day === 25 ? '<span class="text-[9.5px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded-md shrink-0 shadow-2xs">💰 월급날</span>' : ''}
+              ${day === actualPay.day ? `<span title="💰 실질 급여 지급일 (${actualPay.isMoved ? '25일 휴일 앞당김: ' + actualPay.month + '.' + actualPay.day : '25일'})" class="text-[9.5px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded-md shrink-0 shadow-2xs">💰 월급날</span>` : ''}
               ${isToday ? '<span class="text-[9px] font-bold bg-indigo-600 text-white px-1.5 py-0.5 rounded-full shrink-0">TODAY</span>' : ''}
             </div>
             ${badgeHtml}
@@ -5037,6 +5062,28 @@
 
         
         const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.20.0',
+    date: '2026-10-12',
+    badge: '실질 급여일 자동 보정',
+    badgeColor: 'amber',
+    title: '💰 실질 급여 지급일 자동 보정 (25일이 주말/공휴일인 경우 직전 평일로 캘린더 표시)',
+    summary: '급여 카운팅 주기(25일~24일)는 그대로 유지하면서, 실질적으로 급여가 통장에 입금되는 날짜는 25일이 주말이나 법정공휴일인 경우 그 직전 평일(근무일)로 자동 앞당겨져 캘린더(1번 및 4번 탭)에 [💰 월급날] 배지가 표시되도록 개선했습니다.',
+    changes: [
+      '💰 [실질 급여 지급일 계산 엔진(getActualPayDate) 탑재]: 25일이 토/일 또는 법정공휴일인 경우 직전 유효 평일(근무일)을 자동으로 역산출.',
+      '📅 [1번 근무 캘린더 월급날 배지 동적 표시]: 2026년 10월의 경우 25일(일) 대신 실질 지급일인 10월 23일(금)에 [💰 월급날] 배지가 정확히 표시되도록 보정.',
+      '🗓️ [4번 월간 일정 캘린더 동기화]: 월간 일정 캘린더에서도 휴일 앞당김이 반영된 실질 입금일에 [💰 월급날] 배지가 표시되도록 통합.',
+      '🎯 [급여 수입 트래커 잔여 목표일 연동]: [잔여: OOO원 (10.23 지급)]과 같이 실제 통장 입금일이 잔여 안내에 함께 표시.'
+    ],
+    issues: [
+      {
+        symptom: '10월 캘린더에서 25일(일요일, 휴무)에 [💰 월급날] 배지가 표시되어 실제 입금일(10월 23일 금요일)과 불일치하는 현상',
+        cause: '캘린더 배지 렌더러가 요일과 공휴일 여부를 판단하지 않고 day === 25로 고정 하드코딩되어 있었음',
+        solution: 'getActualPayDate 함수를 신설하여 25일이 주말/공휴일이면 직전 평일을 동적으로 탐색하고, 10월 23일(금) 셀에 월급날 배지가 정확히 표시되도록 전면 개선'
+      }
+    ]
+  },
+
   {
     version: 'v1.19.0',
     date: '2026-10-01',
@@ -7225,10 +7272,12 @@
 
         let badgesHtml = '';
 
-        // 0. 💰 Payday (월급날 25일)
-        if (d === 25) {
+        // 0. 💰 Payday (실질 월급날: 25일이 휴일이면 직전 평일)
+        const actualPayCal = getActualPayDate(year, month + 1);
+        if (d === actualPayCal.day) {
+          const moveTip = actualPayCal.isMoved ? ` (25일 휴일로 인해 ${actualPayCal.month}월 ${actualPayCal.day}일 앞당김 지급)` : ' (25일)';
           badgesHtml += `
-            <div title="💰 정기 급여일 (25일)" class="text-[9.5px] font-black truncate px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs flex items-center gap-1">
+            <div title="💰 실질 급여 지급일${moveTip}" class="text-[9.5px] font-black truncate px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs flex items-center gap-1">
               <span>💰</span> <span class="truncate font-black">월급날</span>
             </div>
           `;
