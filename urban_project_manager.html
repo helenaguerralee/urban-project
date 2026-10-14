@@ -2957,6 +2957,15 @@
       }
     }
 
+    function checkIsDeveloperOrMaster() {
+      try {
+        const u = getCurrentUser();
+        return Boolean(u && (u.id === 'admin' || u.role === 'super_admin' || u.role === 'co_developer'));
+      } catch(e) {
+        return false;
+      }
+    }
+
     function checkIsAdmin() {
       try {
         const u = getCurrentUser();
@@ -3503,22 +3512,44 @@
       if (desktopContainer) {
         if (currentUser) {
           const isMaster = (currentUser.id === 'admin' || currentUser.role === 'super_admin');
+          const isDev = (currentUser.role === 'co_developer');
+          const isDevOrMaster = isMaster || isDev;
+
+          let roleBadgeHtml = '';
+          if (isMaster) {
+            roleBadgeHtml = `<span class="px-3 py-1.5 bg-indigo-50 text-indigo-800 border border-indigo-300 font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+              👑 총괄 마스터 (${currentUser.name || currentUser.id})
+            </span>`;
+          } else if (isDev) {
+            roleBadgeHtml = `<span class="px-3 py-1.5 bg-sky-50 text-sky-800 border border-sky-300 font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+              🛠️ 공동 개발자 (${currentUser.name || currentUser.id})
+            </span>`;
+          } else {
+            roleBadgeHtml = `<span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              👤 일반 실무자 (${currentUser.name || currentUser.id})
+            </span>`;
+          }
+
           desktopContainer.innerHTML = `
             <div class="flex items-center gap-1.5 shrink-0">
-              <span class="px-3 py-1.5 ${isMaster ? 'bg-indigo-50 text-indigo-800 border-indigo-300' : 'bg-emerald-50 text-emerald-800 border-emerald-300'} font-bold border rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
-                <span class="w-2 h-2 rounded-full ${isMaster ? 'bg-indigo-500 animate-pulse' : 'bg-emerald-500 animate-pulse'}"></span>
-                ${isMaster ? '👑 총괄 마스터' : '✍️ 실무자'} (${currentUser.name || currentUser.id})
-              </span>
+              ${roleBadgeHtml}
               <button onclick="openUserProfileModal()" class="px-2.5 py-1.5 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-xl border border-slate-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="내 프로필 및 회사 CI 관리">
                 👤 프로필/CI
               </button>
               <button onclick="openSystemWelcomeGuideModal()" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="시스템 시작 및 활용 가이드 열기">
                 💡 활용 가이드
               </button>
-              ${isMaster ? `
-              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="가입 신청 승인 및 사용자 권한 관리">
+              ${isDevOrMaster ? `
+              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="팀원 목록 및 권한 분장 관리">
                 👥 구성원 관리 (<span id="headerMemberCountSpan">${Object.keys(getRegisteredUsers()).length}</span>명)
               </button>
+              <button onclick="openDevConsoleModal()" class="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-xl border border-sky-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="프로그램 개발 및 시스템 상태 콘솔">
+                🛠️ 개발자 콘솔
+              </button>` : ''}
+              ${isMaster ? `
               <button onclick="restoreDefaultProjectsData()" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="5대 마스터 프로젝트 즉시 원상복구">
                 🔄 마스터 데이터 복구
               </button>` : ''}
@@ -3547,9 +3578,11 @@
       if (mobContainer) {
         if (currentUser) {
           const isMaster = (currentUser.id === 'admin' || currentUser.role === 'super_admin');
+          const isDev = (currentUser.role === 'co_developer');
           mobContainer.innerHTML = `
             <button onclick="openUserProfileModal()" class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded-lg text-[11px] font-bold" title="내 프로필">👤 ${currentUser.name || '내정보'}</button>
-            ${isMaster ? '<button onclick="openMemberAdminModal()" class="px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-lg text-[11px] font-bold" title="구성원 관리">👥</button>' : ''}
+            ${(isMaster || isDev) ? '<button onclick="openMemberAdminModal()" class="px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-lg text-[11px] font-bold" title="구성원 관리">👥</button>' : ''}
+            ${(isMaster || isDev) ? '<button onclick="openDevConsoleModal()" class="px-2 py-1 bg-sky-50 border border-sky-200 text-sky-700 rounded-lg text-[11px] font-bold" title="개발자 콘솔">🛠️</button>' : ''}
             <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold" title="로그아웃">🚪</button>
           `;
         } else {
@@ -7741,9 +7774,30 @@
       alert('🎉 내 프로필 및 회사 CI 정보가 성공적으로 저장되었습니다!');
     }
 
+    
+    function openDevConsoleModal() {
+      if (!checkIsDeveloperOrMaster()) {
+        alert('공동 개발자 및 총괄 마스터 전용 콘솔입니다.');
+        return;
+      }
+      const modal = document.getElementById('devConsoleModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeDevConsoleModal() {
+      const modal = document.getElementById('devConsoleModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+
     function openMemberAdminModal() {
-      if (!checkIsMasterAdmin()) {
-        alert('총괄 마스터(admin)만 접근할 수 있는 관리 메뉴입니다.');
+      if (!checkIsDeveloperOrMaster()) {
+        alert('총괄 마스터 또는 공동 개발자만 접근할 수 있는 관리 메뉴입니다.');
         return;
       }
       renderMemberAdminList();
@@ -7795,8 +7849,9 @@
         } else {
           htmlRows += '<td class="p-3">';
           htmlRows += '<select onchange="changeMemberRole(\'' + u.id + '\', this.value)" class="px-2.5 py-1 bg-white border border-slate-300 hover:border-blue-400 focus:border-blue-600 rounded-lg text-xs font-bold text-slate-800 cursor-pointer shadow-2xs outline-none transition">';
-          htmlRows += '<option value="editor"' + (role === 'editor' ? ' selected' : '') + '>✍️ 실무자 (편집 가능)</option>';
-          htmlRows += '<option value="super_admin"' + (role === 'super_admin' ? ' selected' : '') + '>👑 총괄 마스터</option>';
+          htmlRows += '<option value="co_developer"' + (role === 'co_developer' ? ' selected' : '') + '>🛠️ 공동 개발자 (프로그램 개발/운영 참여)</option>';
+          htmlRows += '<option value="general_user"' + (role === 'general_user' || role === 'editor' ? ' selected' : '') + '>👤 일반 실무자 (단순 실무 사용 전용)</option>';
+          htmlRows += '<option value="super_admin"' + (role === 'super_admin' ? ' selected' : '') + '>👑 총괄 마스터 (최고 관리자)</option>';
           htmlRows += '<option value="viewer"' + (role === 'viewer' ? ' selected' : '') + '>👀 조회 전용 (수정 제한)</option>';
           htmlRows += '</select>';
           htmlRows += '</td>';
@@ -7822,7 +7877,9 @@
 
       const roleLabels = {
         'super_admin': '👑 총괄 마스터',
-        'editor': '✍️ 실무자 (편집 가능)',
+        'co_developer': '🛠️ 공동 개발자 (프로그램 개발/운영 참여)',
+        'general_user': '👤 일반 실무자 (단순 실무 사용 전용)',
+        'editor': '👤 일반 실무자 (단순 실무 사용 전용)',
         'viewer': '👀 조회 전용 (수정 제한)'
       };
 
@@ -13209,6 +13266,97 @@ grid.innerHTML = '';
 
       <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
         <button onclick="closeMemberWorkspaceInspectModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition text-xs cursor-pointer">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+<!-- DEVELOPER CONSOLE MODAL (FOR CO-DEVELOPER & MASTER) -->
+  <div id="devConsoleModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md hidden" style="display: none;">
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between shrink-0 border-b border-indigo-500/20">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-xl shadow-md border border-white/20">
+            🛠️
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black tracking-tight flex items-center gap-2">
+              <span>개발자 협업 콘솔 (Developer Console)</span>
+              <span class="px-2 py-0.5 rounded-full bg-sky-500/30 border border-sky-400/40 text-[11px] font-bold text-sky-200">공동 개발자/마스터 전용</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">프로그램 공동 개발, 역할 분장 관리, 클라우드 아키텍처 및 릴리즈 현황</p>
+          </div>
+        </div>
+        <button onclick="closeDevConsoleModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700">
+        <!-- 1. 권한 세분화 안내 카드 -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+          <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <span>🛡️</span> 3단계 역할 및 권한 분장 체계
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div class="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1.5">
+              <span class="px-2 py-0.5 rounded-md bg-indigo-600 text-white font-bold text-[10.5px]">👑 총괄 마스터</span>
+              <p class="text-indigo-950 font-bold text-xs">최고 관리자 (소장님)</p>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                전체 회원 역할 임명 및 삭제, 마스터 7대 프로젝트 원본 보존, 마스터 데이터 복구, 시스템 전체 총괄.
+              </p>
+            </div>
+            <div class="p-3 bg-sky-50/70 border border-sky-200 rounded-xl space-y-1.5">
+              <span class="px-2 py-0.5 rounded-md bg-sky-600 text-white font-bold text-[10.5px]">🛠️ 공동 개발자</span>
+              <p class="text-sky-950 font-bold text-xs">프로그램 공동 개발자</p>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                시스템 기능 개발 협업, 릴리즈 노트 작성/게시, 실시간 데이터 스키마 점검, 개발자 콘솔 및 구성원 관리 접근.
+              </p>
+            </div>
+            <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1.5">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold text-[10.5px]">👤 일반 실무자</span>
+              <p class="text-emerald-950 font-bold text-xs">단순 실무 사용자</p>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                격리된 본인 워크스페이스에서 8대 탭 업무 기능만 사용. 개발/관리자 메뉴는 일체 은폐되어 안전함.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 실시간 클라우드 DB 연결 현황 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 space-y-2.5">
+          <h4 class="font-bold text-slate-900 text-sm flex items-center justify-between">
+            <span class="flex items-center gap-2"><span>⚡</span> 실시간 Firebase 클라우드 아키텍처</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold">🟢 정상 연결 중</span>
+          </h4>
+          <div class="space-y-1.5 font-mono text-[11px] text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+            <div>• RTDB Endpoint: <span class="text-blue-600 font-bold">https://urban-project-ed906-default-rtdb.firebaseio.com/</span></div>
+            <div>• Master Vault Path: <span class="text-indigo-600 font-bold">urban_project_master_vault_v3</span> (프로젝트 7개 안전 보존)</div>
+            <div>• User Workspace Root: <span class="text-emerald-600 font-bold">urban_user_workspaces/{userId}</span> (회원별 완전 격리)</div>
+            <div>• Registered Users Node: <span class="text-purple-600 font-bold">urban_registered_users</span></div>
+          </div>
+        </div>
+
+        <!-- 3. 개발자 빠른 액션 -->
+        <div class="flex flex-wrap items-center gap-2.5 pt-1">
+          <button onclick="closeDevConsoleModal(); openMemberAdminModal();" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <span>👥 팀원 역할 및 권한 관리 열기</span>
+          </button>
+          <button onclick="closeDevConsoleModal(); switchTab('release');" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <span>🚀 릴리즈 기록 및 배포 현황 열기</span>
+          </button>
+          <button onclick="location.reload();" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-300">
+            <span>🔄 캐시 새로고침</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200/80 flex justify-between items-center shrink-0">
+        <span class="text-[11px] text-slate-400">도시계획 시스템 개발자 권한 분장 엔진 v1.26.0</span>
+        <button onclick="closeDevConsoleModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition cursor-pointer text-xs">
           닫기
         </button>
       </div>
