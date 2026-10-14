@@ -6454,7 +6454,11 @@
       }
     }
   
-    function saveStore() {
+        function saveStore() {
+      if (sessionStorage.getItem('urban_admin_inspect_workspace')) {
+        console.warn("In inspection mode: saveStore suppressed to guarantee data isolation.");
+        return;
+      }
       store = sanitizeStore(store);
       store.lastLocalUpdate = Date.now();
       localStorage.setItem(getWorkspaceStorageKey(), JSON.stringify(store));
@@ -7750,6 +7754,24 @@
       const modal = document.getElementById('memberAdminModal');
       if (modal) modal.classList.remove('hidden');
       if (window.lucide) lucide.createIcons();
+
+      // Proactive instant fetch from Firebase
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+          firebase.database().ref('urban_registered_users').once('value').then(snap => {
+            const remoteUsers = snap.val();
+            if (remoteUsers && typeof remoteUsers === 'object') {
+              const localUsers = getRegisteredUsers();
+              const merged = { ...localUsers, ...remoteUsers };
+              if (!merged.admin) merged.admin = localUsers.admin;
+              localStorage.setItem('urban_registered_users_v2', JSON.stringify(merged));
+              renderMemberAdminList();
+              renderAttendeesCheckboxList();
+              updateAuthUI();
+            }
+          }).catch(e => console.warn(e));
+        }
+      } catch(e) {}
     }
 
     function closeMemberAdminModal() {
@@ -7813,11 +7835,92 @@
       updateAuthUI();
     }
 
-    function inspectMemberWorkspace(userId) {
+function inspectMemberWorkspace(userId) {
+      if (!checkIsMasterAdmin()) return;
       const users = getRegisteredUsers();
       const target = users[userId];
-      if (!target) return;
-      alert('🔍 [' + (target.company || target.department) + ' - ' + target.name + '] 워크스페이스 점검:\n\n- 사용자 ID: ' + target.id + '\n- 부여 권한: ' + target.role + '\n- 등록 프로젝트: 독립 저장소 격리 보존 중\n- 상태: 정상(Active)');
+      if (!target) return alert('사용자 정보를 찾을 수 없습니다.');
+      if (userId === 'admin') return alert('마스터 본인의 작업 공간입니다.');
+
+      closeMemberAdminModal();
+
+      if (typeof showAuthToast === 'function') {
+        showAuthToast('🔍 [' + (target.name || userId) + '] 님의 워크스페이스를 원격 로드 중입니다...', true);
+      }
+
+      const fetchFromCloud = () => {
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+          const db = firebase.database();
+          return db.ref('urban_user_workspaces/' + userId).once('value').then(snap => snap.val());
+        }
+        return Promise.resolve(null);
+      };
+
+      fetchFromCloud().then(remoteWs => {
+        let memberStore = remoteWs;
+        if (!memberStore) {
+          try {
+            const localRaw = localStorage.getItem('urban_project_store_' + userId);
+            if (localRaw) memberStore = JSON.parse(localRaw);
+          } catch(e) {}
+        }
+        if (!memberStore || typeof memberStore !== 'object') {
+          memberStore = { projects: [], dailyTasks: [], calendarEvents: [], careerLogs: [], workLogs: [] };
+        }
+
+        sessionStorage.setItem('urban_admin_inspect_workspace', userId);
+        store = sanitizeStore(memberStore);
+        
+        showInspectionBanner(target);
+        renderAll();
+
+        if (typeof showAuthToast === 'function') {
+          showAuthToast('👀 [' + (target.name || userId) + '] 님의 워크스페이스를 열람 중입니다. (안전 읽기 모드)', false);
+        }
+      }).catch(err => {
+        console.error("Inspection error:", err);
+        alert('워크스페이스 데이터를 가져오는 중 오류가 발생했습니다.');
+      });
+    }
+
+    function exitInspectionMode() {
+      sessionStorage.removeItem('urban_admin_inspect_workspace');
+      hideInspectionBanner();
+      loadStore();
+      renderAll();
+      if (typeof showAuthToast === 'function') {
+        showAuthToast('👑 총괄 마스터 본인의 작업 공간으로 안전하게 복귀했습니다.', false);
+      }
+    }
+
+    function showInspectionBanner(target) {
+      let banner = document.getElementById('supervisorInspectionBanner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'supervisorInspectionBanner';
+        banner.className = 'fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white px-4 py-2.5 shadow-xl flex items-center justify-between gap-4 text-xs font-bold animate-in slide-in-from-top duration-200';
+        document.body.prepend(banner);
+      }
+      banner.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+          <span>👀 [${target.company || target.department || '팀원'} - ${target.name || target.id}] 님의 워크스페이스 원격 열람 중 (등록 사업: ${(store.projects || []).length}개, 업무: ${(store.dailyTasks || []).length}개)</span>
+          <span class="px-2 py-0.5 rounded-full bg-white/20 text-[10.5px]">마스터 보호 읽기 전용</span>
+        </div>
+        <button onclick="exitInspectionMode()" class="px-3 py-1 bg-white hover:bg-slate-100 text-purple-900 rounded-lg font-black transition shadow-sm cursor-pointer flex items-center gap-1.5 shrink-0">
+          <span>🚪 마스터 내 화면으로 복귀</span>
+        </button>
+      `;
+      banner.style.display = 'flex';
+      banner.classList.remove('hidden');
+    }
+
+    function hideInspectionBanner() {
+      const banner = document.getElementById('supervisorInspectionBanner');
+      if (banner) {
+        banner.style.display = 'none';
+        banner.classList.add('hidden');
+      }
     }
 
     function deleteMemberUser(userId) {
@@ -9196,6 +9299,75 @@
 
         
         const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.25.0',
+    date: '2026-10-14',
+    badge: '개인 프라이버시 & 회원 클라우드 동기화',
+    badgeColor: 'emerald',
+    title: '🔒 개인별 급여/연차/월급날 완벽 격리, 회원가입 실시간 클라우드 동기화 및 웰컴 가이드 모달 구축',
+    summary: '일반/신규/테스트 회원(사원) 로그인 시 마스터 소장님의 개인 급여(2,859,216원), 누적 수입, 퇴근 타이머 및 연차 차감 기록, 4번 캘린더의 월급날/연차 배지가 노출되지 않도록 사용자별 완전 격리를 구축했습니다. 또한 로컬에만 저장되던 회원가입 데이터를 파이어베이스 실시간 DB(urban_registered_users)와 연동하여 모든 기기에서 친구/동료 가입이 실시간으로 동기화되고, 헤더 [👥 멤버 목록] 및 출장 동행자 선택 체크박스에 자동 반영되도록 개선했습니다. 신규 가입자에게는 5대 핵심 기능을 직관적으로 안내하는 [🎉 웰컴 활용 가이드] 팝업창을 탑재했습니다.',
+    changes: [
+      '🔒 [개인별 급여 및 연차 프라이버시 완전 격리]: 일반/테스트 회원이 로그인했을 때 마스터 소장님의 기본급(2,859,216원)과 누적 수입(2,323,761원)이 미설정(0원)으로 표시되며, 각 회원이 본인의 기본급을 직접 설정하여 자신만의 급여/퇴근 타이머로 활용하도록 개선.',
+      '🏝️ [월간 캘린더 월급날 및 연차 격리]: 4번 캘린더에서 마스터의 [💰 월급날]과 [연차] 배지가 타인의 캘린더에 노출되지 않도록 수정(본인이 기본급/급여일을 설정하고 본인 연차를 등록한 경우에만 각자의 화면에 표시).',
+      '👥 [회원가입 파이어베이스 실시간 클라우드 동기화]: 회원가입 시 클라우드 DB(urban_registered_users)로 즉시 전송되어 다른 기기나 모바일에서 가입한 친구/동료(한승원 사원, 이서현 사원 등)가 마스터 및 모든 멤버의 명단에 실시간으로 표시.',
+      '🚗 [출장 동행자 체크박스 클라우드 연동]: 4번 탭 출장 등록 시 [동행자 선택] 체크박스에 가입된 동료/팀원들이 자동으로 나타나 원클릭 선택 지원.',
+      '🎉 [신규 가입자 웰컴 활용 가이드 팝업 모달]: 신규 회원가입 즉시 5대 핵심 기능(프로젝트 마스터, 일자별 To-Do, 출장 캘린더, 근무/연차 캘린더, 경력관리) 안내 창 자동 팝업 및 헤더 [💡 활용 가이드] 버튼 신설.'
+    ],
+    issues: [
+      {
+        symptom: '실무자 테스트 계정이나 신규 사원 계정으로 로그인했을 때 마스터 소장님의 기본급과 연차, 월급날이 노출되던 점',
+        cause: 'DEFAULT_MONTHLY_SALARY 및 마스터 연차 기록이 전역으로 하드코딩되어 비관리자에게도 상속됨',
+        solution: '사용자 ID별 독립 스토리지 및 조건부 분기를 적용하여 비관리자 진입 시 미설정(0원) 상태로 격리하고 본인 맞춤형 설정 제공'
+      },
+      {
+        symptom: '친구나 동료 사원이 외부에서 회원가입을 완료했는데도 마스터의 [회원 관리] 목록에 뜨지 않던 점',
+        cause: '회원가입 로직이 각 기기 브라우저의 localStorage에만 저장되고 Firebase DB로 업로드되지 않음',
+        solution: 'urban_registered_users를 파이어베이스 실시간 DB와 양방향 동기화하여 가입 즉시 전 기기 실시간 반영'
+      }
+    ]
+  },
+
+  {
+    version: 'v1.24.0',
+    date: '2026-10-14',
+    badge: '일자별 당일 기본조회 & 마일스톤 UI 복원',
+    badgeColor: 'blue',
+    title: '📋 일자별 업무 오늘 기본 표출, 마일스톤 2열 그리드 인터랙티브 뱃지 58개 및 출장 캘린더 복원',
+    summary: '2번 [일자별 업무] 탭 기본값을 당일(오늘) 업무만 깔끔하게 표출하도록 원상 복구하고, 1번 탭 7대 프로젝트의 마일스톤 58개 인터랙티브 뱃지(Pill UI)를 완전 복원했습니다.',
+    changes: [
+      '📋 [2번 탭 기본 조회 당일 업무 단독 표출]: isAllDatesViewActive = false 기본값 적용으로 오늘 날짜 업무만 깔끔하게 표시.',
+      '🔘 [마일스톤 58개 2열 그리드 뱃지 복원]: ∘ 불릿 포맷 복원을 통해 7대 프로젝트 전체의 클릭 가능한 인터랙티브 뱃지 복원.',
+      '🚗 [출장 기록 영구 보존]: 9월 실제 출장 4건 정상 보존 및 동기화.'
+    ],
+    issues: [
+      {
+        symptom: '2번 탭에 전체 날짜 업무가 한 번에 다 떠서 오늘 할 일을 즉시 보기 불편했던 점',
+        cause: 'isAllDatesViewActive 기본값이 true로 설정되어 있었음',
+        solution: 'false로 원상 복구하여 당일 업무만 단독 표출'
+      }
+    ]
+  },
+
+  {
+    version: 'v1.23.0',
+    date: '2026-10-14',
+    badge: '다중 워크스페이스 격리 & 마스터 보존',
+    badgeColor: 'indigo',
+    title: '🛡️ 다중 사용자 워크스페이스 완전 격리 및 마스터 데이터 영구 보존 금고(Vault) 구축',
+    summary: '클라우드 DB 동기화 경로를 마스터 전용 금고(urban_project_master_vault_v3)와 일반 사용자 경로(urban_user_workspaces/{userId})로 엄격 분리하여 일반 회원이 데이터를 수정해도 마스터 데이터에 일체 영향을 주지 않도록 완벽 격리했습니다.',
+    changes: [
+      '🛡️ [클라우드 경로 격리]: 마스터 금고와 일반 회원 워크스페이스 분리.',
+      '🔄 [마스터 5대 프로젝트 무조건 자동 복구]: 비정상 상태 감지 시 100% 원본 복구.',
+      '⏱️ [타임머신 복구함]: 50회 자동 스냅샷 복구 인터페이스 탑재.'
+    ],
+    issues: [
+      {
+        symptom: '테스트 계정 로그인 시 마스터 데이터가 덮어써지던 위험',
+        cause: '단일 Firebase 경로 urban_project_store를 모든 회원이 공유했음',
+        solution: '사용자 ID별 서브 경로 분리 및 마스터 전용 vault_v3 경로 격리'
+      }
+    ]
+  },
   {
     version: 'v1.22.1',
     date: '2026-10-14',
@@ -12267,6 +12439,25 @@ grid.innerHTML = '';
     initFirebaseSync(savedFbUrl);
 
     
+    
+    function switchGuideTab(tabKey) {
+      const allSections = document.querySelectorAll('.guide-section');
+      allSections.forEach(s => s.classList.add('hidden'));
+
+      const allBtns = document.querySelectorAll('.guide-nav-btn');
+      allBtns.forEach(b => {
+        b.className = 'guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition cursor-pointer';
+      });
+
+      const activeSec = document.getElementById('gsec-' + tabKey);
+      if (activeSec) activeSec.classList.remove('hidden');
+
+      const activeBtn = document.getElementById('gtab-' + tabKey);
+      if (activeBtn) {
+        activeBtn.className = 'guide-nav-btn px-3 py-1.5 rounded-xl bg-white text-indigo-950 shadow-sm transition cursor-pointer font-black';
+      }
+    }
+
     function openSystemWelcomeGuideModal(userName) {
       const modal = document.getElementById('systemWelcomeGuideModal');
       if (!modal) return;
@@ -12722,59 +12913,263 @@ grid.innerHTML = '';
     </div>
   </div>
 
-  <!-- SYSTEM WELCOME & UTILIZATION GUIDE MODAL -->
-  <div id="systemWelcomeGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden" style="display: none;">
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-      <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white text-center relative shrink-0">
-        <span class="text-3xl mb-1.5 block">🎉</span>
-        <h3 class="text-xl font-black tracking-tight" id="welcomeGuideTitle">도시계획 업무관리시스템에 오신 것을 환영합니다!</h3>
-        <p class="text-xs text-blue-100 mt-1">프로젝트 일정부터 일자별 업무, 출장 캘린더, 나만의 근무/급여 관리까지 완벽 지원합니다.</p>
-        <button onclick="closeSystemWelcomeGuideModal()" class="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+  <!-- SYSTEM COMPREHENSIVE MASTER & LLM WIKI UTILIZATION GUIDE MODAL -->
+  <div id="systemWelcomeGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/75 backdrop-blur-md hidden" style="display: none;">
+    <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 p-5 sm:p-6 text-white relative shrink-0 border-b border-indigo-500/30">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-2xl shadow-lg border border-white/20">
+              🏛️
+            </div>
+            <div>
+              <h3 class="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2">
+                <span id="welcomeGuideTitle">도시계획 실무 마스터 &amp; LLM 위키 완벽 활용 가이드</span>
+                <span class="px-2 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-[11px] font-bold text-indigo-200">실무 표준 SOP</span>
+              </h3>
+              <p class="text-xs text-indigo-200/90 mt-0.5 font-medium">카르파시 LLM 위키 아키텍처부터 8대 탭 실무 운영 노하우까지 한눈에 마스터하세요.</p>
+            </div>
+          </div>
+          <button onclick="closeSystemWelcomeGuideModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Navigation Sub-tabs -->
+        <div class="flex items-center gap-1.5 mt-4 overflow-x-auto pb-1 text-xs font-bold scrollbar-none">
+          <button onclick="switchGuideTab('wiki')" id="gtab-wiki" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white text-indigo-950 shadow-sm transition">🧠 1. LLM 위키 구축법</button>
+          <button onclick="switchGuideTab('tab1')" id="gtab-tab1" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">📌 2. 프로젝트 마스터</button>
+          <button onclick="switchGuideTab('tab2')" id="gtab-tab2" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">📅 3. 일자별 To-Do</button>
+          <button onclick="switchGuideTab('tab4')" id="gtab-tab4" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">🗓️ 4. 캘린더 &amp; 출장</button>
+          <button onclick="switchGuideTab('tab5')" id="gtab-tab5" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">⏰ 5. 근무·연차 &amp; 급여</button>
+          <button onclick="switchGuideTab('tab6')" id="gtab-tab6" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">💼 6. 경력 관리</button>
+          <button onclick="switchGuideTab('tab7')" id="gtab-tab7" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">🏢 7. 솔루션 센터</button>
+          <button onclick="switchGuideTab('team')" id="gtab-team" class="guide-nav-btn px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 transition">👥 8. 협업 &amp; 백업</button>
+        </div>
       </div>
       
-      <div class="p-6 overflow-y-auto space-y-3.5 text-xs sm:text-sm">
-        <div class="flex items-start gap-3.5 p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100">
-          <span class="text-2xl shrink-0">📌</span>
-          <div>
-            <h4 class="font-bold text-blue-950 text-sm">1. 프로젝트 마스터 (나만의 사업 관리)</h4>
-            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">내가 담당하는 도시계획 정비사업이나 지구단위계획을 등록하고, 착수·주민공람·심의 등 2열 마일스톤 버튼을 클릭하여 단계별 진행 상태를 관리하세요.</p>
+      <!-- Modal Content Body -->
+      <div class="p-5 sm:p-7 overflow-y-auto space-y-6 text-slate-800 text-xs sm:text-sm leading-relaxed">
+        
+        <!-- SECTION 1: LLM WIKI -->
+        <div id="gsec-wiki" class="guide-section space-y-4">
+          <div class="p-4 bg-indigo-50/80 rounded-2xl border border-indigo-200">
+            <h4 class="text-base font-black text-indigo-950 flex items-center gap-2">
+              <span>🧠</span> 카르파시(Karpathy) LLM 위키 아키텍처 연동 및 구축법
+            </h4>
+            <p class="text-xs text-indigo-900 mt-1 leading-relaxed">
+              본 시스템은 세계 최고 수준의 AI 연구자 안드레이 카르파시의 LLM 지식 아키텍처를 도시계획 실무에 최초로 이식한 시스템입니다.
+              단순한 텍스트 메모가 아니라, <strong>내 PC의 사업 폴더와 AI가 실시간으로 소통하며 모든 인허가 도서, 협의의견, 지침, 계산 결과를 영구 자산화</strong>합니다.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+              <span class="font-bold text-slate-900 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> 1. 위키 폴더 구조 (_WIKI/)</span>
+              <p class="text-[11.5px] text-slate-600">
+                - <code>01_위키시스템개요/</code>: 시스템 헌장 및 작성 SOP<br>
+                - <code>02_사업별위키/</code>: 용인, 분당, 인천 계산역 등 사업별 종합 위키<br>
+                - <code>03_개념및용어위키/</code>: 국공유지 무상양여, 노후도 판정 등 법령 기준<br>
+                - <code>04_질의분석위키/</code>: 협의의견 조치계획, 심의 질의답변 분석<br>
+                - <code>log.md</code> &amp; <code>index.md</code>: 대화와 작업이 끝날 때마다 100% 자동 누적
+              </p>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
+              <span class="font-bold text-slate-900 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 2. 안티그래비티 위키 자동반영 원리</span>
+              <p class="text-[11.5px] text-slate-600">
+                - 사용자가 "위키에 기록해줘"라고 명령하지 않아도, 대화 중 도출된 법령 검토, 심의 분석, 토지/건축물 통계는 <code>위키_자동반영_동기화</code> 스킬에 의해 <strong>백그라운드에서 실시간으로 해당 위키 문서에 자동 누적 동기화</strong>됩니다.
+              </p>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200 text-amber-900 text-xs">
+            💡 <strong>실무 팁 (절대 준칙)</strong>: AI가 생성하는 모든 보고서, 조서, 스크립트, 크롤링 덤프 파일은 루트에 어지럽히지 않고 <strong>반드시 <code>_AI_작업문서/</code> 하위 폴더</strong>(검토보고서/, 데이터_조서/, 스크립트/)에만 저장되도록 헌장으로 통제됩니다.
           </div>
         </div>
 
-        <div class="flex items-start gap-3.5 p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-100">
-          <span class="text-2xl shrink-0">📅</span>
-          <div>
-            <h4 class="font-bold text-emerald-950 text-sm">2. 일자별 업무 &amp; 체크 (오늘의 To-Do)</h4>
-            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">오늘 처리할 세부 업무를 등록하고 완료 체크를 하세요. 완료된 업무는 내 실적 데이터로 자동 누적되어 언제든 포트폴리오로 재활용할 수 있습니다.</p>
+        <!-- SECTION 2: TAB 1 PROJECT MASTER -->
+        <div id="gsec-tab1" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-blue-50/80 rounded-2xl border border-blue-200">
+            <h4 class="text-base font-black text-blue-950 flex items-center gap-2">
+              <span>📌</span> 1번 탭 : 프로젝트 마스터 (진척률 &amp; 2열 인터랙티브 마일스톤)
+            </h4>
+            <p class="text-xs text-blue-900 mt-1">내가 담당하는 도시계획 정비사업의 핵심 로드맵과 세부 인허가 단계를 한눈에 관리합니다.</p>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-800 font-bold text-xs shrink-0">1단계</span>
+              <p class="text-xs text-slate-700"><strong>[+ 신규 프로젝트 등록]</strong> 버튼을 눌러 사업명, 발주처/추진위, 과업기간, 계약금액을 입력합니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-800 font-bold text-xs shrink-0">2단계</span>
+              <p class="text-xs text-slate-700"><strong>마일스톤 2열 그리드 뱃지(Pill UI)</strong>: 사업 추진 로드맵에 <code>∘착수보고 : '24.08.</code>, <code>∘주민공람 : '26.10.</code> 형태로 입력하면 화면에 클릭 가능한 뱃지가 자동으로 생성됩니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-800 font-bold text-xs shrink-0">3단계</span>
+              <p class="text-xs text-slate-700"><strong>3단계 원클릭 토글</strong>: 마일스톤 버튼을 누르면 <code>예정(회색) ➔ 진행(파랑) ➔ 완료(초록)</code> 순서로 상태가 순환 변경되며, 사업 전체 진척률(Progress %)이 자동 재계산됩니다.</p>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-start gap-3.5 p-3.5 bg-purple-50/70 rounded-2xl border border-purple-100">
-          <span class="text-2xl shrink-0">🗓️</span>
-          <div>
-            <h4 class="font-bold text-purple-950 text-sm">3. 월간 캘린더 &amp; 출장 일정 관리</h4>
-            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">관공서 협의, 공람, 심의 일정을 등록하세요. 가입된 팀원을 동행자로 지정하면 각자의 캘린더에 동행 출장으로 강조 표시됩니다.</p>
+        <!-- SECTION 3: TAB 2 DAILY TASKS -->
+        <div id="gsec-tab2" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200">
+            <h4 class="text-base font-black text-emerald-950 flex items-center gap-2">
+              <span>📅</span> 2번 탭 : 일자별 업무 &amp; 체크 (오늘의 To-Do &amp; 자동 실적화)
+            </h4>
+            <p class="text-xs text-emerald-900 mt-1">오늘 처리할 세부 업무 리스트를 등록하고 완료 체크하여 나만의 일일 업무일지를 완성합니다.</p>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs shrink-0">기본 조회</span>
+              <p class="text-xs text-slate-700">2번 탭에 들어오면 기본적으로 <strong>오늘 날짜의 업무만 단독 표출</strong>되어 당일 과업에 집중할 수 있습니다. 과거 전체 이력을 보려면 상단 <strong>[전체 날짜 보기]</strong> 버튼을 누르시면 됩니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs shrink-0">세부 항목 분할</span>
+              <p class="text-xs text-slate-700">업무 제목 입력 시 <code>1. 토지조서 수정  2. 건축협의 의견서 작성</code> 처럼 번호를 붙여 넣으면 개별 체크박스 항목으로 자동 분할되어 편리하게 하나씩 완료할 수 있습니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs shrink-0">경력 자동 연동</span>
+              <p class="text-xs text-slate-700">완료 체크된 업무는 6번 [경력 관리] 탭의 [수행 실적]으로 실시간 자동 전송되어 포트폴리오로 재활용됩니다.</p>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-start gap-3.5 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-100">
-          <span class="text-2xl shrink-0">⏰</span>
-          <div>
-            <h4 class="font-bold text-amber-950 text-sm">4. 나만의 근무 &amp; 연차 캘린더 (개인별 급여/퇴근 타이머)</h4>
-            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed"><strong>[기본급 설정]</strong> 버튼을 눌러 나의 월급과 급여일을 설정하면 실시간 누적 수입 및 퇴근 카운트다운 타이머가 작동합니다. 연차 차감도 나만의 기록으로 철저히 비밀 보장됩니다.</p>
+        <!-- SECTION 4: TAB 4 CALENDAR & TRIPS -->
+        <div id="gsec-tab4" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-purple-50/80 rounded-2xl border border-purple-200">
+            <h4 class="text-base font-black text-purple-950 flex items-center gap-2">
+              <span>🗓️</span> 4번 탭 : 월간 일정 캘린더 &amp; 출장 동행자 연동
+            </h4>
+            <p class="text-xs text-purple-900 mt-1">심의, 공람, 관공서 협의, 외근 및 출장 일정을 등록하고 팀원들과 스마트하게 공유합니다.</p>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs shrink-0">출장 동행자</span>
+              <p class="text-xs text-slate-700">출장 일정 등록 시 <strong>[같이 가는 사람 (동행자 선택)]</strong>에 가입된 동료/팀원 목록이 자동으로 표시됩니다. 동행할 인원을 체크하여 저장하세요.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs shrink-0">보라색 강조</span>
+              <p class="text-xs text-slate-700">동행자 목록에 <strong>'나(본인)'</strong>가 포함되어 있으면 캘린더에 <code>🚆 보라색 강조 뱃지</code>로 시각화되어 내 출장만 한눈에 파악할 수 있습니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs shrink-0">공휴일 연동</span>
+              <p class="text-xs text-slate-700">대체공휴일, 개천절, 한글날 등 법정공휴일(빨간날)이 캘린더에 100% 자동 표출됩니다.</p>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-start gap-3.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-          <span class="text-2xl shrink-0">💼</span>
-          <div>
-            <h4 class="font-bold text-slate-900 text-sm">5. 프로필 &amp; 동료 멤버 목록</h4>
-            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">상단 헤더의 <strong>[프로필/CI]</strong>에서 소속 회사 로고를 커스텀하고, <strong>[멤버 목록]</strong>에서 함께 시스템을 이용 중인 동료들을 확인할 수 있습니다.</p>
+        <!-- SECTION 5: TAB 5 WORK & SALARY -->
+        <div id="gsec-tab5" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-amber-50/80 rounded-2xl border border-amber-200">
+            <h4 class="text-base font-black text-amber-950 flex items-center gap-2">
+              <span>⏰</span> 5번 탭 : 내 근무·연차 캘린더 &amp; 실시간 급여/퇴근 타이머
+            </h4>
+            <p class="text-xs text-amber-900 mt-1">철저한 개인 프라이버시가 보장되는 나만의 급여 카운터와 근무 시간 및 연차 관리 공간입니다.</p>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 font-bold text-xs shrink-0">기본급 설정</span>
+              <p class="text-xs text-slate-700">우측 상단 <strong>[⚙️ 기본급 설정]</strong> 버튼을 눌러 본인의 월 기본급, 급여일, 야근 식대 기준을 저장하세요. 이 정보는 오직 <strong>본인 브라우저/계정에서만 비공개</strong>로 유지됩니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 font-bold text-xs shrink-0">25-25 주기</span>
+              <p class="text-xs text-slate-700">회사의 실제 급여 지급 주기(전월 25일 ~ 당월 24일)에 맞춰 실시간 누적 수입(원)과 오늘 퇴근까지 남은 시간, 오늘 번 돈이 1초 단위로 업데이트됩니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 font-bold text-xs shrink-0">연차 차감</span>
+              <p class="text-xs text-slate-700">특정 날짜를 클릭하여 <strong>종일 연차(-1.0일)</strong>, <strong>오전 반차(-0.5일)</strong>, <strong>오후 반차(-0.5일)</strong>를 등록하면 연간 잔여 연차 일수가 실시간으로 자동 차감 계산됩니다.</p>
+            </div>
           </div>
         </div>
+
+        <!-- SECTION 6: TAB 6 CAREER -->
+        <div id="gsec-tab6" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-slate-100 rounded-2xl border border-slate-300">
+            <h4 class="text-base font-black text-slate-900 flex items-center gap-2">
+              <span>💼</span> 6번 탭 : 경력 관리 &amp; 포트폴리오 자동화
+            </h4>
+            <p class="text-xs text-slate-700 mt-1">도시계획가로서 수행한 모든 프로젝트 이력과 참여 일자를 표준 서식으로 보관합니다.</p>
+          </div>
+
+          <p class="text-xs text-slate-600">
+            - 총괄 마스터의 112건 정규 경력 소스가 안전하게 탑재되어 있습니다.<br>
+            - 2번 탭에서 완료된 업무를 원클릭으로 공식 경력 카드로 추가할 수 있습니다.<br>
+            - 상단 <strong>[엑셀 다운로드]</strong> 버튼을 통해 건설기술인협회 또는 입사/이직/인허가 제출용 양식으로 즉시 내보낼 수 있습니다.
+          </p>
+        </div>
+
+        <!-- SECTION 7: TAB 7 SOLUTION CENTER -->
+        <div id="gsec-tab7" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-indigo-50/80 rounded-2xl border border-indigo-200">
+            <h4 class="text-base font-black text-indigo-950 flex items-center gap-2">
+              <span>🏢</span> 7번 탭 : 도시계획 실무 솔루션 센터 (8대 전문 실무 앱)
+            </h4>
+            <p class="text-xs text-indigo-900 mt-1">도시계획 인허가 실무 헌장을 준수하는 초고속 자동화 엔진 허브입니다.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+              <span class="font-bold text-blue-900 block text-xs">📊 토지조서 구축기</span>
+              <span class="text-[11px] text-slate-500">20개 표준 컬럼 및 안분/과소필지 공식 탑재</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+              <span class="font-bold text-emerald-900 block text-xs">🏢 건축물조서 구축기</span>
+              <span class="text-[11px] text-slate-500">27개 표준 컬럼 및 20/30년 노후도 판정</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+              <span class="font-bold text-purple-900 block text-xs">🗺️ 4km 기초도면 구축기</span>
+              <span class="text-[11px] text-slate-500">4km 외곽 100% TRIM 및 7단계 Z-Order DWG</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+              <span class="font-bold text-rose-900 block text-xs">📐 CAD/PDF 초고화질 PNG 변환기</span>
+              <span class="text-[11px] text-slate-500">300/600 DPI 선두께(Hairline) 100% 일치 변환</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 8: COLLABORATION & BACKUP -->
+        <div id="gsec-team" class="guide-section hidden space-y-4">
+          <div class="p-4 bg-teal-50/80 rounded-2xl border border-teal-200">
+            <h4 class="text-base font-black text-teal-950 flex items-center gap-2">
+              <span>👥</span> 8. 팀원 협업 &amp; 전자동 이중 백업 시스템
+            </h4>
+            <p class="text-xs text-teal-900 mt-1">클라우드 실시간 동기화로 팀원과 소통하고, 안티그래비티 자동화로 데이터를 철벽 보호합니다.</p>
+          </div>
+
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-teal-100 text-teal-800 font-bold text-xs shrink-0">👥 멤버 목록</span>
+              <p class="text-xs text-slate-700">상단 헤더 <strong>[👥 멤버 목록 (N명)]</strong> 버튼을 클릭하여 함께 사용하는 동료(사원/소장님) 명단을 확인하고, 마스터는 실무자/조회전용 권한을 부여할 수 있습니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-teal-100 text-teal-800 font-bold text-xs shrink-0">🛡️ 타임머신 복구</span>
+              <p class="text-xs text-slate-700">헤더의 <strong>[🛡️ 데이터 안전 복구함]</strong>을 누르면 최대 50회의 작업별 자동 스냅샷 중 원하는 시점을 골라 1초 만에 되돌릴 수 있습니다.</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="px-2 py-0.5 rounded-lg bg-teal-100 text-teal-800 font-bold text-xs shrink-0">🤖 평일 자동 백업</span>
+              <p class="text-xs text-slate-700">안티그래비티의 <code>Automation</code>이 <strong>평일 오전 9시와 오후 6시 정각</strong>마다 파이어베이스 마스터 DB와 소스코드를 <code>_AI_작업문서/데이터_조서/백업/</code>에 전자동으로 2중 백업합니다.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
+        <span class="text-[11px] text-slate-500 font-medium">도시계획 업무관리시스템 v1.25.0 · 실무 지원 표준</span>
+        <button onclick="closeSystemWelcomeGuideModal()" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-sm transition text-xs cursor-pointer flex items-center gap-1.5">
+          <span>🚀 확인 및 시스템 시작하기</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
       <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
         <button onclick="closeSystemWelcomeGuideModal()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
