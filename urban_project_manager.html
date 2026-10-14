@@ -409,7 +409,7 @@
           <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             도시계획 업무관리시스템
           </h1>
-          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.24.0</span>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.25.0</span>
         </div>
         <div class="flex items-center gap-2 pt-0.5">
           <img id="headerCompanyLogo" src="app_logo.png" alt="Company CI" class="h-6 sm:h-6.5 max-w-[130px] object-contain">
@@ -2640,48 +2640,8 @@
 
           </label>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-
-            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-purple-900 cursor-pointer font-bold shadow-sm">
-
-              <input type="checkbox" id="att_me" value="나" checked class="w-4 h-4 text-purple-600 rounded">
-
-              <span>👤 나 (본인)</span>
-
-            </label>
-
-            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
-
-              <input type="checkbox" id="att_kim" value="김아현 이사님" class="w-4 h-4 text-purple-600 rounded">
-
-              <span>김아현 이사님</span>
-
-            </label>
-
-            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
-
-              <input type="checkbox" id="att_jang" value="장민선 과장님" class="w-4 h-4 text-purple-600 rounded">
-
-              <span>장민선 과장님</span>
-
-            </label>
-
-            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
-
-              <input type="checkbox" id="att_choi" value="최지율 주임님" class="w-4 h-4 text-purple-600 rounded">
-
-              <span>최지율 주임님</span>
-
-            </label>
-
-            <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 text-slate-800 cursor-pointer">
-
-              <input type="checkbox" id="att_lee" value="이상호 주임님" class="w-4 h-4 text-purple-600 rounded">
-
-              <span>이상호 주임님</span>
-
-            </label>
-
+          <div id="dynamicAttendeesContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+            <!-- Dynamically populated from getRegisteredUsers() via renderAttendeesCheckboxList() -->
           </div>
 
         </div>
@@ -3108,6 +3068,11 @@
       const key = 'urban_registered_users_v2';
       try {
         localStorage.setItem(key, JSON.stringify(users));
+      } catch(e) {}
+      try {
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+          firebase.database().ref('urban_registered_users').set(users).catch(e => console.warn("Firebase users save failed:", e));
+        }
       } catch(e) {}
     }
 
@@ -3547,12 +3512,15 @@
               <button onclick="openUserProfileModal()" class="px-2.5 py-1.5 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-xl border border-slate-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="내 프로필 및 회사 CI 관리">
                 👤 프로필/CI
               </button>
+              <button onclick="openSystemWelcomeGuideModal()" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="시스템 시작 및 활용 가이드 열기">
+                💡 활용 가이드
+              </button>
+              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="함께하는 동료 및 회원 목록 열람">
+                👥 ${isMaster ? '구성원 관리' : '멤버 목록'} (<span id="headerMemberCountSpan">${Object.keys(getRegisteredUsers()).length}</span>명)
+              </button>
               ${isMaster ? `
               <button onclick="restoreDefaultProjectsData()" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="5대 마스터 프로젝트 즉시 원상복구">
                 🔄 마스터 데이터 복구
-              </button>
-              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="가입 신청 승인 및 사용자 권한 관리">
-                👥 구성원 관리
               </button>` : ''}
               <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="로그아웃 (게스트 모드로 전환)">
                 🚪 로그아웃
@@ -3721,6 +3689,28 @@
 
 
         const db = firebase.database();
+        // Real-time synchronization for registered members across all devices/browsers
+        try {
+          const usersRef = db.ref('urban_registered_users');
+          usersRef.on('value', (snapshot) => {
+            const remoteUsers = snapshot.val();
+            if (remoteUsers && typeof remoteUsers === 'object') {
+              const localUsers = getRegisteredUsers();
+              const merged = { ...localUsers, ...remoteUsers };
+              if (!merged.admin) merged.admin = localUsers.admin;
+              try {
+                localStorage.setItem('urban_registered_users_v2', JSON.stringify(merged));
+              } catch(e) {}
+              if (typeof renderMemberAdminList === 'function') renderMemberAdminList();
+              if (typeof renderAttendeesCheckboxList === 'function') renderAttendeesCheckboxList();
+              if (typeof updateAuthUI === 'function') updateAuthUI();
+            } else {
+              const localUsers = getRegisteredUsers();
+              usersRef.set(localUsers).catch(e => console.warn(e));
+            }
+          });
+        } catch(e) { console.warn("Users sync attach failed:", e); }
+
         const user = getCurrentUser();
         const isMaster = Boolean(user && (user.id === 'admin' || user.role === 'super_admin'));
         const fbPath = (!user || user.id === 'guest' || isMaster) ? 'urban_project_master_vault_v3' : ('urban_user_workspaces/' + user.id);
@@ -6391,12 +6381,19 @@
         }
       }
 
-      // NON-MASTER PURGE: Non-master user must NEVER inherit master projects!
-      if (!isMaster && store && Array.isArray(store.projects) && store.projects.some(p => p.name && (p.name.includes('용인시 노후계획도시') || p.name.includes('분당 노후계획도시')))) {
-        store.projects = [];
-        store.dailyTasks = [];
-        store.calendarEvents = [];
-        store.careerLogs = [];
+      // NON-MASTER PURGE: Non-master user must NEVER inherit master projects or master leaves!
+      if (!isMaster) {
+        if (store && Array.isArray(store.projects) && store.projects.some(p => p.name && (p.name.includes('용인시 노후계획도시') || p.name.includes('분당 노후계획도시')))) {
+          store.projects = [];
+          store.dailyTasks = [];
+          store.calendarEvents = [];
+          store.careerLogs = [];
+          store.workLogs = [];
+        }
+        if (store && Array.isArray(store.workLogs)) {
+          // Purge master's seeded leaves from non-master store
+          store.workLogs = store.workLogs.filter(w => !w.note || (!w.note.includes('5월 황금연휴') && !w.note.includes('하계 휴가')));
+        }
       }
 
       if (!Array.isArray(store.projects)) store.projects = [];
@@ -6563,6 +6560,9 @@
 
     // Ensure user's historical 2026 leave days are seeded
     function ensureInitialUserLeaveLogs() {
+      const user = getCurrentUser();
+      const isMaster = Boolean(user && (user.id === 'admin' || user.role === 'super_admin'));
+      if (!isMaster) return false;
       if (!store.workLogs) store.workLogs = [];
       const userLeaves2026 = [
         { date: "2026-05-04", note: "개인 연차 (5월 황금연휴)" },
@@ -6718,12 +6718,22 @@
     }
 
     function getMonthlySalary() {
-      if (typeof store !== 'undefined' && store && store.monthlySalary) return Number(store.monthlySalary);
-      try {
-        const local = localStorage.getItem('urban_monthly_salary');
-        if (local) return Number(local);
-      } catch(e) {}
-      return DEFAULT_MONTHLY_SALARY;
+      const user = getCurrentUser();
+      const isMaster = Boolean(user && (user.id === 'admin' || user.role === 'super_admin'));
+      
+      if (typeof store !== 'undefined' && store && store.monthlySalary !== undefined && store.monthlySalary !== null) {
+        return Number(store.monthlySalary);
+      }
+      if (user && user.id) {
+        try {
+          const uSal = localStorage.getItem('urban_monthly_salary_' + user.id);
+          if (uSal !== null && uSal !== '') return Number(uSal);
+        } catch(e) {}
+      }
+      if (isMaster) {
+        return DEFAULT_MONTHLY_SALARY;
+      }
+      return 0;
     }
 
     function getMealAllowanceRate() {
@@ -6736,7 +6746,8 @@
     }
 
     function openSalaryConfigModal() {
-      if (!requireAdmin('기본급 설정')) return;
+      const user = getCurrentUser();
+      if (!user || user.id === 'guest') { alert('로그인 후 이용 가능합니다.'); return; }
       const modal = document.getElementById('salaryConfigModal');
       if (!modal) return;
       document.getElementById('cfgMonthlySalary').value = getMonthlySalary();
@@ -7730,8 +7741,9 @@
     }
 
     function openMemberAdminModal() {
-      if (!checkIsMasterAdmin()) {
-        alert('총괄 마스터(admin)만 회원 및 권한을 관리할 수 있습니다.');
+      const user = getCurrentUser();
+      if (!user || user.id === 'guest') {
+        alert('로그인한 회원만 멤버 목록을 열람할 수 있습니다.');
         return;
       }
       renderMemberAdminList();
@@ -11476,9 +11488,10 @@
 
         let badgesHtml = '';
 
-        // 0. 💰 Payday (실질 월급날: 25일이 휴일이면 직전 평일)
+        // 0. 💰 Payday (실질 월급날: 본인 기본급 설정이 있는 경우에만 표시)
+        const userSal = getMonthlySalary();
         const actualPayCal = getActualPayDate(year, month + 1);
-        if (d === actualPayCal.day) {
+        if (userSal > 0 && d === actualPayCal.day) {
           const moveTip = actualPayCal.isMoved ? ` (25일 휴일로 인해 ${actualPayCal.month}월 ${actualPayCal.day}일 앞당김 지급)` : ' (25일)';
           badgesHtml += `
             <div title="💰 실질 급여 지급일${moveTip}" class="text-[9.5px] font-black truncate px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs flex items-center gap-1">
@@ -11644,7 +11657,7 @@
       document.getElementById('calEventTitle').value = '';
       document.getElementById('calEventDesc').value = '';
       document.getElementById('calEventType').value = '출장';
-      toggleAttendeesBox('출장');
+      toggleAttendeesBox('출장'); renderAttendeesCheckboxList(['나']);
 
       const sel = document.getElementById('calEventProjId');
       sel.innerHTML = '<option value="">관련 없음 / 공통</option>';
@@ -11690,12 +11703,7 @@
         sel.innerHTML += `<option value="${p.id}" ${ev.projId === p.id ? 'selected' : ''}>${p.name}</option>`;
       });
 
-      const atts = ev.attendees || [];
-      document.getElementById('att_me').checked = atts.includes('나');
-      document.getElementById('att_kim').checked = atts.includes('김아현 이사님');
-      document.getElementById('att_jang').checked = atts.includes('장민선 과장님');
-      document.getElementById('att_choi').checked = atts.includes('최지율 주임님');
-      document.getElementById('att_lee').checked = atts.includes('이상호 주임님');
+      renderAttendeesCheckboxList(ev.attendees || ['나']);
 
       document.getElementById('calEventDesc').value = ev.desc || '';
 
@@ -11705,6 +11713,52 @@
     function closeAddCalendarEventModal() {
       currentEditingCalendarEventId = null;
       document.getElementById('addCalendarEventModal').classList.add('hidden');
+    }
+
+    
+    function renderAttendeesCheckboxList(selectedAttendees = ['나']) {
+      const container = document.getElementById('dynamicAttendeesContainer');
+      if (!container) return;
+
+      const users = getRegisteredUsers();
+      const currentUser = getCurrentUser();
+      const myName = currentUser ? (currentUser.name || currentUser.id) : '나';
+
+      // Base candidate attendees list
+      const candidateList = [
+        { id: 'me', name: '나 (' + myName + ')', val: '나', isMe: true },
+        { id: 'kim', name: '김아현 이사님', val: '김아현 이사님' },
+        { id: 'jang', name: '장민선 과장님', val: '장민선 과장님' },
+        { id: 'choi', name: '최지율 주임님', val: '최지율 주임님' },
+        { id: 'lee', name: '이상호 주임님', val: '이상호 주임님' }
+      ];
+
+      // Add all registered users from cloud/local
+      Object.values(users).forEach(u => {
+        if (!u || u.id === 'admin') return;
+        const uLabel = (u.name || u.id) + (u.department ? ' (' + u.department + ')' : '');
+        const exists = candidateList.some(c => c.val === u.name || c.val === u.id || c.name.includes(u.name));
+        if (!exists) {
+          candidateList.push({
+            id: 'user_' + u.id,
+            name: uLabel,
+            val: u.name || u.id
+          });
+        }
+      });
+
+      let html = '';
+      candidateList.forEach(c => {
+        const isChecked = selectedAttendees.includes(c.val) || (c.isMe && selectedAttendees.includes('나'));
+        html += `
+          <label class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border ${c.isMe ? 'border-purple-300 text-purple-900 font-bold bg-purple-50/50 shadow-xs' : 'border-slate-200 text-slate-800'} cursor-pointer hover:border-purple-400 transition text-xs">
+            <input type="checkbox" name="calAttendeesCheckbox" value="${c.val}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded">
+            <span class="truncate">${c.name}</span>
+          </label>
+        `;
+      });
+
+      container.innerHTML = html;
     }
 
     function toggleAttendeesBox(typeVal) {
@@ -12201,17 +12255,35 @@ grid.innerHTML = '';
 
             loadStore();
 
-    if (!store.projects || store.projects.length === 0) {
-
+    const currentUserInit = getCurrentUser();
+    const isMasterInit = Boolean(currentUserInit && (currentUserInit.id === 'admin' || currentUserInit.role === 'super_admin'));
+    if (isMasterInit && (!store.projects || store.projects.length === 0)) {
       store.projects = getInitialDefaultProjects();
-
       saveStore();
-
     }
 
     const savedFbUrl = localStorage.getItem('urban_firebase_url') || 'https://urban-project-ed906-default-rtdb.firebaseio.com/';
 
     initFirebaseSync(savedFbUrl);
+
+    
+    function openSystemWelcomeGuideModal(userName) {
+      const modal = document.getElementById('systemWelcomeGuideModal');
+      if (!modal) return;
+      const titleEl = document.getElementById('welcomeGuideTitle');
+      if (titleEl && userName) {
+        titleEl.textContent = '🎉 [' + userName + '] 님, 도시계획 업무관리시스템에 오신 것을 환영합니다!';
+      }
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+    }
+
+    function closeSystemWelcomeGuideModal() {
+      const modal = document.getElementById('systemWelcomeGuideModal');
+      if (!modal) return;
+      modal.style.display = 'none';
+      modal.classList.add('hidden');
+    }
 
     renderAll();
 
@@ -12649,6 +12721,69 @@ grid.innerHTML = '';
       </div>
     </div>
   </div>
+
+  <!-- SYSTEM WELCOME & UTILIZATION GUIDE MODAL -->
+  <div id="systemWelcomeGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden" style="display: none;">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+      <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white text-center relative shrink-0">
+        <span class="text-3xl mb-1.5 block">🎉</span>
+        <h3 class="text-xl font-black tracking-tight" id="welcomeGuideTitle">도시계획 업무관리시스템에 오신 것을 환영합니다!</h3>
+        <p class="text-xs text-blue-100 mt-1">프로젝트 일정부터 일자별 업무, 출장 캘린더, 나만의 근무/급여 관리까지 완벽 지원합니다.</p>
+        <button onclick="closeSystemWelcomeGuideModal()" class="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      
+      <div class="p-6 overflow-y-auto space-y-3.5 text-xs sm:text-sm">
+        <div class="flex items-start gap-3.5 p-3.5 bg-blue-50/70 rounded-2xl border border-blue-100">
+          <span class="text-2xl shrink-0">📌</span>
+          <div>
+            <h4 class="font-bold text-blue-950 text-sm">1. 프로젝트 마스터 (나만의 사업 관리)</h4>
+            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">내가 담당하는 도시계획 정비사업이나 지구단위계획을 등록하고, 착수·주민공람·심의 등 2열 마일스톤 버튼을 클릭하여 단계별 진행 상태를 관리하세요.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-100">
+          <span class="text-2xl shrink-0">📅</span>
+          <div>
+            <h4 class="font-bold text-emerald-950 text-sm">2. 일자별 업무 &amp; 체크 (오늘의 To-Do)</h4>
+            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">오늘 처리할 세부 업무를 등록하고 완료 체크를 하세요. 완료된 업무는 내 실적 데이터로 자동 누적되어 언제든 포트폴리오로 재활용할 수 있습니다.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 p-3.5 bg-purple-50/70 rounded-2xl border border-purple-100">
+          <span class="text-2xl shrink-0">🗓️</span>
+          <div>
+            <h4 class="font-bold text-purple-950 text-sm">3. 월간 캘린더 &amp; 출장 일정 관리</h4>
+            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">관공서 협의, 공람, 심의 일정을 등록하세요. 가입된 팀원을 동행자로 지정하면 각자의 캘린더에 동행 출장으로 강조 표시됩니다.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 p-3.5 bg-amber-50/70 rounded-2xl border border-amber-100">
+          <span class="text-2xl shrink-0">⏰</span>
+          <div>
+            <h4 class="font-bold text-amber-950 text-sm">4. 나만의 근무 &amp; 연차 캘린더 (개인별 급여/퇴근 타이머)</h4>
+            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed"><strong>[기본급 설정]</strong> 버튼을 눌러 나의 월급과 급여일을 설정하면 실시간 누적 수입 및 퇴근 카운트다운 타이머가 작동합니다. 연차 차감도 나만의 기록으로 철저히 비밀 보장됩니다.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+          <span class="text-2xl shrink-0">💼</span>
+          <div>
+            <h4 class="font-bold text-slate-900 text-sm">5. 프로필 &amp; 동료 멤버 목록</h4>
+            <p class="text-slate-600 text-xs mt-0.5 leading-relaxed">상단 헤더의 <strong>[프로필/CI]</strong>에서 소속 회사 로고를 커스텀하고, <strong>[멤버 목록]</strong>에서 함께 시스템을 이용 중인 동료들을 확인할 수 있습니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
+        <button onclick="closeSystemWelcomeGuideModal()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer">
+          <span>🚀 시스템 시작하기</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>
