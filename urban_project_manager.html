@@ -210,13 +210,13 @@
           <label class="block text-xs font-bold text-slate-700 mb-1.5">비밀번호</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔒</span>
-            <input type="password" id="portalLoginPassword" placeholder="비밀번호 입력 (기본: Dltjgus411!)" class="w-full pl-10 pr-10 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="current-password" required>
+            <input type="password" id="portalLoginPassword" placeholder="비밀번호를 입력하세요" class="w-full pl-10 pr-10 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="current-password" required>
             <button type="button" onclick="togglePasswordVisibility('portalLoginPassword', 'eyeIconPortal')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
               <i data-lucide="eye" id="eyeIconPortal" class="w-4 h-4"></i>
             </button>
           </div>
           <p id="portalLoginErrorMsg" class="hidden text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
-            <span>⚠️</span> <span id="portalLoginErrorText">아이디 또는 비밀번호가 일치하지 않습니다. (기본: admin / urban2026)</span>
+            <span>⚠️</span> <span id="portalLoginErrorText">아이디 또는 비밀번호가 일치하지 않습니다.</span>
           </p>
         </div>
 
@@ -225,7 +225,7 @@
             <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
             <span>멀티 테넌트 보안 세션 적용</span>
           </span>
-          <span class="text-[11px] font-mono text-slate-400">초기: admin / urban2026</span>
+          <span class="text-[11px] font-mono text-slate-400">보안 세션 인증</span>
         </div>
 
         <!-- ACTION 1: LOGIN -->
@@ -3038,20 +3038,27 @@
         if (raw) users = JSON.parse(raw);
       } catch(e) {}
 
-      // Guarantee default admin exists
+      // Guarantee default admin exists & ensure master password Dltjgus411!
       if (!users.admin) {
         users.admin = {
           id: 'admin',
-          password: (typeof getMasterPassword === 'function' ? getMasterPassword() : 'Dltjgus411!'),
-          name: '총괄 관리자',
-          department: '경호엔지니어링 도시설계부',
+          password: 'Dltjgus411!',
+          name: '이승헌 소장',
+          department: '주식회사 경호엔지니어링 종합건축사사무소',
+          company: '주식회사 경호엔지니어링 종합건축사사무소',
+          companyLogo: 'app_logo.png',
           role: 'super_admin',
           status: 'active',
           createdAt: '2026-01-01',
           lastLogin: Date.now()
         };
-        try { localStorage.setItem(key, JSON.stringify(users)); } catch(e) {}
+      } else {
+        // Update existing admin password to Dltjgus411!
+        users.admin.password = 'Dltjgus411!';
+        if (!users.admin.company) users.admin.company = '주식회사 경호엔지니어링 종합건축사사무소';
+        if (!users.admin.companyLogo) users.admin.companyLogo = 'app_logo.png';
       }
+      try { localStorage.setItem(key, JSON.stringify(users)); } catch(e) {}
       return users;
     }
 
@@ -3158,21 +3165,88 @@
     }
 
     // Portal Login Submit Handler
+    
+    // Synchronize App Views (Portal vs Main App)
+    function syncAppViews() {
+      const portal = document.getElementById('loginLandingPortal');
+      const mainApp = document.getElementById('mainAppContainer');
+      const authSession = sessionStorage.getItem('urban_auth_session');
+      const hasGuest = sessionStorage.getItem('urban_guest_entered') === 'true';
+
+      if (authSession || hasGuest) {
+        if (portal) portal.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'flex';
+      } else {
+        if (portal) portal.style.display = 'flex';
+        if (mainApp) mainApp.style.display = 'none';
+      }
+
+      if (typeof updateAuthUI === 'function') updateAuthUI();
+      if (typeof populateSolutionProjectOptions === 'function') populateSolutionProjectOptions();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function checkHasGuestAccess() {
+      return sessionStorage.getItem('urban_guest_entered') === 'true';
+    }
+
+    function enterGuestMode() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_admin_inspect_workspace');
+        sessionStorage.setItem('urban_guest_entered', 'true');
+      } catch(e) {}
+      if (typeof loadStore === 'function') loadStore();
+      syncAppViews();
+      if (typeof renderAll === 'function') renderAll();
+      if (typeof showAuthToast === 'function') {
+        showAuthToast('👀 게스트 모드로 접속했습니다. (조회 전용)', false);
+      }
+    }
+
+    function showLoginPortal() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_guest_entered');
+        sessionStorage.removeItem('urban_admin_inspect_workspace');
+      } catch(e) {}
+      const pwInput = document.getElementById('portalLoginPassword');
+      if (pwInput) pwInput.value = '';
+      const err = document.getElementById('portalLoginErrorMsg');
+      if (err) err.classList.add('hidden');
+      if (typeof switchPortalTab === 'function') switchPortalTab('login');
+      syncAppViews();
+      if (pwInput) setTimeout(() => pwInput.focus(), 150);
+    }
+
     function handlePortalLoginSubmit() {
       const idInput = document.getElementById('portalLoginId');
       const pwInput = document.getElementById('portalLoginPassword');
       const errEl = document.getElementById('portalLoginErrorMsg');
       const errText = document.getElementById('portalLoginErrorText');
 
-      const idVal = (idInput ? idInput.value : '').trim();
+      const idVal = (idInput ? idInput.value : '').trim().toLowerCase();
       const pwVal = (pwInput ? pwInput.value : '').trim();
 
       const users = getRegisteredUsers();
-      const user = users[idVal];
+
+      // Check master admin password
+      const isMasterAdminId = (idVal === 'admin');
+      const isMasterPassMatch = (pwVal === 'Dltjgus411!' || pwVal === 'urban2026' || (typeof getMasterPassword === 'function' && pwVal === getMasterPassword()));
+
+      let user = users[idVal];
+
+      // If logging in as admin and password matches master password
+      if (isMasterAdminId && isMasterPassMatch) {
+        if (!user) user = users.admin;
+        user.password = pwVal;
+      }
 
       if (!user) {
-        if (errEl && errText) {
-          errText.innerText = '등록되지 않은 아이디입니다. 회원가입 탭에서 새 계정을 만들어주세요.';
+        if (errEl) {
+          if (errText) errText.innerText = '등록되지 않은 아이디입니다. 회원가입 탭에서 새 계정을 만들어주세요.';
           errEl.classList.remove('hidden');
         } else {
           alert('등록되지 않은 아이디입니다.');
@@ -3185,30 +3259,36 @@
         return;
       }
 
-      const masterPass = (typeof getMasterPassword === 'function' ? getMasterPassword() : 'Dltjgus411!');
-      const isMasterValid = (idVal === 'admin') && (pwVal === 'Dltjgus411!' || pwVal === 'urban2026' || pwVal === masterPass || pwVal === user.password);
-      const isUserValid = (idVal !== 'admin') && (pwVal === user.password);
+      const isPasswordValid = (user.id === 'admin' ? isMasterPassMatch : (pwVal === user.password));
 
-      if (isMasterValid || isUserValid) {
+      if (isPasswordValid) {
         if (errEl) errEl.classList.add('hidden');
         user.lastLogin = Date.now();
         saveRegisteredUsers(users);
 
-        sessionStorage.setItem('urban_auth_session', idVal);
+        sessionStorage.setItem('urban_auth_session', user.id);
         sessionStorage.removeItem('urban_guest_entered');
         sessionStorage.removeItem('urban_admin_inspect_workspace');
         localStorage.removeItem('urban_auth_session');
 
-        // Reload store for this user
-        loadStore();
-        syncAppViews();
-        renderAll();
+        // Immediately hide login portal and show main container
+        const portal = document.getElementById('loginLandingPortal');
+        const mainApp = document.getElementById('mainAppContainer');
+        if (portal) portal.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'flex';
+
+        // Load store and render
+        if (typeof loadStore === 'function') loadStore();
+        if (typeof syncAppViews === 'function') syncAppViews();
+        if (typeof renderAll === 'function') renderAll();
 
         const roleBadge = (user.role === 'super_admin' ? '👑 총괄 마스터' : (user.role === 'collaborator' ? '🤝 공동 작업자' : '✍️ 실무자'));
-        showAuthToast(roleBadge + ' [' + (user.name || idVal) + '] 님으로 로그인되었습니다.', false);
+        if (typeof showAuthToast === 'function') {
+          showAuthToast(roleBadge + ' [' + (user.name || user.id) + '] 님으로 로그인되었습니다.', false);
+        }
       } else {
-        if (errEl && errText) {
-          errText.innerText = '비밀번호가 일치하지 않습니다.';
+        if (errEl) {
+          if (errText) errText.innerText = '비밀번호가 일치하지 않습니다.';
           errEl.classList.remove('hidden');
         } else {
           alert('비밀번호가 일치하지 않습니다.');
@@ -3220,7 +3300,6 @@
       }
     }
 
-    // Portal Signup Submit Handler
     function handlePortalSignupSubmit() {
       const idInput = document.getElementById('signupId');
       const nameInput = document.getElementById('signupName');
@@ -9319,7 +9398,7 @@ grid.innerHTML = '';
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 마스터 비밀번호</label>
           <div class="relative">
-            <input type="password" id="loginPasswordInput" onkeydown="if(event.key==='Enter'){event.preventDefault();handleLoginSubmit();}" placeholder="비밀번호를 입력하세요 (기본: urban2026)" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10" autocomplete="current-password" required>
+            <input type="password" id="loginPasswordInput" onkeydown="if(event.key==='Enter'){event.preventDefault();handleLoginSubmit();}" placeholder="비밀번호를 입력하세요" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10" autocomplete="current-password" required>
             <button type="button" onclick="togglePasswordVisibility('loginPasswordInput', 'eyeIconLogin')" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
               <i data-lucide="eye" id="eyeIconLogin" class="w-4 h-4"></i>
             </button>
@@ -9334,7 +9413,7 @@ grid.innerHTML = '';
             <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
             <span>현재 탭 보안 세션 적용</span>
           </span>
-          <span class="text-[11px] font-mono text-slate-400">초기 암호: urban2026</span>
+          <span class="text-[11px] font-mono text-slate-400">보안 세션 인증</span>
         </div>
 
         <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
