@@ -171,7 +171,7 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>v1.20.1 Enterprise Workspace</span>
+          <span>v1.21.0 Enterprise Workspace</span>
         </div>
       </div>
 
@@ -260,7 +260,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.20.1</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.21.0</span>
 
           </div>
 
@@ -308,7 +308,7 @@
 
           <button onclick="switchTab('career')" id="mob-top-career" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">💼 6. 경력관리</button>
 
-          <button onclick="switchTab('reporthelper')" id="mob-top-reporthelper" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">🛠️ 7. 업무툴</button>
+          <button onclick="switchTab('reporthelper')" id="mob-top-reporthelper" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">🛠️ 7. 솔루션 센터</button>
           <button onclick="switchTab('release')" id="mob-top-release" class="mob-top-tab px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-700 shrink-0">📜 8. 릴리즈</button>
 
         </div>
@@ -533,7 +533,7 @@
 
         <button onclick="switchTab('reporthelper')" id="tab-reporthelper" class="mode-btn w-full text-left px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
 
-          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>🛠️</span> 7. 업무 툴</span>
+          <span class="flex items-center gap-2 whitespace-nowrap overflow-hidden"><span>🛠️</span> 7. 솔루션 센터</span>
 
           <i data-lucide="chevron-right" class="w-4 h-4 opacity-0"></i>
 
@@ -1141,39 +1141,443 @@
 
         <!-- TAB 6: REPORT HELPER INTEGRATION -->
 
-        <div id="panel-reporthelper" class="tab-panel hidden space-y-4 w-full">
+        
+        <!-- TAB 7: URBAN PLANNING SOLUTION CENTER & REPORT HELPER -->
+        <div id="panel-reporthelper" class="tab-panel hidden space-y-6 w-full">
 
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-rose-50 to-indigo-50 p-3.5 sm:p-4 rounded-2xl border border-rose-200 text-xs w-full">
+          <!-- Main Top Hero Banner -->
+          <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white p-5 sm:p-7 rounded-3xl border border-indigo-500/20 shadow-xl">
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+              <div class="space-y-1.5 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold tracking-wide">
+                  <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                  <span>URBAN PLANNING SOLUTION CENTER v2.0</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
+                  <span>🏢 도시계획 실무 솔루션 센터</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300/90 leading-relaxed font-medium">
+                  도시계획 인허가 및 심의도서 실무 표준 규격을 100% 준수하는 전문 앱 허브입니다. 토지·건축물 조서 자동 생성, 4km 도곽 및 엄격한 Z-Order CAD 도면 작도, 공간데이터 수집 및 문서 정밀 검수를 원클릭으로 구동합니다.
+                </p>
+              </div>
 
-            <div class="w-full sm:w-auto">
+              <!-- View Switcher Tabs -->
+              <div class="flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/80 shrink-0 self-stretch md:self-auto justify-center">
+                <button id="btnViewApps" onclick="switchSolutionSubView('apps')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md cursor-pointer">
+                  <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                  <span>8대 솔루션 앱</span>
+                </button>
+                <button id="btnViewReport" onclick="switchSolutionSubView('report')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer">
+                  <i data-lucide="file-search" class="w-4 h-4"></i>
+                  <span>문서 검수 (ReportHelper)</span>
+                </button>
+              </div>
+            </div>
 
-              <h3 class="font-bold text-rose-900 text-sm flex items-center gap-2">
+            <!-- Background Glow FX -->
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute left-1/3 -top-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          </div>
 
-                🛠️ 업무 툴 - 리포트헬퍼 문서 검수 모듈
+          <!-- SUB-VIEW 1: 8 SOLUTION APPS HUB -->
+          <div id="solutionAppsView" class="space-y-6">
 
-              </h3>
+            <!-- Control Bar: Project Selector & Routing Status -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+                <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5 shrink-0">
+                  <i data-lucide="folder-git-2" class="w-4 h-4 text-blue-600"></i> 대상 사업 프로젝트:
+                </span>
+                <select id="solutionProjectSelect" onchange="onSolutionProjectChange(this.value)" class="w-full sm:w-80 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition cursor-pointer">
+                  <option value="09. 서울시 구로구 서울가든빌라재건축">09. 서울시 구로구 서울가든빌라재건축</option>
+                  <option value="05. 인천광역시 계양구 계산역 북측 재개발사업">05. 인천광역시 계양구 계산역 북측 재개발사업</option>
+                  <option value="03. 미금역세권">03. 미금역세권 (분당 47·S7구역)</option>
+                  <option value="01. 대전 통합재건축사업">01. 대전 통합재건축사업</option>
+                  <option value="02. 2030 용인시노후계획도시정비기본계획">02. 2030 용인시노후계획도시정비기본계획</option>
+                  <option value="04. 광명시 광명동 재개발 사업">04. 광명시 광명동 재개발 사업</option>
+                  <option value="06. 용현1구역재개발사업_검토">06. 용현1구역재개발사업_검토</option>
+                  <option value="07. 작전역인근 재개발사업">07. 작전역인근 재개발사업</option>
+                  <option value="10. 서울시 상계5구역 재정비촉진사업(공)">10. 서울시 상계5구역 재정비촉진사업(공)</option>
+                </select>
+              </div>
 
-              <p class="text-rose-700 mt-0.5 leading-relaxed">보고서 윤문, 3가지 버전 생성, 엑셀 수치 분석, 문장 정밀 검수, 고화질 도면 변환 및 50p 단위 도서 수치/오타 딥스캔이 통합 실행됩니다.</p>
+              <!-- Output Path Routing Badge -->
+              <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-medium">
+                  <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>자동 저장 경로: <strong id="selectedProjectAiPath" class="font-mono text-emerald-900">09. 서울가든빌라/_AI_작업문서/</strong></span>
+                </div>
+                <div class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-semibold">
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span>인허가 표준 준수 엔진</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8 Solution Apps Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+              <!-- APP 1: 토지조서 구축기 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      📋
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>토지조서 구축기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Land Ledger Builder</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    브이월드 연속지적도와 QGIS 평면직교 기하엔진을 연동하여, 인허가 표준 20개 컬럼과 실시간 안분 수식이 완비된 엑셀을 전자동 산출합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">20개 표준컬럼</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">안분공식 수식</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md">토지특성 연동</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX</span>
+                  <button onclick="openSolutionModal('land_ledger')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 2: 건축물조서 구축기 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      🏢
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>건축물조서 구축기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Building Ledger Builder</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    브이월드 건축물연령(AL_D196)을 연동하여, 철콘 30년/비철콘 20년 기준 노후도 판정 수식과 27개 표준 컬럼 및 상단 집계행이 완비된 조서를 생성합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">27개 표준컬럼</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-rose-50 text-rose-700 rounded-md">노후도 판정식</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">상단 요약집계</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX</span>
+                  <button onclick="openSolutionModal('building_ledger')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 3: 기초도면 4km 빌더 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 border border-blue-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      📐
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>기초도면 4km 빌더</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Base Map 4km DWG</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    반경 2km(4km×4km 정방형 도곽) 외곽을 100% TRIM하고, 엄격한 7단계 Z-Order와 장축 회전 지번 텍스트가 적용된 AutoCAD 2021 네이티브 DWG를 작도합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">4km 정방형 도곽</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">7단계 Z-Order</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md">AutoCAD DWG</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG</span>
+                  <button onclick="openSolutionModal('base_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 4: 토지현황도 4종 빌더 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-teal-500/10 text-teal-600 border border-teal-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      🗺️
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>토지현황도 4종 빌더</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Cadastral Thematic Maps</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    토지조서와 PNU 1:1 조인된 QGIS 공간데이터를 구축하고, 단일 DWG 안에 지목·소유·규모·토지이용 4종 현황도를 5단계 Z-Order로 통합 구축합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">4종 통합 DWG</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md">QGIS 1:1 SHP</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">토지이용 투영</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG · .SHP</span>
+                  <button onclick="openSolutionModal('land_status_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 5: 건축물현황도 5종 빌더 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-500/10 text-rose-600 border border-rose-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      🏗️
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>건축물현황도 5종 빌더</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Building Status Maps</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    건축물조서와 공간데이터를 1:1 결합하여 단일 DWG 안에 노후불량·연도별·용도별·규모별(층수)·허가유무별 5종 현황도를 표준 색상으로 완비합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">5종 통합 DWG</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-rose-50 text-rose-700 rounded-md">노후불량 10/140번</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">가림방지 지번</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG · .SHP</span>
+                  <button onclick="openSolutionModal('building_status_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 6: 브이월드 주제도 수집기 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-600 border border-cyan-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      🌐
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>브이월드 주제도 수집기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">V-World Downloader</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    브이월드 국가공간정보 OpenAPI를 통해 용도지역, 지구단위계획구역, 도시계획시설선 WFS 벡터 데이터를 구역계 기준으로 고속 클립 다운로드합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">WFS OpenAPI</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-cyan-50 text-cyan-700 rounded-md">용도지역·시설선</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">좌표계 자동감지</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.SHP · .GEOJSON</span>
+                  <button onclick="openSolutionModal('vworld_downloader')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 7: 지오코더 & 공시지가기 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      📍
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>지오코더 &amp; 공시지가기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">Geocoder &amp; Price Collector</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    대량 주소 및 지번 목록을 입력받아 브이월드 Geocode API 및 알리미 크롤러로 WGS84/직교좌표계 X, Y 좌표와 개별공시지가를 일괄 수집합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">좌표 일괄 변환</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">개별공시지가</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">EPSG:5174/5186</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX · .CSV</span>
+                  <button onclick="openSolutionModal('geocoder')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>실행 &amp; 가이드</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 8: 리포트헬퍼 & 도서 검수기 -->
+              <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 border border-purple-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
+                      📑
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">INTEGRATED ⚡</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
+                      <span>리포트헬퍼 &amp; 도서 검수기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-slate-400">ReportHelper &amp; Audit</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    보고서 3버전 윤문 생성, 50페이지 단위 심의도서 수치 불일치·오타 딥스캔, HWPX 파싱 및 고화질 도면 PNG 변환 엔진을 구동합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">50p 분할 검수</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md">보고서 3버전</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">고화질 PNG 변환</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-slate-400 font-semibold">.HWPX · .PDF</span>
+                  <button onclick="switchSolutionSubView('report')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>검수기 열기</span>
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
 
             </div>
 
-            <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center justify-center gap-1.5 text-xs w-full sm:w-auto shrink-0">
-
-              <i data-lucide="external-link" class="w-4 h-4 text-rose-600"></i> ReportHelper 단독 새창 열기
-
-            </button>
-
           </div>
 
+          <!-- SUB-VIEW 2: REPORT HELPER INTEGRATION -->
+          <div id="solutionReportView" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-rose-50 to-indigo-50 p-3.5 sm:p-4 rounded-2xl border border-rose-200 text-xs w-full">
+              <div class="w-full sm:w-auto">
+                <h3 class="font-bold text-rose-900 text-sm flex items-center gap-2">
+                  <i data-lucide="file-check-2" class="w-4 h-4 text-rose-600"></i>
+                  <span>리포트헬퍼 문서 검수 모듈 (ReportHelper Standalone &amp; Embedded)</span>
+                </h3>
+                <p class="text-rose-700 mt-0.5 leading-relaxed">보고서 윤문, 3가지 스타일 생성, 엑셀 수치 분석, 문장 정밀 검수 및 50p 단위 도서 수치/오타 딥스캔이 실행됩니다.</p>
+              </div>
+              <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button onclick="switchSolutionSubView('apps')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 솔루션 허브로 복귀
+                </button>
+                <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center justify-center gap-1.5 text-xs cursor-pointer">
+                  <i data-lucide="external-link" class="w-4 h-4 text-rose-600"></i> 단독 새창 열기
+                </button>
+              </div>
+            </div>
 
-
-          <div class="w-full h-[calc(100vh-210px)] min-h-[750px] bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-
-            <iframe src="report_helper.html" class="w-full h-full border-0"></iframe>
-
+            <div class="w-full h-[calc(100vh-250px)] min-h-[700px] bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+              <iframe src="report_helper.html" class="w-full h-full border-0"></iframe>
+            </div>
           </div>
 
+        </div>
+
+        <!-- MODAL: SOLUTION APP DETAIL & ONE-CLICK RUNNER -->
+        <div id="solutionModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+          <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-start justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div id="solModalIcon" class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold text-2xl shadow-xs">
+                  📋
                 </div>
+                <div>
+                  <h3 id="solModalTitle" class="text-base sm:text-lg font-black text-slate-900">토지조서 구축기</h3>
+                  <p id="solModalSub" class="text-xs font-mono text-slate-400">Land Ledger Builder Engine</p>
+                </div>
+              </div>
+              <button onclick="closeSolutionModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Specs Badge List -->
+            <div id="solModalBadges" class="flex flex-wrap gap-2"></div>
+
+            <!-- Compliance Point Box -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+              <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                <span>도시계획 인허가 실무 표준 준수 사항</span>
+              </h4>
+              <ul id="solModalRules" class="text-xs text-slate-600 space-y-1.5 list-disc list-inside"></ul>
+            </div>
+
+            <!-- Path & Direct Execution -->
+            <div class="space-y-3">
+              <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/80 text-xs text-emerald-950 space-y-1">
+                <div class="font-bold flex items-center gap-1.5 text-emerald-800">
+                  <i data-lucide="folder-check" class="w-4 h-4 text-emerald-600"></i>
+                  <span>출력 저장 위치 (최우선 준수 경로):</span>
+                </div>
+                <div id="solModalOutputPath" class="font-mono font-bold text-[11px] bg-white p-2 rounded-xl border border-emerald-200 text-emerald-900 break-all select-all"></div>
+              </div>
+
+              <!-- AI One-Click Prompt Generator -->
+              <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-200/70 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-blue-600"></i>
+                    <span>AI 원클릭 자동 실행 프롬프트</span>
+                  </span>
+                  <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-md">클립보드 복사 가능</span>
+                </div>
+                <div id="solModalPromptText" class="font-mono text-xs bg-white p-2.5 rounded-xl border border-blue-200 text-blue-950 select-all leading-relaxed"></div>
+                <button id="btnCopyPrompt" onclick="copySolutionPrompt()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span id="btnCopyPromptText">지시어 복사하고 AI에게 바로 실행 요청하기</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button onclick="closeSolutionModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+
 
         <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
         <!-- TAB 7: RELEASE NOTES (릴리즈 기록) -->
@@ -1187,14 +1591,14 @@
               </h2>
               <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
             </div>
-            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.20.1</span>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.21.0</span>
           </div>
 
           <!-- 3 Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
-              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.20.1</div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.21.0</div>
               <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -4213,6 +4617,234 @@
       }, 1000);
     }
 
+    
+    // ==========================================
+    // URBAN PLANNING SOLUTION CENTER SCRIPT
+    // ==========================================
+    const SOLUTION_APPS_DATA = {
+      land_ledger: {
+        icon: '📋',
+        title: '토지조서 구축기 (Land Ledger Builder)',
+        sub: '20개 실무 표준 컬럼 & 실시간 안분 수식 완비',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">20개 표준 컬럼</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">실시간 안분 수식</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">브이월드 토지특성 연동</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">과소필지 =IF 수식</span>'
+        ],
+        rules: [
+          '<strong>실무 안분 공식</strong>: 완전편입(편입율 ≥ 98%)은 <code>=공부상면적</code>, 부분편입은 <code>=ROUND(구적편입/구적면적*공부상면적, 2)</code> 수식 형태로 저장되어 수치 변경 시 자동 연동됩니다.',
+          '<strong>브이월드 토지특성정보(lndpclAr) 결합</strong>: 도로접면, 지형형상, 개별공시지가(원/㎡), 용도지역 1·2가 빈틈없이 자동 매핑됩니다.',
+          '<strong>상단 집계 요약행(Row 1)</strong>: 총필지수(COUNTA), 총공부상면적(SUM), 총편입면적(SUM), 부편필지수(COUNTIF), 과소필지수(COUNTIF)가 완비됩니다.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 사업구역계를 대상으로 '토지조서_만드는_법' 실무 스킬을 적용하여, 20개 표준 컬럼과 실시간 안분 공식(=ROUND) 및 브이월드 토지특성이 완비된 토지조서 엑셀을 _AI_작업문서/데이터_조서/에 생성해줘.`
+      },
+      building_ledger: {
+        icon: '🏢',
+        title: '건축물조서 구축기 (Building Ledger Builder)',
+        sub: '27개 표준 컬럼 & 철콘 30년/비철콘 20년 노후도 판정식',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">27개 표준 컬럼</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">노후도 판정식 =IF</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">건축물연령공간정보(AL_D196)</span>'
+        ],
+        rules: [
+          '<strong>엄격한 노후도 판정</strong>: <code>=IF(건물연령>=기준년수, "노후", "양호")</code> 수식이 적용되며, 철근콘크리트 30년, 기타 구조 20년 기준이 자동 분기됩니다.',
+          '<strong>27개 실무 표준 컬럼 (B열~AB열)</strong>: GIS건물통합식별번호, 대지면적, 건축면적, 연면적, 층수, 높이, 구조, 용도, 허가/사용승인일자 완비.',
+          '<strong>Row 1 총괄 요약</strong>: 총연면적, 유허가/무허가 호수, 노후 건축물수 합계가 자동 집계됩니다.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 사업구역계 내부 건축물을 대상으로 '건축물조서_만드는_법' 스킬을 구동하여 브이월드 건축물연령정보(AL_D196)를 연동하고 27개 표준 컬럼과 노후도 수식이 완비된 건축물조서 엑셀을 _AI_작업문서/데이터_조서/에 구축해줘.`
+      },
+      base_map: {
+        icon: '📐',
+        title: '기초도면 4km 빌더 (Base Map 4km DWG)',
+        sub: '4km×4km 정방형 도곽 100% TRIM & 엄격한 7단계 Z-Order',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">반경 2km (4km 도곽)</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">7단계 Z-Order</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">AutoCAD 2021 DWG</span>'
+        ],
+        rules: [
+          '<strong>엄격한 7단계 드로우 오더</strong>: 1.용도지역_해치 ➔ 2.수치지형도(253번) ➔ 3.연속지적도(253번) ➔ 4.장축회전지번(253번) ➔ 5.용도지역선(빨강1번) ➔ 6.도시계획시설선 ➔ 7.구역계/도곽 순서로 작도되어 겹침 가림이 전혀 없습니다.',
+          '<strong>지번 다각형 장축 자동 회전</strong>: QGIS 자유롭게(각을 이룸) 알고리즘을 모사하여 필지 형태에 따라 지번이 자동 회전 배치됩니다.',
+          '<strong>4km 외곽 100% TRIM</strong>: 4km 도곽 밖으로 나간 선은 깨끗하게 트리밍됩니다.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 구역계를 기반으로 '기초도면_구축하는_법' 실무 스킬을 적용하여 반경 2km(4km 정방형 도곽) 외곽을 100% TRIM하고 7단계 Z-Order가 적용된 기초현황도 DWG 도면을 _AI_작업문서/데이터_조서/에 작도해줘.`
+      },
+      land_status_map: {
+        icon: '🗺️',
+        title: '토지현황도 4종 빌더 (Thematic Maps)',
+        sub: '단일 DWG 내 지목·소유·규모·토지이용 4종 통합 구축',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-lg">4종 통합 DWG</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">5단계 Z-Order</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">토지이용 공간 투영</span>'
+        ],
+        rules: [
+          '<strong>토지이용 실제 현황 투영</strong>: 건축물대장 및 공간정보를 토지 필지에 공간 조인하여 공동주택, 근린생활시설, 단독, 도로, 주차장, 나대지 등을 자동 판정합니다.',
+          '<strong>5단계 Z-Order</strong>: 1.연속지적도 ➔ 2.SOLID해치 ➔ 3.흰색(7번) 경계선 ➔ 4.지번 ➔ 5.구역계(빨강1번, 폭2) 순서 준수.',
+          '<strong>QGIS 속성 완비 SHP</strong>: PNU 기준 20개 필드가 1:1 조인된 SHP/GeoJSON 동시 출력.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 구역계와 토지조서를 기반으로 '토지현황도_만드는_법' 스킬을 적용하여 단일 DWG 안에 지목·소유·규모·토지이용 4종 현황도 도면과 QGIS 조인 SHP를 _AI_작업문서/데이터_조서/에 구축해줘.`
+      },
+      building_status_map: {
+        icon: '🏗️',
+        title: '건축물현황도 5종 빌더 (Building Status Maps)',
+        sub: '노후불량·연도·용도·규모(층수)·허가 5종 통합 DWG',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">5종 통합 DWG</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">노후불량 10/140번</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">가림방지 지번</span>'
+        ],
+        rules: [
+          '<strong>5종 주제도 통합</strong>: 노후불량(10번/140번), 연도별, 용도별, 규모별, 허가유무별 해치 레이어 분리 작도.',
+          '<strong>5단계 Z-Order</strong>: 연속지적도 ➔ SOLID해치 ➔ 경계선_L(7번) ➔ 지번 ➔ 구역계/도곽 계층 정렬.',
+          '<strong>QGIS 건축물 조인 SHP 동시 구축</strong>: A13_A14 결합 키로 결측 없는 공간데이터셋 완성.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 구역계와 건축물조서를 결합하여 '건축물현황도_만드는_법' 실무 스킬로 노후불량, 연도별, 용도별, 규모별, 허가유무별 5종 건축물현황도 DWG 도면을 _AI_작업문서/데이터_조서/에 구축해줘.`
+      },
+      vworld_downloader: {
+        icon: '🌐',
+        title: '브이월드 주제도 수집기 (V-World Downloader)',
+        sub: '용도지역, 도시계획시설 WFS 벡터 데이터 고속 다운로드',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-cyan-50 text-cyan-800 border border-cyan-200 rounded-lg">WFS OpenAPI</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">용도지역·시설선</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">좌표계 자동감지</span>'
+        ],
+        rules: [
+          '<strong>국토교통부 표준 코드셋 적용</strong>: 표준 레이어 스키마에 따라 누락 없이 다운로드.',
+          '<strong>구역계 BBOX 클립</strong>: 불필요한 외곽 영역 없이 사업 대상지와 4km 배후 권역만 정밀 추출.',
+          '<strong>SHP/GeoJSON 인코딩</strong>: UTF-8 CPG 동봉으로 한글 깨짐 원천 차단.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 구역계를 기준으로 브이월드 OpenAPI에서 최신 용도지역 및 도시계획시설선 공간데이터를 다운로드하여 _AI_작업문서/데이터_조서/에 SHP 파일로 구축해줘.`
+      },
+      geocoder: {
+        icon: '📍',
+        title: '지오코더 & 공시지가기 (Geocoder & Price Collector)',
+        sub: '대량 주소 좌표 변환 & 부동산공시가격알리미 연동',
+        badges: [
+          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">좌표 일괄 변환</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">개별공시지가</span>',
+          '<span class="text-xs font-bold px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">EPSG:5174/5186</span>'
+        ],
+        rules: [
+          '<strong>지번·도로명 양방향 지오코딩</strong>: 브이월드 Geocoder 2.0 API 연동으로 WGS84 및 국내 직교좌표 산출.',
+          '<strong>실시간 공시지가 수집</strong>: 필지 목록별 토지·주택 공시가격을 대량 일괄 매핑.',
+          '<strong>결과물 엑셀 정리</strong>: PNU 19자리와 함께 정리된 CSV/XLSX로 출력.'
+        ],
+        subfolder: '데이터_조서',
+        promptTemplate: (proj) => `${proj} 대상 필지들의 지번 목록을 기반으로 지오코더와 공시지가 수집기를 구동하여 좌표 및 공시지가 조서를 _AI_작업문서/데이터_조서/에 작성해줘.`
+      }
+    };
+
+    let currentSelectedSolutionKey = null;
+
+    function switchSolutionSubView(view) {
+      const appsView = document.getElementById('solutionAppsView');
+      const reportView = document.getElementById('solutionReportView');
+      const btnApps = document.getElementById('btnViewApps');
+      const btnReport = document.getElementById('btnViewReport');
+
+      if (!appsView || !reportView) return;
+
+      if (view === 'report') {
+        appsView.classList.add('hidden');
+        reportView.classList.remove('hidden');
+        if (btnApps && btnReport) {
+          btnApps.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer';
+          btnReport.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-600 text-white shadow-md cursor-pointer';
+        }
+      } else {
+        reportView.classList.add('hidden');
+        appsView.classList.remove('hidden');
+        if (btnApps && btnReport) {
+          btnApps.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md cursor-pointer';
+          btnReport.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer';
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function onSolutionProjectChange(projName) {
+      const pathBadge = document.getElementById('selectedProjectAiPath');
+      if (pathBadge) {
+        const shortName = projName.split(' ')[1] || projName;
+        pathBadge.innerText = shortName + '/_AI_작업문서/';
+      }
+      if (currentSelectedSolutionKey) {
+        updateModalContent(currentSelectedSolutionKey);
+      }
+    }
+
+    function openSolutionModal(appKey) {
+      const app = SOLUTION_APPS_DATA[appKey];
+      if (!app) return;
+      currentSelectedSolutionKey = appKey;
+
+      updateModalContent(appKey);
+
+      const modal = document.getElementById('solutionModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateModalContent(appKey) {
+      const app = SOLUTION_APPS_DATA[appKey];
+      if (!app) return;
+
+      const selProj = document.getElementById('solutionProjectSelect') ? document.getElementById('solutionProjectSelect').value : '09. 서울시 구로구 서울가든빌라재건축';
+
+      const iconEl = document.getElementById('solModalIcon');
+      const titleEl = document.getElementById('solModalTitle');
+      const subEl = document.getElementById('solModalSub');
+      const badgesEl = document.getElementById('solModalBadges');
+      const rulesEl = document.getElementById('solModalRules');
+      const pathEl = document.getElementById('solModalOutputPath');
+      const promptEl = document.getElementById('solModalPromptText');
+
+      if (iconEl) iconEl.innerText = app.icon;
+      if (titleEl) titleEl.innerText = app.title;
+      if (subEl) subEl.innerText = app.sub;
+      if (badgesEl) badgesEl.innerHTML = app.badges.join('');
+      if (rulesEl) {
+        rulesEl.innerHTML = app.rules.map(r => `<li>${r}</li>`).join('');
+      }
+      if (pathEl) {
+        pathEl.innerText = `C:\\Users\\LSH2\\Desktop\\작업파일\\${selProj}\\_AI_작업문서\\${app.subfolder}\\`;
+      }
+      if (promptEl) {
+        promptEl.innerText = app.promptTemplate(selProj);
+      }
+    }
+
+    function closeSolutionModal() {
+      const modal = document.getElementById('solutionModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function copySolutionPrompt() {
+      const promptEl = document.getElementById('solModalPromptText');
+      const btn = document.getElementById('btnCopyPromptText');
+      if (!promptEl) return;
+
+      navigator.clipboard.writeText(promptEl.innerText).then(() => {
+        if (btn) btn.innerText = '✅ 복사 완료! (채팅창에 붙여넣기 하시면 즉시 실행됩니다)';
+        setTimeout(() => {
+          if (btn) btn.innerText = '지시어 복사하고 AI에게 바로 실행 요청하기';
+        }, 3000);
+      }).catch(() => {
+        alert('클립보드 복사 완료: ' + promptEl.innerText);
+      });
+    }
+
+
     function renderWorkCalendar() {
       startLiveSalaryTicker();
       const grid = document.getElementById('workCalendarGrid');
@@ -5064,6 +5696,28 @@
 
         
         const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.21.0',
+    date: '2026-10-14',
+    badge: '도시계획 솔루션 센터 앱 허브',
+    badgeColor: 'indigo',
+    title: '🏢 도시계획 실무 솔루션 센터 (Urban Solution Center v2.0) 7번 탭 전면 탑재',
+    summary: '기존의 7번 업무툴 탭을 고도화하여 HMS Solution Center와 동일한 독립 앱 카드 방식의 [도시계획 실무 솔루션 센터]를 전면 구축했습니다. 토지조서, 건축물조서, 4km 기초도면, 토지현황도 4종, 건축물현황도 5종, 주제도 수집기 등 사용자가 확립한 도시계획 인허가 표준 규격을 100% 준수하는 8대 전문 솔루션을 원클릭으로 선택·구동하고 _AI_작업문서로 안전하게 출력할 수 있습니다.',
+    changes: [
+      '🚀 [8대 도시계획 전문 실무 앱 카드 허브 탑재]: 토지조서(20개 컬럼/실시간 수식), 건축물조서(27개 컬럼/노후도), 기초도면(4km 도곽/7단계 Z-Order), 토지현황도(4종 통합 DWG/SHP), 건축물현황도(5종 통합 DWG), 주제도 수집기, 지오코더, 리포트헬퍼 등 카드형 런처 구축.',
+      '📂 [프로젝트별 출력 자동 라우팅 연동]: 상단 프로젝트 선택 시 해당 사업장의 _AI_작업문서/ 데이터 조서 및 도면 폴더로 자동 연결.',
+      '⚡ [인터랙티브 실행 모달 & 프롬프트 원클릭 복사]: 각 솔루션 카드 클릭 시 실무 규격 상세 확인, 파일 입력 체크, AI 원클릭 지시어 자동 복사 기능 탑재.',
+      '📑 [리포트헬퍼 듀얼 뷰 지원]: 상단 탭 전환으로 기존 리포트헬퍼(ReportHelper) 심의도서 50p 정밀 검수 화면과 솔루션 앱 허브를 자유롭게 전환.'
+    ],
+    issues: [
+      {
+        symptom: '7번 업무툴 탭이 리포트헬퍼 아이프레임 단일 기능으로만 제한되어 있어 조서·도면 자동화 기능과의 접근성이 분리되어 있던 점',
+        cause: 'HMS 솔루션 센터와 같은 통합 전문 앱 런처 UI가 부재하여 대화창이나 파이썬 스크립트로만 개별 호출해야 했음',
+        solution: '7번 탭을 [도시계획 실무 솔루션 센터]로 전면 리뉴얼하여 8대 전문 도구를 한눈에 관리하고 원클릭으로 실행할 수 있는 현대적인 앱 허브 UI 구축 완료'
+      }
+    ]
+  },
+
   {
     version: 'v1.20.1',
     date: '2026-10-12',
