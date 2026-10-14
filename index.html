@@ -3515,10 +3515,10 @@
               <button onclick="openSystemWelcomeGuideModal()" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-xl border border-amber-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="시스템 시작 및 활용 가이드 열기">
                 💡 활용 가이드
               </button>
-              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="함께하는 동료 및 회원 목록 열람">
-                👥 ${isMaster ? '구성원 관리' : '멤버 목록'} (<span id="headerMemberCountSpan">${Object.keys(getRegisteredUsers()).length}</span>명)
-              </button>
               ${isMaster ? `
+              <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="가입 신청 승인 및 사용자 권한 관리">
+                👥 구성원 관리 (<span id="headerMemberCountSpan">${Object.keys(getRegisteredUsers()).length}</span>명)
+              </button>
               <button onclick="restoreDefaultProjectsData()" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="5대 마스터 프로젝트 즉시 원상복구">
                 🔄 마스터 데이터 복구
               </button>` : ''}
@@ -7745,9 +7745,8 @@
     }
 
     function openMemberAdminModal() {
-      const user = getCurrentUser();
-      if (!user || user.id === 'guest') {
-        alert('로그인한 회원만 멤버 목록을 열람할 수 있습니다.');
+      if (!checkIsMasterAdmin()) {
+        alert('총괄 마스터(admin)만 접근할 수 있는 관리 메뉴입니다.');
         return;
       }
       renderMemberAdminList();
@@ -7842,84 +7841,104 @@ function inspectMemberWorkspace(userId) {
       if (!target) return alert('사용자 정보를 찾을 수 없습니다.');
       if (userId === 'admin') return alert('마스터 본인의 작업 공간입니다.');
 
-      closeMemberAdminModal();
+      const modal = document.getElementById('memberWorkspaceInspectModal');
+      const titleEl = document.getElementById('inspectModalTitle');
+      const subtitleEl = document.getElementById('inspectModalSubtitle');
+      const bodyEl = document.getElementById('inspectModalBody');
+      if (!modal || !bodyEl) return;
 
-      if (typeof showAuthToast === 'function') {
-        showAuthToast('🔍 [' + (target.name || userId) + '] 님의 워크스페이스를 원격 로드 중입니다...', true);
-      }
+      if (titleEl) titleEl.textContent = `🔍 [${target.name || userId}] 님의 워크스페이스 점검`;
+      if (subtitleEl) subtitleEl.textContent = `소속: ${target.company || target.department || '일반'} · 아이디: @${userId} · 가입일: ${target.createdAt || '-'}`;
+
+      bodyEl.innerHTML = '<div class="text-center py-8 text-slate-400">데이터를 불러오는 중입니다...</div>';
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
 
       const fetchFromCloud = () => {
         if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-          const db = firebase.database();
-          return db.ref('urban_user_workspaces/' + userId).once('value').then(snap => snap.val());
+          return firebase.database().ref('urban_user_workspaces/' + userId).once('value').then(s => s.val());
         }
         return Promise.resolve(null);
       };
 
       fetchFromCloud().then(remoteWs => {
-        let memberStore = remoteWs;
-        if (!memberStore) {
+        let ws = remoteWs;
+        if (!ws) {
           try {
-            const localRaw = localStorage.getItem('urban_project_store_' + userId);
-            if (localRaw) memberStore = JSON.parse(localRaw);
+            const raw = localStorage.getItem('urban_project_store_' + userId);
+            if (raw) ws = JSON.parse(raw);
           } catch(e) {}
         }
-        if (!memberStore || typeof memberStore !== 'object') {
-          memberStore = { projects: [], dailyTasks: [], calendarEvents: [], careerLogs: [], workLogs: [] };
+        if (!ws || typeof ws !== 'object') {
+          ws = { projects: [], dailyTasks: [], calendarEvents: [] };
         }
 
-        sessionStorage.setItem('urban_admin_inspect_workspace', userId);
-        store = sanitizeStore(memberStore);
-        
-        showInspectionBanner(target);
-        renderAll();
+        const projs = Array.isArray(ws.projects) ? ws.projects : (ws.projects ? Object.values(ws.projects) : []);
+        const tasks = Array.isArray(ws.dailyTasks) ? ws.dailyTasks : (ws.dailyTasks ? Object.values(ws.dailyTasks) : []);
+        const events = Array.isArray(ws.calendarEvents) ? ws.calendarEvents : (ws.calendarEvents ? Object.values(ws.calendarEvents) : []);
 
-        if (typeof showAuthToast === 'function') {
-          showAuthToast('👀 [' + (target.name || userId) + '] 님의 워크스페이스를 열람 중입니다. (안전 읽기 모드)', false);
-        }
+        let html = `
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <span class="text-slate-500 block text-[11px]">등록 프로젝트</span>
+              <strong class="text-base text-blue-700 font-bold">${projs.length}개</strong>
+            </div>
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+              <span class="text-slate-500 block text-[11px]">등록 업무 (To-Do)</span>
+              <strong class="text-base text-emerald-700 font-bold">${tasks.length}건</strong>
+            </div>
+            <div class="p-3 bg-purple-50 rounded-xl border border-purple-100">
+              <span class="text-slate-500 block text-[11px]">캘린더 일정/출장</span>
+              <strong class="text-base text-purple-700 font-bold">${events.length}건</strong>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-800 text-xs mb-2 flex items-center gap-1.5">
+              <span>📌</span> 등록 프로젝트 목록 (${projs.length}개)
+            </h4>
+            ${projs.length === 0 ? '<div class="p-3.5 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center text-slate-400">등록된 프로젝트가 없습니다.</div>' : `
+              <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                ${projs.map((p, i) => `
+                  <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div>
+                      <strong class="text-slate-900">${i + 1}. ${p.name || '무제'}</strong>
+                      <span class="text-slate-500 ml-2 text-[11px]">${p.period || ''}</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">${p.progress || 0}% 진행</span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-800 text-xs mb-2 flex items-center gap-1.5">
+              <span>📅</span> 최근 업무 목록 (${tasks.length}건)
+            </h4>
+            ${tasks.length === 0 ? '<div class="p-3.5 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center text-slate-400">등록된 업무가 없습니다.</div>' : `
+              <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                ${tasks.slice(0, 10).map((t, i) => `
+                  <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex justify-between items-center">
+                    <span class="truncate ${t.completed ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">${t.title || '무제'}</span>
+                    <span class="text-slate-400 font-mono text-[11px] shrink-0 ml-2">${t.date || ''}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+        bodyEl.innerHTML = html;
       }).catch(err => {
-        console.error("Inspection error:", err);
-        alert('워크스페이스 데이터를 가져오는 중 오류가 발생했습니다.');
+        bodyEl.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl">데이터 로드 실패: ${err.message}</div>`;
       });
     }
 
-    function exitInspectionMode() {
-      sessionStorage.removeItem('urban_admin_inspect_workspace');
-      hideInspectionBanner();
-      loadStore();
-      renderAll();
-      if (typeof showAuthToast === 'function') {
-        showAuthToast('👑 총괄 마스터 본인의 작업 공간으로 안전하게 복귀했습니다.', false);
-      }
-    }
-
-    function showInspectionBanner(target) {
-      let banner = document.getElementById('supervisorInspectionBanner');
-      if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'supervisorInspectionBanner';
-        banner.className = 'fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white px-4 py-2.5 shadow-xl flex items-center justify-between gap-4 text-xs font-bold animate-in slide-in-from-top duration-200';
-        document.body.prepend(banner);
-      }
-      banner.innerHTML = `
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
-          <span>👀 [${target.company || target.department || '팀원'} - ${target.name || target.id}] 님의 워크스페이스 원격 열람 중 (등록 사업: ${(store.projects || []).length}개, 업무: ${(store.dailyTasks || []).length}개)</span>
-          <span class="px-2 py-0.5 rounded-full bg-white/20 text-[10.5px]">마스터 보호 읽기 전용</span>
-        </div>
-        <button onclick="exitInspectionMode()" class="px-3 py-1 bg-white hover:bg-slate-100 text-purple-900 rounded-lg font-black transition shadow-sm cursor-pointer flex items-center gap-1.5 shrink-0">
-          <span>🚪 마스터 내 화면으로 복귀</span>
-        </button>
-      `;
-      banner.style.display = 'flex';
-      banner.classList.remove('hidden');
-    }
-
-    function hideInspectionBanner() {
-      const banner = document.getElementById('supervisorInspectionBanner');
-      if (banner) {
-        banner.style.display = 'none';
-        banner.classList.add('hidden');
+    function closeMemberWorkspaceInspectModal() {
+      const modal = document.getElementById('memberWorkspaceInspectModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
       }
     }
 
@@ -13179,6 +13198,33 @@ grid.innerHTML = '';
     </div>
   </div>
 
+<!-- MEMBER WORKSPACE INSPECTION PREVIEW MODAL (NO FLOATING BANNER) -->
+  <div id="memberWorkspaceInspectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hidden" style="display: none;">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+      <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-5 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">🔍</span>
+          <div>
+            <h3 class="text-base font-bold" id="inspectModalTitle">회원 워크스페이스 점검</h3>
+            <p class="text-xs text-blue-200 mt-0.5" id="inspectModalSubtitle">해당 회원이 등록한 프로젝트 및 업무 현황</p>
+          </div>
+        </div>
+        <button onclick="closeMemberWorkspaceInspectModal()" class="text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-800" id="inspectModalBody">
+        <!-- Dynamically injected inspection details -->
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+        <button onclick="closeMemberWorkspaceInspectModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold transition text-xs cursor-pointer">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
