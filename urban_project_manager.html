@@ -3723,13 +3723,10 @@
             let cleanRemote = sanitizeStore(remoteData);
 
             if (isMaster) {
-              const badNames = ['광명시 광명동', '인천 작전역인근', '인천시 계산역북측구역', '분당 노후계획도시 47구역, S7구역 통합재건축', '성남시', '수원시', '테스트'];
-              const remoteIsDirty = cleanRemote.projects.length !== 7 || 
-                cleanRemote.projects.some(p => badNames.some(b => p.name.includes(b))) ||
-                (cleanRemote.dailyTasks || []).some(t => t && t.title && t.title.includes('최근 업무'));
+              const remoteIsDirty = !cleanRemote.projects || cleanRemote.projects.length === 0;
 
               if (remoteIsDirty) {
-                console.warn('Cloud remote contained legacy/fake data. Overwriting cloud with pure master store!');
+                console.warn('Cloud remote master store was empty. Initializing with pure master store.');
                 cleanRemote.projects = getInitialDefaultProjects();
                 cleanRemote.dailyTasks = getInitialDefaultTasks();
                 cleanRemote.careerLogs = getInitialDefaultCareer();
