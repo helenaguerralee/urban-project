@@ -150,6 +150,17 @@
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+
+  <!-- PDF.js, JSZip & SheetJS for Interactive Solution Center & PNG Converter -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+
 </head>
 
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white overflow-x-hidden w-full max-w-full">
@@ -171,7 +182,7 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>v1.21.0 Enterprise Workspace</span>
+          <span>v1.22.0 Enterprise Workspace</span>
         </div>
       </div>
 
@@ -260,7 +271,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.21.0</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.22.0</span>
 
           </div>
 
@@ -1143,6 +1154,8 @@
 
         
         <!-- TAB 7: URBAN PLANNING SOLUTION CENTER & REPORT HELPER -->
+        
+        <!-- TAB 7: URBAN PLANNING SOLUTION CENTER & REPORT HELPER & DIRECT WORKBENCH -->
         <div id="panel-reporthelper" class="tab-panel hidden space-y-6 w-full">
 
           <!-- Main Top Hero Banner -->
@@ -1150,25 +1163,29 @@
             <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
               <div class="space-y-1.5 max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold tracking-wide">
-                  <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                  <span>URBAN PLANNING SOLUTION CENTER v2.0</span>
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>URBAN PLANNING SOLUTION CENTER v2.2 · DIRECT CONTROL</span>
                 </div>
                 <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
                   <span>🏢 도시계획 실무 솔루션 센터</span>
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-300/90 leading-relaxed font-medium">
-                  도시계획 인허가 및 심의도서 실무 표준 규격을 100% 준수하는 전문 앱 허브입니다. 토지·건축물 조서 자동 생성, 4km 도곽 및 엄격한 Z-Order CAD 도면 작도, 공간데이터 수집 및 문서 정밀 검수를 원클릭으로 구동합니다.
+                  인허가 표준 100% 준수 조서 구축, 4km CAD 도면 작도, 초고화질 PNG 변환, 내 컴퓨터 폴더 다이렉트 연결 및 웹 내 스프레드시트 실시간 수정을 한 화면에서 원스톱으로 제어합니다.
                 </p>
               </div>
 
               <!-- View Switcher Tabs -->
-              <div class="flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/80 shrink-0 self-stretch md:self-auto justify-center">
-                <button id="btnViewApps" onclick="switchSolutionSubView('apps')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md cursor-pointer">
+              <div class="flex flex-wrap items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/80 shrink-0 self-stretch md:self-auto justify-center">
+                <button id="btnViewApps" onclick="switchSolutionSubView('apps')" class="px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-md cursor-pointer">
                   <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                  <span>8대 솔루션 앱</span>
+                  <span>9대 솔루션 앱</span>
                 </button>
-                <button id="btnViewReport" onclick="switchSolutionSubView('report')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer">
-                  <i data-lucide="file-search" class="w-4 h-4"></i>
+                <button id="btnViewPng" onclick="switchSolutionSubView('png')" class="px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer">
+                  <i data-lucide="image" class="w-4 h-4 text-amber-400"></i>
+                  <span>초고화질 PNG 변환기</span>
+                </button>
+                <button id="btnViewReport" onclick="switchSolutionSubView('report')" class="px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer">
+                  <i data-lucide="file-search" class="w-4 h-4 text-purple-400"></i>
                   <span>문서 검수 (ReportHelper)</span>
                 </button>
               </div>
@@ -1179,10 +1196,10 @@
             <div class="absolute left-1/3 -top-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
           </div>
 
-          <!-- SUB-VIEW 1: 8 SOLUTION APPS HUB -->
+          <!-- SUB-VIEW 1: 9 SOLUTION APPS HUB -->
           <div id="solutionAppsView" class="space-y-6">
 
-            <!-- Control Bar: Project Selector & Routing Status -->
+            <!-- Control Bar: Project Selector, Direct Folder Connection & Routing Status -->
             <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
                 <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5 shrink-0">
@@ -1201,21 +1218,35 @@
                 </select>
               </div>
 
-              <!-- Output Path Routing Badge -->
-              <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-medium">
+              <!-- Direct Folder Connection & Path Routing Badge -->
+              <div class="flex flex-wrap items-center gap-2.5 text-xs w-full lg:w-auto">
+                <button id="btnConnectFolder" onclick="connectLocalProjectDirectory()" class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                  <i data-lucide="folder-symlink" class="w-4 h-4"></i>
+                  <span id="btnConnectFolderText">📁 내 PC 사업 폴더 다이렉트 연결</span>
+                </button>
+
+                <div class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-medium">
                   <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
-                  <span>자동 저장 경로: <strong id="selectedProjectAiPath" class="font-mono text-emerald-900">09. 서울가든빌라/_AI_작업문서/</strong></span>
-                </div>
-                <div class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[11px] font-semibold">
-                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                  <span>인허가 표준 준수 엔진</span>
+                  <span>자동 저장: <strong id="selectedProjectAiPath" class="font-mono text-emerald-900">09. 서울가든빌라/_AI_작업문서/</strong></span>
                 </div>
               </div>
             </div>
 
-            <!-- 8 Solution Apps Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Connected Directory Status Alert (If connected) -->
+            <div id="directFolderStatusAlert" class="hidden bg-emerald-50/90 border border-emerald-300 p-3.5 rounded-2xl flex items-center justify-between text-xs text-emerald-950">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span class="font-bold">내 컴퓨터 다이렉트 제어 모드 활성화:</span>
+                <span id="connectedFolderName" class="font-mono bg-white px-2 py-0.5 rounded-lg border border-emerald-200 text-emerald-900 font-bold"></span>
+                <span>(조서 수정 시 다운로드 창 없이 _AI_작업문서/에 즉시 저장됩니다)</span>
+              </div>
+              <button onclick="disconnectLocalDirectory()" class="text-xs text-slate-400 hover:text-rose-600 underline cursor-pointer">
+                연결 해제
+              </button>
+            </div>
+
+            <!-- 9 Solution Apps Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
               <!-- APP 1: 토지조서 구축기 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
@@ -1224,27 +1255,27 @@
                     <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       📋
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">다이렉트 편집 ⚡</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
                       <span>토지조서 구축기</span>
                     </h3>
-                    <p class="text-[11px] font-mono text-slate-400">Land Ledger Builder</p>
+                    <p class="text-[11px] font-mono text-slate-400">Land Ledger Builder &amp; Editor</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
-                    브이월드 연속지적도와 QGIS 평면직교 기하엔진을 연동하여, 인허가 표준 20개 컬럼과 실시간 안분 수식이 완비된 엑셀을 전자동 산출합니다.
+                    브이월드 연속지적도와 연동하여 20개 표준 컬럼 및 실시간 안분 공식(=ROUND)이 완비된 조서를 웹에서 직접 열고, 셀을 수정하여 엑셀로 다이렉트 저장합니다.
                   </p>
                   <div class="flex flex-wrap gap-1.5 pt-1">
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">20개 표준컬럼</span>
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">안분공식 수식</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md">토지특성 연동</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">웹내 직접 수정</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX</span>
-                  <button onclick="openSolutionModal('land_ledger')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('land_ledger')" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기 &amp; 편집</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
@@ -1257,112 +1288,145 @@
                     <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       🏢
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">다이렉트 편집 ⚡</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
                       <span>건축물조서 구축기</span>
                     </h3>
-                    <p class="text-[11px] font-mono text-slate-400">Building Ledger Builder</p>
+                    <p class="text-[11px] font-mono text-slate-400">Building Ledger Builder &amp; Editor</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
-                    브이월드 건축물연령(AL_D196)을 연동하여, 철콘 30년/비철콘 20년 기준 노후도 판정 수식과 27개 표준 컬럼 및 상단 집계행이 완비된 조서를 생성합니다.
+                    브이월드 건축물연령정보(AL_D196)를 연동하여 철근콘크리트 30년/비철콘 20년 노후도 판정식(=IF)과 27개 표준 컬럼 조서를 웹에서 즉시 확인·수정합니다.
                   </p>
                   <div class="flex flex-wrap gap-1.5 pt-1">
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">27개 표준컬럼</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-rose-50 text-rose-700 rounded-md">노후도 판정식</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">상단 요약집계</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-rose-50 text-rose-700 rounded-md">노후도 판정식 =IF</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">웹내 직접 수정</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX</span>
-                  <button onclick="openSolutionModal('building_ledger')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('building_ledger')" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기 &amp; 편집</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 3: 기초도면 4km 빌더 -->
+              <!-- APP 3: CAD 도면 & 보고서 PDF ➔ 초고화질 PNG 변환기 (전면 노출!) -->
+              <div class="bg-gradient-to-br from-amber-500/5 via-white to-orange-500/5 rounded-2xl border-2 border-amber-300/80 p-5 shadow-sm hover:shadow-md hover:border-amber-400 transition group flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md group-hover:scale-105 transition">
+                      📐
+                    </div>
+                    <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">100% 로컬 변환 🔥</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 text-sm group-hover:text-amber-700 transition flex items-center gap-1.5">
+                      <span>CAD/PDF ➔ 초고화질 PNG 변환기</span>
+                    </h3>
+                    <p class="text-[11px] font-mono text-amber-600 font-semibold">High-Res PNG Converter (Hairline Match)</p>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed">
+                    CAD 도면 PDF의 0-width 헤어라인, 범례 박스, 테두리선을 1:1 보존하여 300·600 DPI 초고화질 PNG로 변환하고 클립보드(Ctrl+V) 및 일괄 ZIP 다운로드합니다.
+                  </p>
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md">300/600 DPI</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-orange-100 text-orange-800 rounded-md">Hairline Match</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md">클립보드 복사</span>
+                  </div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-amber-600 font-semibold">.PDF ➔ .PNG</span>
+                  <button onclick="switchSolutionSubView('png')" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>변환기 바로 열기</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- APP 4: 기초도면 4km 빌더 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
                     <div class="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-600 border border-blue-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       📐
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">CAD DWG</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
                       <span>기초도면 4km 빌더</span>
                     </h3>
-                    <p class="text-[11px] font-mono text-slate-400">Base Map 4km DWG</p>
+                    <p class="text-[11px] font-mono text-slate-400">Base Map 4km DWG Builder</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
-                    반경 2km(4km×4km 정방형 도곽) 외곽을 100% TRIM하고, 엄격한 7단계 Z-Order와 장축 회전 지번 텍스트가 적용된 AutoCAD 2021 네이티브 DWG를 작도합니다.
+                    반경 2km(4km 정방형 도곽) 외곽 100% TRIM 및 엄격한 7단계 Z-Order 순서로 연속지적도, 수치지형도, 용도지역, 지번을 AutoCAD 2021 DWG로 작도합니다.
                   </p>
                   <div class="flex flex-wrap gap-1.5 pt-1">
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">4km 정방형 도곽</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">7단계 Z-Order</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md">AutoCAD DWG</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">4km×4km 정방형</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md">7단계 Z-Order</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">외곽 100% TRIM</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG</span>
-                  <button onclick="openSolutionModal('base_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('base_map')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 4: 토지현황도 4종 빌더 -->
+              <!-- APP 5: 토지현황도 4종 빌더 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
                     <div class="w-11 h-11 rounded-2xl bg-teal-500/10 text-teal-600 border border-teal-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       🗺️
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">CAD · QGIS</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
                       <span>토지현황도 4종 빌더</span>
                     </h3>
-                    <p class="text-[11px] font-mono text-slate-400">Cadastral Thematic Maps</p>
+                    <p class="text-[11px] font-mono text-slate-400">Thematic Maps DWG &amp; SHP</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
-                    토지조서와 PNU 1:1 조인된 QGIS 공간데이터를 구축하고, 단일 DWG 안에 지목·소유·규모·토지이용 4종 현황도를 5단계 Z-Order로 통합 구축합니다.
+                    단일 DWG 도면 안에 지목·소유·규모·토지이용 4종 현황도를 독립 해치 레이어로 분리 구축하고 PNU 기준 QGIS 속성 완비 SHP를 동시 출력합니다.
                   </p>
                   <div class="flex flex-wrap gap-1.5 pt-1">
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">4종 통합 DWG</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md">QGIS 1:1 SHP</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md">토지이용 투영</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-teal-50 text-teal-700 rounded-md">5단계 Z-Order</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">QGIS 조인 SHP</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG · .SHP</span>
-                  <button onclick="openSolutionModal('land_status_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('land_status_map')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 5: 건축물현황도 5종 빌더 -->
+              <!-- APP 6: 건축물현황도 5종 빌더 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
                     <div class="w-11 h-11 rounded-2xl bg-rose-500/10 text-rose-600 border border-rose-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       🏗️
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">CAD · QGIS</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
                       <span>건축물현황도 5종 빌더</span>
                     </h3>
-                    <p class="text-[11px] font-mono text-slate-400">Building Status Maps</p>
+                    <p class="text-[11px] font-mono text-slate-400">Building Status Maps DWG</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
                     건축물조서와 공간데이터를 1:1 결합하여 단일 DWG 안에 노후불량·연도별·용도별·규모별(층수)·허가유무별 5종 현황도를 표준 색상으로 완비합니다.
@@ -1375,21 +1439,21 @@
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.DWG · .SHP</span>
-                  <button onclick="openSolutionModal('building_status_map')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('building_status_map')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 6: 브이월드 주제도 수집기 -->
+              <!-- APP 7: 브이월드 주제도 수집기 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
                     <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 text-cyan-600 border border-cyan-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       🌐
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">OpenAPI WFS</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
@@ -1408,21 +1472,21 @@
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.SHP · .GEOJSON</span>
-                  <button onclick="openSolutionModal('vworld_downloader')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('vworld_downloader')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 7: 지오코더 & 공시지가기 -->
+              <!-- APP 8: 지오코더 & 공시지가기 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
                     <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold text-lg shadow-2xs group-hover:scale-105 transition">
                       📍
                     </div>
-                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">READY 🟢</span>
+                    <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">GEOCODE</span>
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition flex items-center gap-1.5">
@@ -1441,14 +1505,14 @@
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.XLSX · .CSV</span>
-                  <button onclick="openSolutionModal('geocoder')" class="px-3 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
-                    <span>실행 &amp; 가이드</span>
+                  <button onclick="openSolutionWorkbench('geocoder')" class="px-3.5 py-1.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                    <span>작업대 열기</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- APP 8: 리포트헬퍼 & 도서 검수기 -->
+              <!-- APP 9: 리포트헬퍼 & 도서 검수기 -->
               <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-blue-300 transition group flex flex-col justify-between">
                 <div class="space-y-3">
                   <div class="flex items-start justify-between">
@@ -1464,17 +1528,17 @@
                     <p class="text-[11px] font-mono text-slate-400">ReportHelper &amp; Audit</p>
                   </div>
                   <p class="text-xs text-slate-600 leading-relaxed">
-                    보고서 3버전 윤문 생성, 50페이지 단위 심의도서 수치 불일치·오타 딥스캔, HWPX 파싱 및 고화질 도면 PNG 변환 엔진을 구동합니다.
+                    보고서 3버전 윤문 생성, 50페이지 단위 심의도서 수치 불일치·오타 딥스캔 및 HWPX 심의도서 정밀 검수를 구동합니다.
                   </p>
                   <div class="flex flex-wrap gap-1.5 pt-1">
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">50p 분할 검수</span>
                     <span class="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md">보고서 3버전</span>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">고화질 PNG 변환</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md">오탈자 딥스캔</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
                   <span class="text-[10px] font-mono text-slate-400 font-semibold">.HWPX · .PDF</span>
-                  <button onclick="switchSolutionSubView('report')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
+                  <button onclick="switchSolutionSubView('report')" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1 cursor-pointer">
                     <span>검수기 열기</span>
                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                   </button>
@@ -1485,7 +1549,135 @@
 
           </div>
 
-          <!-- SUB-VIEW 2: REPORT HELPER INTEGRATION -->
+          <!-- SUB-VIEW 2: HIGH-RES CAD/PDF TO PNG CONVERTER (전면 노출 화면!) -->
+          <div id="solutionPngView" class="hidden space-y-5">
+            <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-slate-100">
+                <div>
+                  <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-amber-600"></i>
+                    <span>CAD 도면 &amp; 심의도서 PDF ➔ 초고화질 PNG 변환기</span>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500 text-white font-bold">Hairline Match 수칙 적용</span>
+                  </h3>
+                  <p class="text-xs text-slate-500 mt-1">
+                    CAD 도면의 <strong>0-width 헤어라인선, 범례 박스, 테두리선, 원색</strong>이 뭉개지지 않고 1:1 완벽 보존되며 브라우저 로컬에서 안전하게 변환됩니다.
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="switchSolutionSubView('apps')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 솔루션 허브로 복귀
+                  </button>
+                </div>
+              </div>
+
+              <!-- Conversion Settings Bar -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                    <i data-lucide="sliders" class="w-4 h-4 text-indigo-600"></i> 렌더링 해상도 (DPI):
+                  </span>
+                  <div class="flex flex-wrap gap-2">
+                    <label class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl cursor-pointer border border-slate-200 hover:border-indigo-500 shadow-xs">
+                      <input type="radio" name="solPdfDpi" value="150" class="text-indigo-600">
+                      <span class="text-slate-700">150 DPI (일반 문서)</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl cursor-pointer border border-indigo-400 bg-indigo-50/30 shadow-xs font-bold text-indigo-900">
+                      <input type="radio" name="solPdfDpi" value="300" checked class="text-indigo-600">
+                      <span>300 DPI (CAD 도면 표준 권장)</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl cursor-pointer border border-slate-200 hover:border-indigo-500 shadow-xs">
+                      <input type="radio" name="solPdfDpi" value="450" class="text-indigo-600">
+                      <span class="text-slate-700">450 DPI (정밀 도곽선)</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl cursor-pointer border border-slate-200 hover:border-indigo-500 shadow-xs">
+                      <input type="radio" name="solPdfDpi" value="600" class="text-indigo-600">
+                      <span class="text-slate-700">600 DPI (초고해상도 인쇄용)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <label class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl cursor-pointer border border-slate-200 text-slate-700 shadow-xs">
+                    <input type="checkbox" id="chkSolEnhanceLines" checked class="rounded text-indigo-600">
+                    <span class="font-medium">헤어라인/미세선 뭉개짐 방지 필터</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- File Drag & Drop Zone -->
+              <input type="file" id="solPdfFileInput" accept=".pdf" class="hidden" onchange="handleSolPdfFileSelect(event)">
+              <div id="solPdfDropZone" onclick="document.getElementById('solPdfFileInput').click()" class="border-2 border-dashed border-amber-300 hover:border-amber-500 bg-amber-50/20 hover:bg-amber-50/40 rounded-3xl p-10 text-center cursor-pointer transition flex flex-col items-center justify-center gap-3">
+                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-xs">
+                  <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-slate-800">
+                    변환할 PDF 도면 또는 보고서 파일을 여기로 드래그 앤 드롭하세요
+                  </p>
+                  <p class="text-xs text-slate-500 mt-1">
+                    또는 클릭하여 내 PC에서 파일 선택 (대용량 CAD 도면 PDF 완벽 지원)
+                  </p>
+                </div>
+                <div class="flex gap-3 text-[11px] text-slate-400">
+                  <span>• 단일/다중 페이지 지원</span>
+                  <span>• 원본 비율 100% 보존</span>
+                  <span>• RGB 원색 그대로 추출</span>
+                </div>
+              </div>
+
+              <!-- Loaded File Info Bar (Hidden by default) -->
+              <div id="solPdfFileInfoBar" class="hidden bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-900 text-sm" id="solPdfFileName">filename.pdf</p>
+                    <p class="text-slate-500 text-xs" id="solPdfFileMeta">용량: 0 MB | 총 0 페이지</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="startSolPdfConversion()" id="btnStartSolPdfConvert" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="play" class="w-4 h-4"></i> <span>초고화질 PNG 변환 시작</span>
+                  </button>
+                  <button onclick="resetSolPdfUploader()" class="px-3.5 py-2.5 bg-white hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 transition cursor-pointer">
+                    취소
+                  </button>
+                </div>
+              </div>
+
+              <!-- Progress Indicator -->
+              <div id="solPdfProgressContainer" class="hidden space-y-2">
+                <div class="flex justify-between text-xs font-semibold text-slate-700">
+                  <span id="solPdfProgressLabel">변환 진행 중...</span>
+                  <span id="solPdfProgressPercent" class="text-amber-600 font-mono">0%</span>
+                </div>
+                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden p-0.5">
+                  <div id="solPdfProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-200 w-0"></div>
+                </div>
+              </div>
+
+              <!-- Result Gallery Action Bar -->
+              <div id="solPdfResultActionBar" class="hidden flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 text-xs">
+                <div class="flex items-center gap-2 text-emerald-800 font-bold">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                  <span>변환 완료! 총 <span id="solConvertedPageCount" class="font-mono text-emerald-600">0</span>개 페이지의 고화질 PNG가 생성되었습니다.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="downloadAllSolAsZip()" id="btnSolDownloadZip" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="archive" class="w-4 h-4"></i> <span>전체 페이지 ZIP 일괄 다운로드</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Converted Pages Gallery -->
+              <div id="solPdfPagesGallery" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+
+            </div>
+          </div>
+
+          <!-- SUB-VIEW 3: REPORT HELPER INTEGRATION -->
           <div id="solutionReportView" class="hidden space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-rose-50 to-indigo-50 p-3.5 sm:p-4 rounded-2xl border border-rose-200 text-xs w-full">
               <div class="w-full sm:w-auto">
@@ -1499,7 +1691,7 @@
                 <button onclick="switchSolutionSubView('apps')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1 cursor-pointer">
                   <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> 솔루션 허브로 복귀
                 </button>
-                <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-sm transition flex items-center justify-center gap-1.5 text-xs cursor-pointer">
+                <button onclick="window.open('report_helper.html', '_blank', 'width=1400,height=900')" class="px-3.5 py-2 bg-white hover:bg-rose-100 text-rose-900 font-bold rounded-xl border border-rose-300 shadow-xs transition flex items-center justify-center gap-1.5 text-xs cursor-pointer">
                   <i data-lucide="external-link" class="w-4 h-4 text-rose-600"></i> 단독 새창 열기
                 </button>
               </div>
@@ -1512,69 +1704,157 @@
 
         </div>
 
-        <!-- MODAL: SOLUTION APP DETAIL & ONE-CLICK RUNNER -->
-        <div id="solutionModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-          <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <!-- ======================================================== -->
+        <!-- MODAL: INTERACTIVE DIRECT WORKBENCH (웹내 실시간 수정 & 다이렉트 저장) -->
+        <!-- ======================================================== -->
+        <div id="solutionModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+          <div class="bg-white rounded-3xl max-w-5xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col justify-between overflow-hidden">
             
-            <div class="flex items-start justify-between pb-3 border-b border-slate-100">
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between pb-3 border-b border-slate-100 shrink-0">
               <div class="flex items-center gap-3">
-                <div id="solModalIcon" class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold text-2xl shadow-xs">
+                <div id="solModalIcon" class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center font-bold text-2xl shadow-xs shrink-0">
                   📋
                 </div>
                 <div>
-                  <h3 id="solModalTitle" class="text-base sm:text-lg font-black text-slate-900">토지조서 구축기</h3>
-                  <p id="solModalSub" class="text-xs font-mono text-slate-400">Land Ledger Builder Engine</p>
+                  <div class="flex items-center gap-2">
+                    <h3 id="solModalTitle" class="text-base sm:text-lg font-black text-slate-900">토지조서 구축기</h3>
+                    <span id="solModalLiveBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      실시간 대화형 작업대 ⚡
+                    </span>
+                  </div>
+                  <p id="solModalSub" class="text-xs font-mono text-slate-400">Interactive Urban Planning Direct Workbench</p>
                 </div>
               </div>
-              <button onclick="closeSolutionModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer">
+              <button onclick="closeSolutionModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0">
                 <i data-lucide="x" class="w-4 h-4"></i>
               </button>
             </div>
 
-            <!-- Specs Badge List -->
-            <div id="solModalBadges" class="flex flex-wrap gap-2"></div>
+            <!-- Modal Scrollable Content Area -->
+            <div class="space-y-4 overflow-y-auto pr-1 flex-1">
 
-            <!-- Compliance Point Box -->
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
-              <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
-                <span>도시계획 인허가 실무 표준 준수 사항</span>
-              </h4>
-              <ul id="solModalRules" class="text-xs text-slate-600 space-y-1.5 list-disc list-inside"></ul>
-            </div>
+              <!-- Badges Container -->
+              <div id="solModalBadges" class="flex flex-wrap gap-1.5"></div>
 
-            <!-- Path & Direct Execution -->
-            <div class="space-y-3">
-              <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/80 text-xs text-emerald-950 space-y-1">
-                <div class="font-bold flex items-center gap-1.5 text-emerald-800">
-                  <i data-lucide="folder-check" class="w-4 h-4 text-emerald-600"></i>
-                  <span>출력 저장 위치 (최우선 준수 경로):</span>
-                </div>
-                <div id="solModalOutputPath" class="font-mono font-bold text-[11px] bg-white p-2 rounded-xl border border-emerald-200 text-emerald-900 break-all select-all"></div>
-              </div>
-
-              <!-- AI One-Click Prompt Generator -->
-              <div class="bg-blue-50/60 p-4 rounded-2xl border border-blue-200/70 space-y-2">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-blue-600"></i>
-                    <span>AI 원클릭 자동 실행 프롬프트</span>
+              <!-- Top Action & Input Bar: Local File Upload & Auto-Build -->
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/90 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="folder-input" class="w-4 h-4 text-blue-600"></i>
+                    <span>작업 대상 파일/폴더 선택 (구역계 DWG/SHP 또는 기존 조서 XLSX)</span>
                   </span>
-                  <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-md">클립보드 복사 가능</span>
+                  <div class="flex items-center gap-2">
+                    <input type="file" id="solWorkbenchFileInput" accept=".xlsx,.csv,.dwg,.dxf,.shp,.geojson,.zip" class="hidden" onchange="handleWorkbenchFile(event)">
+                    <button onclick="document.getElementById('solWorkbenchFileInput').click()" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                      <i data-lucide="upload" class="w-3.5 h-3.5"></i> 파일 불러오기
+                    </button>
+                    <button onclick="loadSampleLedgerData()" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                      <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> 표준 샘플 로드
+                    </button>
+                  </div>
                 </div>
-                <div id="solModalPromptText" class="font-mono text-xs bg-white p-2.5 rounded-xl border border-blue-200 text-blue-950 select-all leading-relaxed"></div>
-                <button id="btnCopyPrompt" onclick="copySolutionPrompt()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                  <i data-lucide="copy" class="w-4 h-4"></i>
-                  <span id="btnCopyPromptText">지시어 복사하고 AI에게 바로 실행 요청하기</span>
-                </button>
+
+                <div id="workbenchLoadedFileInfo" class="text-[11px] text-slate-500 flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200">
+                  <span class="font-bold text-slate-700">현재 작업 데이터:</span>
+                  <span id="currentLoadedDatasetName" class="font-mono text-blue-700 font-bold">기본 표준 데이터셋 활성화됨 (수정 가능)</span>
+                </div>
               </div>
+
+              <!-- Interactive In-Line Spreadsheet Table Grid -->
+              <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="table" class="w-4 h-4 text-emerald-600"></i>
+                    <span>실시간 조서 표 뷰어 &amp; 인라인 셀 편집기 (더블클릭/입력으로 수치 즉시 수정)</span>
+                  </span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <button onclick="addWorkbenchTableRow()" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                      <i data-lucide="plus" class="w-3 h-3"></i> 행 추가
+                    </button>
+                    <button onclick="resetWorkbenchTable()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer">
+                      <i data-lucide="rotate-ccw" class="w-3 h-3"></i> 원본 복원
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Table Container with Horizontal Scroll -->
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-inner max-h-64 overflow-y-auto">
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                      <thead id="solWorkbenchTableHead" class="bg-slate-100 text-slate-700 font-bold sticky top-0 z-10 border-b border-slate-200">
+                        <!-- Populated by JS -->
+                      </thead>
+                      <tbody id="solWorkbenchTableBody" class="divide-y divide-slate-100 bg-white">
+                        <!-- Populated by JS with editable inputs -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Table Live Summary Bar -->
+                <div id="solTableSummaryBar" class="bg-blue-50/70 p-3 rounded-xl border border-blue-200 text-xs text-blue-950 flex flex-wrap items-center justify-between gap-3 font-semibold">
+                  <!-- Dynamic summary: Total parcels, sum area, etc. -->
+                </div>
+              </div>
+
+              <!-- Path Routing & Direct Controls -->
+              <div class="space-y-3 pt-1">
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 text-xs text-emerald-950 space-y-2">
+                  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <span class="font-bold flex items-center gap-1.5 text-emerald-800">
+                      <i data-lucide="folder-check" class="w-4 h-4 text-emerald-600"></i>
+                      <span>내 컴퓨터 출력 저장 폴더:</span>
+                    </span>
+                    <button onclick="openExplorerTargetFolder()" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-[11px] transition flex items-center gap-1 cursor-pointer shadow-2xs">
+                      <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-600"></i>
+                      <span>📂 윈도우 탐색기로 바로 열기</span>
+                    </button>
+                  </div>
+                  <div id="solModalOutputPath" class="font-mono font-bold text-[11px] bg-white p-2 rounded-xl border border-emerald-200 text-emerald-900 break-all select-all"></div>
+                </div>
+
+                <!-- Direct Execution & Save Action Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button id="btnDirectSave" onclick="saveWorkbenchToLocalDisk()" class="py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span id="btnDirectSaveText">💾 수정본 엑셀 다이렉트 저장 (.xlsx)</span>
+                  </button>
+
+                  <button onclick="openExplorerTargetFolder()" class="py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i data-lucide="folder-symlink" class="w-4 h-4 text-amber-400"></i>
+                    <span>📂 출력 폴더 탐색기 실행 경로 복사 (Win+R)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Collapsible AI Automation Prompt (Reference) -->
+              <details class="group bg-slate-50 rounded-2xl border border-slate-200 p-3 text-xs">
+                <summary class="font-bold text-slate-700 cursor-pointer flex items-center justify-between">
+                  <span class="flex items-center gap-1.5 text-blue-700">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>AI 자동 작도/고급 스크립트 실행 지시어 보기 (선택사항)</span>
+                  </span>
+                  <span class="text-slate-400 text-[11px] group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="mt-3 space-y-2">
+                  <div id="solModalPromptText" class="font-mono text-xs bg-white p-2.5 rounded-xl border border-slate-200 text-slate-800 select-all leading-relaxed"></div>
+                  <button onclick="copySolutionPrompt()" class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span id="btnCopyPromptText">지시어 복사하기</span>
+                  </button>
+                </div>
+              </details>
+
             </div>
 
-            <div class="pt-2 flex justify-end">
+            <!-- Modal Footer -->
+            <div class="pt-3 border-t border-slate-100 flex justify-end shrink-0">
               <button onclick="closeSolutionModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
                 닫기
               </button>
             </div>
+
           </div>
         </div>
 
@@ -1591,14 +1871,14 @@
               </h2>
               <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
             </div>
-            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.21.0</span>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.22.0</span>
           </div>
 
           <!-- 3 Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
-              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.21.0</div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.22.0</div>
               <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -2581,2131 +2861,125 @@
 
   <script>
 
-    // ==========================================
-    // 🔑 AUTHENTICATION & GUEST MODE SYSTEM (v1.14.0)
-    // ==========================================
-    const DEFAULT_MASTER_PASSWORD = 'urban2026';
-
-    function getMasterPassword() {
-      if (typeof store !== 'undefined' && store && store.masterPassword) {
-        return String(store.masterPassword);
-      }
-      try {
-        const local = localStorage.getItem('urban_admin_passcode');
-        if (local) return String(local);
-      } catch(e) {}
-      return DEFAULT_MASTER_PASSWORD;
-    }
-
-    function setMasterPassword(newPass) {
-      if (!newPass || !newPass.trim()) return false;
-      const pass = newPass.trim();
-      try {
-        localStorage.setItem('urban_admin_passcode', pass);
-      } catch(e) {}
-      if (typeof store !== 'undefined' && store) {
-        store.masterPassword = pass;
-        if (typeof saveStore === 'function') saveStore();
-      }
-      return true;
-    }
-
-    
-    
-    // 🔒 Security: Always clear any cross-tab localStorage auth session
-    // Every newly opened tab / reconnect must start fresh at the Login Portal Screen
-    try {
-      localStorage.removeItem('urban_auth_session');
-    } catch(e) {}
-
-    // ==========================================
-    // 🚪 PORTAL LANDING & GUEST ENTRY SYSTEM (v1.15.0)
-    // ==========================================
-    const DEFAULT_MASTER_ID = 'admin';
-
-    function checkIsAdmin() {
-      try {
-        // Strictly per-tab session so opening a link in a new tab/window always requires login
-        return sessionStorage.getItem('urban_auth_session') === 'admin';
-      } catch(e) {
-        return false;
-      }
-    }
-
-    function checkHasGuestAccess() {
-      try {
-        return sessionStorage.getItem('urban_guest_entered') === 'true';
-      } catch(e) {
-        return false;
-      }
-    }
-
-    function syncAppViews() {
-      const portal = document.getElementById('loginLandingPortal');
-      const mainApp = document.getElementById('mainAppContainer');
-      const isAdmin = checkIsAdmin();
-      const hasGuest = checkHasGuestAccess();
-
-      if (isAdmin || hasGuest) {
-        if (portal) portal.style.display = 'none';
-        if (mainApp) mainApp.style.display = 'flex';
-      } else {
-        if (portal) portal.style.display = 'flex';
-        if (mainApp) mainApp.style.display = 'none';
-      }
-      updateAuthUI();
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function handlePortalLoginSubmit() {
-      const idInput = document.getElementById('portalLoginId');
-      const pwInput = document.getElementById('portalLoginPassword');
-      const remember = document.getElementById('portalRememberMe');
-      const err = document.getElementById('portalLoginErrorMsg');
-
-      const idVal = (idInput ? idInput.value : '').trim();
-      const pwVal = (pwInput ? pwInput.value : '').trim();
-      const masterPass = getMasterPassword();
-
-      if (idVal.toLowerCase() === DEFAULT_MASTER_ID && pwVal === masterPass) {
-        if (err) err.classList.add('hidden');
-        // Save strictly to sessionStorage so newly opened tabs/windows always show login screen
-        sessionStorage.setItem('urban_auth_session', 'admin');
-        sessionStorage.removeItem('urban_guest_entered');
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_guest_entered');
-        syncAppViews();
-        renderAll();
-        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
-      } else {
-        if (err) {
-          err.classList.remove('hidden');
-        } else {
-          alert('아이디 또는 비밀번호가 일치하지 않습니다.\n(기본: admin / urban2026)');
-        }
-        if (pwInput) {
-          pwInput.focus();
-          pwInput.select();
-        }
-      }
-    }
-
-    function enterGuestMode() {
-      try {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-        sessionStorage.setItem('urban_guest_entered', 'true');
-      } catch(e) {}
-      syncAppViews();
-      renderAll();
-      showAuthToast('👀 게스트 모드로 접속했습니다. (조회 전용)', false);
-    }
-
-    function showLoginPortal() {
-      try {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_guest_entered');
-      } catch(e) {}
-      const pwInput = document.getElementById('portalLoginPassword');
-      if (pwInput) pwInput.value = '';
-      const err = document.getElementById('portalLoginErrorMsg');
-      if (err) err.classList.add('hidden');
-      syncAppViews();
-      if (pwInput) setTimeout(() => pwInput.focus(), 150);
-    }
-
-    // Original checkIsAdmin replaced above
-    function _unusedCheckIsAdmin() {
-      try {
-        return sessionStorage.getItem('urban_auth_session') === 'admin';
-      } catch(e) {
-        return false;
-      }
-    }
-
-    function requireAdmin(actionName = '데이터 변경') {
-      if (checkIsAdmin()) return true;
-      showAuthToast(`🔒 게스트(조회 전용) 모드입니다.\n[${actionName}] 기능은 관리자 로그인 후 이용하실 수 있습니다.`, true);
-      return false;
-    }
-
-    function showAuthToast(msg, showLoginBtn = true) {
-      const container = document.getElementById('authToastContainer');
-      if (!container) {
-        alert(msg);
-        return;
-      }
-      const toast = document.createElement('div');
-      toast.className = 'pointer-events-auto flex items-center gap-3 bg-slate-900/95 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 transition-all duration-300 transform translate-y-2 opacity-0';
-      
-      const icon = document.createElement('span');
-      icon.className = 'text-lg shrink-0';
-      icon.textContent = '🔒';
-      toast.appendChild(icon);
-
-      const text = document.createElement('div');
-      text.className = 'flex-1 leading-snug whitespace-pre-line font-medium';
-      text.textContent = msg;
-      toast.appendChild(text);
-
-      if (showLoginBtn) {
-        const btn = document.createElement('button');
-        btn.className = 'shrink-0 px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition whitespace-nowrap';
-        btn.textContent = '🔑 로그인';
-        btn.onclick = () => {
-          if (toast.parentNode) container.removeChild(toast);
-          openLoginModal();
-        };
-        toast.appendChild(btn);
-      }
-
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'text-slate-400 hover:text-white p-1 rounded transition shrink-0 text-base leading-none';
-      closeBtn.innerHTML = '&times;';
-      closeBtn.onclick = () => {
-        toast.classList.add('opacity-0', '-translate-y-2');
-        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-      };
-      toast.appendChild(closeBtn);
-
-      container.appendChild(toast);
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
-
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.classList.add('opacity-0', '-translate-y-2');
-          setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-        }
-      }, 4500);
-    }
-
-    function openLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      const err = document.getElementById('loginErrorMsg');
-      if (err) err.classList.add('hidden');
-      const input = document.getElementById('loginPasswordInput');
-      if (input) {
-        input.value = '';
-        setTimeout(() => input.focus(), 150);
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function togglePasswordVisibility(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      if (!input) return;
-      if (input.type === 'password') {
-        input.type = 'text';
-        if (icon) icon.setAttribute('data-lucide', 'eye-off');
-      } else {
-        input.type = 'password';
-        if (icon) icon.setAttribute('data-lucide', 'eye');
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function handleLoginSubmit() {
-      const input = document.getElementById('loginPasswordInput');
-      const remember = document.getElementById('loginRememberMe');
-      const err = document.getElementById('loginErrorMsg');
-      const val = input ? input.value : '';
-      const currentMaster = getMasterPassword();
-
-      if (val === currentMaster) {
-        sessionStorage.setItem('urban_auth_session', 'admin');
-        sessionStorage.removeItem('urban_guest_entered');
-        localStorage.removeItem('urban_auth_session');
-        closeLoginModal();
-        updateAuthUI();
-        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
-      } else {
-        if (err) {
-          err.classList.remove('hidden');
-        } else {
-          alert('비밀번호가 일치하지 않습니다.');
-        }
-        if (input) {
-          input.focus();
-          input.select();
-        }
-      }
-    }
-
-    function handleLogout() {
-      if (!confirm('로그아웃하시겠습니까?\n초기 로그인 화면으로 이동합니다.')) return;
-      showLoginPortal();
-    }
-
-    function openChangePasswordModal() {
-      if (!requireAdmin('비밀번호 변경')) return;
-      const modal = document.getElementById('changePasswordModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      const err = document.getElementById('changePasswordErrorMsg');
-      if (err) err.classList.add('hidden');
-      ['curPasswordInput', 'newPasswordInput', 'confirmNewPasswordInput'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeChangePasswordModal() {
-      const modal = document.getElementById('changePasswordModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function handleChangePasswordSubmit() {
-      const cur = document.getElementById('curPasswordInput').value;
-      const newPass = document.getElementById('newPasswordInput').value;
-      const confirmPass = document.getElementById('confirmNewPasswordInput').value;
-      const err = document.getElementById('changePasswordErrorMsg');
-
-      const setError = (msg) => {
-        if (err) {
-          err.textContent = '⚠️ ' + msg;
-          err.classList.remove('hidden');
-        } else {
-          alert(msg);
-        }
-      };
-
-      if (cur !== getMasterPassword()) {
-        setError('현재 비밀번호가 일치하지 않습니다.');
-        return;
-      }
-      if (!newPass || newPass.trim().length < 3) {
-        setError('새 비밀번호를 3자 이상 입력해 주세요.');
-        return;
-      }
-      if (newPass !== confirmPass) {
-        setError('새 비밀번호가 서로 일치하지 않습니다.');
-        return;
-      }
-
-      setMasterPassword(newPass);
-      closeChangePasswordModal();
-      showAuthToast('✅ 관리자 비밀번호가 성공적으로 변경되었습니다.', false);
-    }
-
-    function updateAuthUI() {
-      const isAdmin = checkIsAdmin();
-      if (typeof updateLiveSalaryTracker === 'function') updateLiveSalaryTracker();
-
-      // Tab 6 (Career) Guest Privacy Control
-      const headerStatCareer = document.getElementById('headerStatCareer');
-      if (headerStatCareer) {
-        headerStatCareer.style.display = isAdmin ? '' : 'none';
-      }
-
-      const tabCareerIcon = document.getElementById('tabCareerIcon');
-      const tabCareerText = document.getElementById('tabCareerText');
-      if (tabCareerIcon && tabCareerText) {
-        if (isAdmin) {
-          tabCareerIcon.textContent = '💼';
-          tabCareerText.innerHTML = '6. 경력관리';
-        } else {
-          tabCareerIcon.textContent = '🔒';
-          tabCareerText.innerHTML = '6. 경력관리 <span class="text-[10px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-md font-bold ml-1">비공개</span>';
-        }
-      }
-
-      const mobTopCareer = document.getElementById('mob-top-career');
-      if (mobTopCareer) {
-        mobTopCareer.innerHTML = isAdmin ? '💼 6. 경력관리' : '🔒 6. 경력관리';
-      }
-
-      const mobTabCareer = document.getElementById('mob-tab-career');
-      if (mobTabCareer) {
-        const spanLabel = mobTabCareer.querySelector('span:last-child');
-        if (spanLabel) {
-          spanLabel.textContent = isAdmin ? '경력관리' : '경력(비공개)';
-        }
-      }
-
-      // If currently on Tab 6, re-render career logs view
-      const panelCareer = document.getElementById('panel-career');
-      if (panelCareer && !panelCareer.classList.contains('hidden')) {
-        renderCareerLogs();
-      }
-      
-      // Desktop header auth container
-      const desktopContainer = document.getElementById('desktopAuthStatus');
-      if (desktopContainer) {
-        if (isAdmin) {
-          desktopContainer.innerHTML = `
-            <div class="flex items-center gap-1.5 shrink-0">
-              <span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                👑 관리자 모드
-              </span>
-              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1" title="관리자 비밀번호 변경">
-                ⚙️ 비번 변경
-              </button>
-              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1" title="로그아웃 (게스트 모드로 전환)">
-                🚪 로그아웃
-              </button>
-            </div>
-          `;
-        } else {
-          desktopContainer.innerHTML = `
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="px-3 py-1.5 bg-amber-50 text-amber-800 font-bold border border-amber-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                👀 게스트 (조회 전용)
-              </span>
-              <button onclick="showLoginPortal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition text-xs flex items-center gap-1.5">
-                🚪 로그인 화면으로
-              </button>
-            </div>
-          `;
-        }
-      }
-
-      // Mobile header auth container
-      const mobContainer = document.getElementById('mobileAuthContainer');
-      if (mobContainer) {
-        if (isAdmin) {
-          mobContainer.innerHTML = `
-            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg text-[11px] font-bold">👑 관리자</span>
-            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold" title="로그아웃">🚪</button>
-          `;
-        } else {
-          mobContainer.innerHTML = `
-            <button onclick="showLoginPortal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1">🚪 로그인</button>
-          `;
-        }
-      }
-
-      // Guest banner visibility
-      const guestBanner = document.getElementById('guestModeBanner');
-      if (guestBanner) {
-        if (isAdmin) {
-          guestBanner.classList.add('hidden');
-        } else {
-          guestBanner.classList.remove('hidden');
-        }
-      }
-
-      if (window.lucide) lucide.createIcons();
-    }
-
-
-    function openMobileModal() { document.getElementById('mobileModal').classList.remove('hidden'); lucide.createIcons(); }
-
-    function closeMobileModal() { document.getElementById('mobileModal').classList.add('hidden'); }
-
-    let store = {
-
-      projects: [],
-
-      dailyTasks: [],
-
-      calendarEvents: [], careerLogs: [], workLogs: []
-
-    };
-
-
-
-    let calendarCurrentDate = new Date();
-
-    let currentCareerFilter = 'all';
-
-
-
-    
-
-    // FIREBASE REALTIME SYNC ENGINE
-
-    let isCloudSyncActive = false;
-
-    let fbDbRef = null;
-
-
-
-    function openCloudSyncModal() {
-
-      const modal = document.getElementById('cloudSyncModal');
-
-      if (modal) {
-
-        modal.style.display = 'flex';
-
-        modal.classList.remove('hidden');
-
-        const savedUrl = localStorage.getItem('urban_firebase_url') || '';
-
-        document.getElementById('firebaseUrlInput').value = savedUrl;
-
-        if (window.lucide) lucide.createIcons();
-
-      }
-
-    }
-
-    function closeCloudSyncModal() {
-
-      const modal = document.getElementById('cloudSyncModal');
-
-      if (modal) {
-
-        modal.style.display = 'none';
-
-        modal.classList.add('hidden');
-
-      }
-
-    }
-
-
-
-    function saveFirebaseConfig() {
-      if (!requireAdmin("클라우드 동기화 설정 변경")) return;
-
-      const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
-
-      if (!inputUrl) {
-
-        alert("Firebase Database URL을 입력해 주세요!");
-
-        return;
-
-      }
-
-      localStorage.setItem('urban_firebase_url', inputUrl);
-
-      closeCloudSyncModal();
-
-      initFirebaseSync(inputUrl);
-
-    }
-
-
-
-    function initFirebaseSync(dbUrl) {
-
-      if (!dbUrl || typeof firebase === 'undefined') return;
-
-      try {
-
-        let cleanUrl = dbUrl.trim();
-
-        if (cleanUrl.startsWith('{')) {
-
-          const cfg = JSON.parse(cleanUrl);
-
-          if (!firebase.apps.length) firebase.initializeApp(cfg);
-
-        } else {
-
-          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
-
-          if (!firebase.apps.length) firebase.initializeApp({ databaseURL: cleanUrl });
-
-        }
-
-
-
-        const db = firebase.database();
-
-        fbDbRef = db.ref('urban_project_store');
-
-
-
-        fbDbRef.on('value', (snapshot) => {
-          const remoteData = snapshot.val();
-          if (remoteData && remoteData.projects) {
-            const cleanRemote = sanitizeStore(remoteData);
-            const remoteTs = cleanRemote.lastLocalUpdate || 0;
-            const localTs = store.lastLocalUpdate || 0;
-
-            // [BI-DIRECTIONAL SAFE MERGE] Never overwrite or lose local tasks!
-            const mergedTasksMap = new Map();
-            // Put remote tasks first
-            (cleanRemote.dailyTasks || []).forEach(t => {
-              if (t && t.id) mergedTasksMap.set(t.id, t);
-            });
-            // If local has tasks that remote doesn't have, PRESERVE THEM!
-            let localHadNewTasks = false;
-            (store.dailyTasks || []).forEach(lt => {
-              if (lt && lt.id && !mergedTasksMap.has(lt.id)) {
-                mergedTasksMap.set(lt.id, lt);
-                localHadNewTasks = true;
-              }
-            });
-
-            // Merge trash tasks safely
-            const mergedTrashMap = new Map();
-            (cleanRemote.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
-            (store.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
-
-            cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
-            cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
-
-            // Merge workLogs safely
-            const mergedWorkMap = new Map();
-            (cleanRemote.workLogs || []).forEach(w => { if (w && w.date) mergedWorkMap.set(w.date, w); });
-            (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
-            cleanRemote.workLogs = Array.from(mergedWorkMap.values());
-
-            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
-              store = cleanRemote;
-              store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
-              localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-              recordAutoSnapshot(store);
-              autoSyncCareerFromCompletedTasks();
-              renderAll();
-              updateSyncStatusUI(true, "실시간 연동 중");
-
-              // If local had tasks missing from cloud, push back combined data so cloud is also updated
-              if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
-                fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
-              }
-            }
-          } else if (store.projects && store.projects.length > 0) {
-            fbDbRef.set(sanitizeStore(store)).catch(e => console.error("Cloud auto-seed failed:", e));
-          }
-        }, (err) => {
-
-          console.error("Firebase sync error", err);
-
-          updateSyncStatusUI(false, "연동 오류");
-
-        });
-
-
-
-        isCloudSyncActive = true;
-
-        updateSyncStatusUI(true, "실시간 연동 중");
-
-      } catch(e) {
-
-        console.error("Firebase init failed:", e);
-
-        updateSyncStatusUI(false, "설정 오류");
-
-      }
-
-    }
-
-
-
-    function updateSyncStatusUI(active, text) {
-
-      const dot = document.getElementById('syncStatusDot');
-
-      const txt = document.getElementById('syncStatusText');
-
-      if (dot && txt) {
-
-        dot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-
-        txt.innerText = text;
-
-        const mdot = document.getElementById('mobSyncDot');
-
-        const mtxt = document.getElementById('mobSyncText');
-
-        if (mdot) mdot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-
-        if (mtxt) mtxt.innerText = active ? "연동중" : "설정";
-
-      }
-
-    }
-
-
-
-    
-
-                        
-
-    
-
-    
-
-    
-
-    
-    function getInitialDefaultProjects() {
-      return [
-  {
-    "category": "기본계획",
-    "desc": "∘착수 : '24.07.10.\n∘착수보고 : '24.08.13.\n∘주민설문조사 : '25.03~04.\n∘주민설문조사 : '25.10.~11.\n∘국장보고 : '26.02 ~ 매월\n∘중간보고 : '26.07\n∘관련기관(부서)협의 : '26.07~'26.08.\n∘최종보고 : '26.09.\n∘주민공람 : '26.10.(14일간)\n∘시의회의견청취 : '26.11.\n∘용인시 심의 : '26.12.\n∘도 승인신청 : '27.01.\n∘도 관련기관(부서)협의 : '27.02.\n∘경기도 심의 : '27.04.\n∘국토교통부 협의 : '27.05.\n∘도 승인 및 고시 : '27.06.\n (준공목표 : '27.06.)",
-    "endDate": "'27.06",
-    "id": "p_yongin_default",
-    "name": "용인시 노후계획도시기본계획",
-    "progress": 80,
-    "startDate": "'24.07.10",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'24.07.10.",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "착수보고",
-        "date": "'24.08.13.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "주민설문조사",
-        "date": "'25.03~04.",
-        "status": null
-      },
-      {
-        "id": "m_3",
-        "title": "주민설문조사",
-        "date": "'25.10.~11.",
-        "status": null
-      },
-      {
-        "id": "m_4",
-        "title": "국장보고",
-        "date": "'26.02 ~ 매월",
-        "status": null
-      },
-      {
-        "id": "m_5",
-        "title": "중간보고",
-        "date": "'26.07",
-        "status": null
-      },
-      {
-        "id": "m_6",
-        "title": "관련기관(부서)협의",
-        "date": "'26.07~'26.08.",
-        "status": null
-      },
-      {
-        "id": "m_7",
-        "title": "최종보고",
-        "date": "'26.09.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "주민공람",
-        "date": "'26.10.(14일간)",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "시의회의견청취",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_10",
-        "title": "용인시 심의",
-        "date": "'26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_11",
-        "title": "도 승인신청",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_12",
-        "title": "도 관련기관(부서)협의",
-        "date": "'27.02.",
-        "status": null
-      },
-      {
-        "id": "m_13",
-        "title": "경기도 심의",
-        "date": "'27.04.",
-        "status": null
-      },
-      {
-        "id": "m_14",
-        "title": "국토교통부 협의",
-        "date": "'27.05.",
-        "status": null
-      },
-      {
-        "id": "m_15",
-        "title": "도 승인 및 고시",
-        "date": "'27.06.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "노후계획도시 특별정비사업",
-    "desc": "∘착수 : '25.09\n∘접수 : '26.7.1.~7.10.\n∘자문 및 결과통보 : '26.7.\n∘제안서 본안 접수 : '26.9.1.\n∘수용여부 결정 : '26.10.\n∘주민공람·공고 : '26.10.\n∘시의회의견청취 : '26.10.\n∘경기도협의 : '26.11.\n∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.\n∘국토부 보고 : '26.12.",
-    "endDate": "'26.12",
-    "id": "p_bundang_default",
-    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
-    "progress": 20,
-    "startDate": "'25.09",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'25.09",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "접수",
-        "date": "'26.7.1.~7.10.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "자문 및 결과통보",
-        "date": "'26.7.",
-        "status": "done"
-      },
-      {
-        "id": "m_3",
-        "title": "제안서 본안 접수",
-        "date": "'26.9.1.",
-        "status": "done"
-      },
-      {
-        "id": "m_4",
-        "title": "수용여부 결정",
-        "date": "'26.10.",
-        "status": "in_progress"
-      },
-      {
-        "id": "m_5",
-        "title": "주민공람·공고",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "시의회의견청취",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_7",
-        "title": "경기도협의",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "성남시 도시계획위원회 심의 및 구역지정",
-        "date": "'26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "국토부 보고",
-        "date": "'26.12.",
-        "status": "todo"
-      }
-    ]
-  },
-  {
-    "category": "정비사업(재개발)",
-    "desc": "∘착수 : '25.10.\n∘사전검토신청 : '26.3.16.\n∘관련기관(부서)1차 협의 : '26.3.~'26.7.15\n∘관련기관(부서)2차 협의 : '26.7.~'26.9.\n∘자문단컨설팅 : '26.10.\n∘주민제안서 접수 : '26.11.\n∘관련기관(부서)협의 : '26.11.~12.\n∘주민공람 : '27.01.\n∘주민설명회 : '27.01.\n∘의회의견청취 : '27.02.\n∘시 결정신청 : '27.03.\n∘시 도시경관공동위원회 : '27.04.\n∘고시 : '27.05.",
-    "endDate": "'27.05",
-    "id": "p_incheon_default",
-    "name": "인천시 계산역북측구역 재개발사업",
-    "progress": 10,
-    "startDate": "'25.10",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'25.10.",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "사전검토신청",
-        "date": "'26.3.16.",
-        "status": "done"
-      },
-      {
-        "id": "m_2",
-        "title": "관련기관(부서)1차 협의",
-        "date": "'26.3.~'26.7.15",
-        "status": "done"
-      },
-      {
-        "id": "m_3",
-        "title": "관련기관(부서)2차 협의",
-        "date": "'26.7.~'26.9.",
-        "status": null
-      },
-      {
-        "id": "m_4",
-        "title": "자문단컨설팅",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_5",
-        "title": "주민제안서 접수",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "관련기관(부서)협의",
-        "date": "'26.11.~12.",
-        "status": null
-      },
-      {
-        "id": "m_7",
-        "title": "주민공람",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_8",
-        "title": "주민설명회",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_9",
-        "title": "의회의견청취",
-        "date": "'27.02.",
-        "status": null
-      },
-      {
-        "id": "m_10",
-        "title": "시 결정신청",
-        "date": "'27.03.",
-        "status": null
-      },
-      {
-        "id": "m_11",
-        "title": "시 도시경관공동위원회",
-        "date": "'27.04.",
-        "status": null
-      },
-      {
-        "id": "m_12",
-        "title": "고시",
-        "date": "'27.05.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "재개발사업",
-    "desc": "∘착수 : `26.5.\n∘접수 : `26.9.",
-    "endDate": "미정",
-    "id": "p_gwangmyeong",
-    "name": "광명시 광명동 재개발사업",
-    "progress": 7,
-    "startDate": "'25.05",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "`26.5.",
-        "status": "done"
-      },
-      {
-        "id": "m_1",
-        "title": "접수",
-        "date": "`26.9.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "재개발사업",
-    "desc": "∘사전검토신청 : `25.05.30\n∘관련기관(부서)협의 : `25.6.~8.\n∘인천시 사전컨설팅 : `25.10.\n∘주민입안제안 : `26.6.\n∘관련기관(부서)협의 : `26.6.~8.\n∘주민공람 : `26.9.\n∘주민설명회 : `26.10.\n∘의회의견청취 : `26.11.\n∘시 결정신청 : `26.12.\n∘시 도시경관공동위원회 : `26.12.\n∘고시 : `27.1.\n (준공목표 :‘27.1.)",
-    "endDate": "'27.01",
-    "id": "p_jakjeon",
-    "name": "인천 작전역인근 재개발사업",
-    "progress": 10,
-    "startDate": "'25.05.30",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "사전검토신청",
-        "date": "`25.05.30",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "관련기관(부서)협의",
-        "date": "`25.6.~8.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "인천시 사전컨설팅",
-        "date": "`25.10.",
-        "status": null
-      },
-      {
-        "id": "m_3",
-        "title": "주민입안제안",
-        "date": "`26.6.",
-        "status": "done"
-      },
-      {
-        "id": "m_4",
-        "title": "관련기관(부서)협의",
-        "date": "`26.6.~8.",
-        "status": "in_progress"
-      },
-      {
-        "id": "m_5",
-        "title": "주민공람",
-        "date": "`26.9.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "주민설명회",
-        "date": "`26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_7",
-        "title": "의회의견청취",
-        "date": "`26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "시 결정신청",
-        "date": "`26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "시 도시경관공동위원회",
-        "date": "`26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_10",
-        "title": "고시",
-        "date": "`27.1.",
-        "status": null
-      }
-    ]
-  }
-];
-    }
-
-    function getInitialDefaultEvents() {
-      return [
-  {
-    "attendees": [
-      "김아현 이사님",
-      "최지율 주임님"
-    ],
-    "date": "2026-09-15",
-    "desc": "오전 10시",
-    "id": "e_user_11",
-    "projId": "p_jakjeon",
-    "title": "조치계획 접수",
-    "type": "출장"
-  },
-  {
-    "date": "2026-09-14",
-    "desc": "PC 직접 등록",
-    "id": "e_user_14",
-    "title": "교통연구원 출장",
-    "type": "출장"
-  },
-  {
-    "attendees": [
-      "김아현 이사님",
-      "최지율 주임님"
-    ],
-    "date": "2026-09-11",
-    "desc": "",
-    "id": "e_1789084641338",
-    "projId": "p_jakjeon",
-    "title": "작전 추준위 회의",
-    "type": "출장"
-  },
-  {
-    "attendees": [
-      "나",
-      "김아현 이사님"
-    ],
-    "date": "2026-09-24",
-    "desc": "광명시청 도시재생과 현장 방문 및 입안제안서 사전 조율",
-    "id": "e_gm_20260924_01",
-    "projId": "p_gwangmyeong",
-    "title": "광명동 정비계획 제안서 사전협의",
-    "type": "출장"
-  }
-];
-    }
-
-    function getInitialDefaultTasks() {
-      return [
-  {
-    "completed": true,
-    "date": "2026-09-09",
-    "id": "t_user_20260909_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789001173719_0",
-        "text": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789001173719_1",
-        "text": "도면수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789001173719_2",
-        "text": "첨부자료 표 수정"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 조치계획 첨부자료 작성",
-    "title": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정 도면수정 첨부자료 표 수정"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-10",
-    "id": "t_1789000652240_c6of",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789000652240_0",
-        "text": "가구및 획지계획 각주 수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789000652240_1",
-        "text": "도로 외 조서 날리고 기반시설계획 총괄표 삽입"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 참고자료",
-    "title": "가구및 획지계획 각주 수정 도로 외 조서 날리고 기반시설계획 총괄표 삽입"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-10",
-    "id": "t_1789005476131_jnyf",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789005476131_0",
-        "text": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 조치계획 첨부자료",
-    "title": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-11",
-    "id": "t_1789110233633_qy6i",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789110233633_0",
-        "text": "조치계획서 작성"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "2차 협의 조치계획서 작성",
-    "title": "조치계획서 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-14",
-    "id": "t_1789115579613_3feg",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789115579613_0",
-        "text": "조치계획 작성"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "2차 관련부서 협의 조치계획",
-    "title": "조치계획 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-14",
-    "id": "t_1789350785767_8ytw",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789350785767_0",
-        "text": "고시도 접지"
-      },
-      {
-        "completed": true,
-        "id": "it_1789350785767_1",
-        "text": "고시문 출력"
-      },
-      {
-        "completed": true,
-        "id": "it_1789350785767_2",
-        "text": "묶기"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "지금도농3구역",
-    "title": "고시도 접지 고시문 출력 묶기"
-  },
-  {
-    "completed": false,
-    "date": "2026-09-15",
-    "id": "t_gm_20260915_01",
-    "items": [
-      {
-        "completed": false,
-        "id": "it_gm_1",
-        "text": "정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성"
-      },
-      {
-        "completed": false,
-        "id": "it_gm_2",
-        "text": "토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토"
-      },
-      {
-        "completed": false,
-        "id": "it_gm_3",
-        "text": "정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
-      }
-    ],
-    "projId": "p_gwangmyeong",
-    "theme": "정비구역 지정 신청도서 작성 및 사전검토",
-    "title": "1. 정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성 2. 토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토 3. 정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-08",
-    "id": "t_gm_20260908_02",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_gm_4",
-        "text": "대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사"
-      },
-      {
-        "completed": true,
-        "id": "it_gm_5",
-        "text": "과소필지 및 접도율 현황 분석표 작성"
-      }
-    ],
-    "projId": "p_gwangmyeong",
-    "theme": "기초현황조사 및 노후도 분석",
-    "title": "1. 대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사 2. 과소필지 및 접도율 현황 분석표 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-05",
-    "id": "t_yi_20260905_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_yi_1",
-        "text": "노후계획도시기본계획 최종보고서 도서 검토"
-      },
-      {
-        "completed": true,
-        "id": "it_yi_2",
-        "text": "10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-      }
-    ],
-    "projId": "p_yongin_default",
-    "theme": "최종보고서 작성 및 주민공람 준비",
-    "title": "1. 노후계획도시기본계획 최종보고서 도서 검토 2. 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-04",
-    "id": "t_bd_20260904_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_bd_1",
-        "text": "선도지구 공모신청서 평가 배점표 분석"
-      },
-      {
-        "completed": true,
-        "id": "it_bd_2",
-        "text": "주민동의율 제고 방안 및 동의서 정밀 검증"
-      }
-    ],
-    "projId": "p_bundang_default",
-    "theme": "선도지구 제안서 및 평가기준 검토",
-    "title": "1. 선도지구 공모신청서 평가 배점표 분석 2. 주민동의율 제고 방안 및 동의서 정밀 검증"
-  }
-];
-    }
-
-    function restoreDefaultProjectsData() {
-      if (!requireAdmin("기본 데이터 복구")) return;
-      store.projects = getInitialDefaultProjects();
-      store.calendarEvents = getInitialDefaultEvents();
-      store.dailyTasks = getInitialDefaultTasks();
-      saveStore();
-      alert("사용자 백업 파일 데이터가 성공적으로 복구되었습니다!");
-    }
-
-
-    
-    function sanitizeStore(s) {
-      if (!s || typeof s !== 'object') s = {};
-      if (!Array.isArray(s.projects)) s.projects = s.projects ? Object.values(s.projects) : getInitialDefaultProjects();
-      s.projects.forEach((p, pIdx) => {
-        if (!p.id) p.id = 'p_' + pIdx;
-        if (!p.name) p.name = '무제 사업';
-        if (typeof p.progress !== 'number') p.progress = 0;
-        if (!Array.isArray(p.milestones)) p.milestones = [];
-        p.milestones.forEach((m, idx) => {
-          if (!m.id) m.id = 'm_' + idx;
-          if (m.status === undefined || m.status === null) m.status = 'todo';
-          if (!m.title) m.title = '';
-          if (!m.date) m.date = '';
-        });
-      });
-      if (!Array.isArray(s.calendarEvents)) s.calendarEvents = s.calendarEvents ? Object.values(s.calendarEvents) : getInitialDefaultEvents();
-      s.calendarEvents.forEach((e, eIdx) => {
-        if (!e.id) e.id = 'e_' + eIdx;
-        if (!e.title) e.title = '';
-        if (!e.date) e.date = '';
-      });
-      if (!Array.isArray(s.dailyTasks)) s.dailyTasks = s.dailyTasks ? Object.values(s.dailyTasks) : getInitialDefaultTasks();
-      if (s.dailyTasks.length === 0) s.dailyTasks = getInitialDefaultTasks();
-      s.dailyTasks.forEach((t, tIdx) => {
-        if (!t.id) t.id = 't_' + tIdx;
-        if (!t.date) t.date = getTodayDateStr();
-        if (!t.theme) t.theme = '';
-        if (!Array.isArray(t.items) || t.items.length === 0) {
-          if (t.title) {
-            const lines = t.title.split(/(?=\s+\d+[\.\)]\s+)|[\r\n]+/).map(x => x.trim()).filter(Boolean);
-            if (lines.length > 1) {
-              t.items = lines.map((line, i) => ({
-                id: 'it_' + i,
-                text: line,
-                completed: !!t.completed
-              }));
-            } else {
-              t.items = [{ id: 'it_0', text: t.title, completed: !!t.completed }];
-            }
-          } else {
-            t.items = [{ id: 'it_0', text: '할 일 내용 없음', completed: false }];
-          }
-        }
-        t.items.forEach((it, iIdx) => {
-          if (!it.id) it.id = 'it_' + iIdx;
-          if (!it.text) it.text = '';
-          if (typeof it.completed !== 'boolean') it.completed = false;
-        });
-        t.title = t.items.map(it => it.text).join(' ');
-        t.completed = t.items.length > 0 && t.items.every(it => it.completed);
-      });
-      if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
-      if (!Array.isArray(s.workLogs)) s.workLogs = s.workLogs ? Object.values(s.workLogs) : [];
-      if (!Array.isArray(s.trashTasks)) s.trashTasks = s.trashTasks ? Object.values(s.trashTasks) : [];
-      if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
-      return JSON.parse(JSON.stringify(s));
-    }
-  
-    function loadStore() {
-      const saved = localStorage.getItem('urban_clean_store_v11') || localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v9');
-      if (saved) {
-        try { store = JSON.parse(saved); } catch(e) {}
-      }
-
-      if (!store || !Array.isArray(store.projects) || store.projects.length === 0) {
-        store = {
-          projects: getInitialDefaultProjects(),
-          dailyTasks: getInitialDefaultTasks(),
-          calendarEvents: getInitialDefaultEvents(),
-          careerLogs: [],
-          lastLocalUpdate: 0
-        };
-      }
-
-      if (!store.calendarEvents) store.calendarEvents = getInitialDefaultEvents();
-      if (!store.dailyTasks) store.dailyTasks = [];
-      if (!store.careerLogs) store.careerLogs = [];
-      store = sanitizeStore(store);
-
-      try {
-        localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-      } catch(e) {}
-
-      autoSyncCareerFromCompletedTasks();
-      if (typeof ensureBaselineSnapshot === 'function') ensureBaselineSnapshot();
-    }
-
-    
-    function recordAutoSnapshot(s) {
-      try {
-        const historyKey = 'urban_snapshot_history_v1';
-        let history = [];
-        try {
-          const raw = localStorage.getItem(historyKey);
-          if (raw) history = JSON.parse(raw);
-        } catch(e) {}
-        if (!Array.isArray(history)) history = [];
-
-        const snap = {
-          time: Date.now(),
-          iso: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-          taskCount: Array.isArray(s.dailyTasks) ? s.dailyTasks.length : 0,
-          projectCount: Array.isArray(s.projects) ? s.projects.length : 0,
-          data: JSON.parse(JSON.stringify(s))
-        };
-
-        // Don't save identical consecutive snapshot
-        if (history.length > 0) {
-          const last = history[0];
-          if (JSON.stringify(last.data.dailyTasks) === JSON.stringify(snap.data.dailyTasks) &&
-              JSON.stringify(last.data.projects) === JSON.stringify(snap.data.projects)) {
-            return;
-          }
-        }
-
-        history.unshift(snap);
-        if (history.length > 50) history = history.slice(0, 50);
-        localStorage.setItem(historyKey, JSON.stringify(history));
-
-        // Also save daily archive
-        const todayKey = 'urban_daily_archive_' + (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0,10));
-        localStorage.setItem(todayKey, JSON.stringify(s));
-      } catch(e) {
-        console.warn("Snapshot record failed:", e);
-      }
-    }
-  
-    function saveStore() {
-      store = sanitizeStore(store);
-      store.lastLocalUpdate = Date.now();
-      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-      renderAll();
-      if (isCloudSyncActive && fbDbRef) {
-        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
-      }
-    }
-
-
-
-    
-    // =========================================================================
-    // 5. WORK HOURS & ANNUAL LEAVE SYSTEM (근무 및 연차 관리)
-    // =========================================================================
-
-    // Statutory Korean Public Holidays (법정공휴일)
-    const KOREAN_PUBLIC_HOLIDAYS = {
-      // 2025
-      "2025-01-01": "신정",
-      "2025-01-28": "설날 연휴",
-      "2025-01-29": "설날",
-      "2025-01-30": "설날 연휴",
-      "2025-03-01": "삼일절",
-      "2025-03-03": "대체공휴일 (삼일절)",
-      "2025-05-05": "어린이날",
-      "2025-05-06": "부처님오신날",
-      "2025-06-06": "현충일",
-      "2025-08-15": "광복절",
-      "2025-10-03": "개천절",
-      "2025-10-05": "추석 연휴",
-      "2025-10-06": "추석",
-      "2025-10-07": "추석 연휴",
-      "2025-10-08": "대체공휴일 (추석)",
-      "2025-10-09": "한글날",
-      "2025-12-25": "성탄절",
-
-      // 2026
-      "2026-01-01": "신정",
-      "2026-02-16": "설날 연휴",
-      "2026-02-17": "설날",
-      "2026-02-18": "설날 연휴",
-      "2026-03-01": "삼일절",
-      "2026-03-02": "대체공휴일 (삼일절)",
-      "2026-05-05": "어린이날",
-      "2026-05-24": "부처님오신날",
-      "2026-05-25": "대체공휴일 (부처님오신날)",
-      "2026-06-06": "현충일",
-      "2026-08-15": "광복절",
-      "2026-08-17": "대체공휴일 (광복절)",
-      "2026-09-24": "추석 연휴",
-      "2026-09-25": "추석",
-      "2026-09-26": "추석 연휴",
-      "2026-10-03": "개천절",
-      "2026-10-05": "대체공휴일 (개천절)",
-      "2026-10-09": "한글날",
-      "2026-12-25": "성탄절",
-
-      // 2027
-      "2027-01-01": "신정",
-      "2027-02-06": "설날 연휴",
-      "2027-02-07": "설날",
-      "2027-02-08": "설날 연휴",
-      "2027-02-09": "대체공휴일 (설날)",
-      "2027-03-01": "삼일절",
-      "2027-05-05": "어린이날",
-      "2027-05-13": "부처님오신날",
-      "2027-06-06": "현충일",
-      "2027-06-07": "대체공휴일 (현충일)",
-      "2027-08-15": "광복절",
-      "2027-08-16": "대체공휴일 (광복절)",
-      "2027-09-14": "추석 연휴",
-      "2027-09-15": "추석",
-      "2027-09-16": "추석 연휴",
-      "2027-10-03": "개천절",
-      "2027-10-04": "대체공휴일 (개천절)",
-      "2027-10-09": "한글날",
-      "2027-10-11": "대체공휴일 (한글날)",
-      "2027-12-25": "성탄절"
-    };
-
-    function getKoreanPublicHoliday(dateStr) {
-      if (!dateStr) return null;
-      if (KOREAN_PUBLIC_HOLIDAYS[dateStr]) return KOREAN_PUBLIC_HOLIDAYS[dateStr];
-      const mmdd = dateStr.substring(5);
-      if (mmdd === "01-01") return "신정";
-      if (mmdd === "03-01") return "삼일절";
-      if (mmdd === "05-05") return "어린이날";
-      if (mmdd === "06-06") return "현충일";
-      if (mmdd === "08-15") return "광복절";
-      if (mmdd === "10-03") return "개천절";
-      if (mmdd === "10-09") return "한글날";
-      if (mmdd === "12-25") return "성탄절";
-      return null;
-    }
-
-    // Rule: 올해(2026)는 총연차 10개(사용 4개, 잔여 6개), 내년(2027부터)은 매년 1월 1일 15개
-    function getTotalAnnualLeaveForYear(year) {
-      const y = parseInt(year, 10) || 2026;
-      if (y <= 2026) return 10.0;
-      return 15.0;
-    }
-
-    // Ensure user's historical 2026 leave days are seeded
-    function ensureInitialUserLeaveLogs() {
-      if (!store.workLogs) store.workLogs = [];
-      const userLeaves2026 = [
-        { date: "2026-05-04", note: "개인 연차 (5월 황금연휴)" },
-        { date: "2026-07-20", note: "하계 휴가 (연차)" },
-        { date: "2026-07-21", note: "하계 휴가 (연차)" },
-        { date: "2026-07-22", note: "하계 휴가 (연차)" }
-      ];
-
-      let added = false;
-      userLeaves2026.forEach(ul => {
-        const exists = store.workLogs.some(w => w.date === ul.date);
-        if (!exists) {
-          store.workLogs.push({
-            id: "work_" + ul.date,
-            date: ul.date,
-            type: "annual_full",
-            startTime: "-",
-            endTime: "-",
-            overtimeHours: 0,
-            note: ul.note,
-            deductLeave: 1.0
-          });
-          added = true;
-        }
-      });
-      return added;
-    }
-
-
-    let currentWorkCalYear = new Date().getFullYear();
-    let currentWorkCalMonth = new Date().getMonth() + 1;
-    let currentEditingWorkDate = null;
-
-    function changeWorkMonth(offset) {
-      currentWorkCalMonth += offset;
-      if (currentWorkCalMonth > 12) {
-        currentWorkCalMonth = 1;
-        currentWorkCalYear++;
-      } else if (currentWorkCalMonth < 1) {
-        currentWorkCalMonth = 12;
-        currentWorkCalYear--;
-      }
-      renderWorkCalendar();
-    }
-
-    function goToCurrentWorkMonth() {
-      const now = new Date();
-      currentWorkCalYear = now.getFullYear();
-      currentWorkCalMonth = now.getMonth() + 1;
-      renderWorkCalendar();
-    }
-
-    function getWorkLogForDate(dateStr) {
-      if (!store.workLogs) store.workLogs = [];
-      return store.workLogs.find(w => w.date === dateStr);
-    }
-
-    function syncLeaveFromCalendar(dateStr, title) {
-      if (!dateStr) return;
-      if (!store.workLogs) store.workLogs = [];
-      let w = store.workLogs.find(x => x.date === dateStr);
-      if (!w) {
-        w = {
-          id: "work_" + dateStr,
-          date: dateStr,
-          type: "annual_full",
-          startTime: "-",
-          endTime: "-",
-          overtimeHours: 0,
-          note: title || "월간 일정 연차",
-          deductLeave: 1.0
-        };
-        store.workLogs.push(w);
-      } else {
-        w.type = "annual_full";
-        w.deductLeave = 1.0;
-        if (!w.note) w.note = title || "월간 일정 연차";
-      }
-      saveStore();
-      renderWorkCalendar();
-    }
-
     
     // ==========================================
-    // 💰 REAL-TIME SALARY & WORK TIMER ENGINE (v1.16.0)
+    // URBAN PLANNING SOLUTION CENTER & DIRECT WORKBENCH JS
     // ==========================================
-    const DEFAULT_MONTHLY_SALARY = 2859216;
-    const DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME = 10000;
-    const STANDARD_MONTHLY_HOURS = 209; // 근로기준법 통상시급 산정 기준시간
+    let currentConnectedDirectoryHandle = null;
+    let currentWorkbenchAppKey = 'land_ledger';
+    let currentWorkbenchTableData = [];
 
-    let liveSalaryTimerInterval = null;
+    // PDF to PNG state for Solution Center
+    let solLoadedPdfDoc = null;
+    let solLoadedPdfFile = null;
+    let solRenderedPageBlobs = [];
 
-    
-    
-    function getActualPayDate(calYear, calMonth) {
-      // 기본 급여일은 해당 월 25일
-      let dt = new Date(calYear, calMonth - 1, 25);
-      // 25일이 주말(토/일)이거나 법정공휴일이면 직전 평일(근무일)로 앞당김
-      while (true) {
-        const dayOfWeek = dt.getDay();
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const dStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-        const isHoliday = !!getKoreanPublicHoliday(dStr);
-        if (!isWeekend && !isHoliday) {
-          break; // 유효한 평일(근무일)
-        }
-        dt.setDate(dt.getDate() - 1);
-      }
-      return {
-        year: dt.getFullYear(),
-        month: dt.getMonth() + 1,
-        day: dt.getDate(),
-        dateStr: `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`,
-        isMoved: (dt.getDate() !== 25)
-      };
-    }
-
-    function getSalaryCyclePeriod(calYear, calMonth) {
-      // 25-25 급여 주기: (calMonth-1)월 25일 ~ calMonth월 24일 (지급일: calMonth월 25일)
-      const startDate = new Date(calYear, calMonth - 2, 25);
-      const endDate = new Date(calYear, calMonth - 1, 24);
-
-      const startYear = startDate.getFullYear();
-      const startMonth = startDate.getMonth() + 1;
-      const endYear = endDate.getFullYear();
-      const endMonth = endDate.getMonth() + 1;
-
-      const startStr = `${startYear}-${String(startMonth).padStart(2, '0')}-25`;
-      const endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-24`;
-
-      const dates = [];
-      let cur = new Date(startDate);
-      while (cur <= endDate) {
-        const y = cur.getFullYear();
-        const m = String(cur.getMonth() + 1).padStart(2, '0');
-        const d = String(cur.getDate()).padStart(2, '0');
-        dates.push(`${y}-${m}-${d}`);
-        cur.setDate(cur.getDate() + 1);
-      }
-
-      return {
-        payYear: calYear,
-        payMonth: calMonth,
-        payDay: 25,
-        startDate,
-        endDate,
-        startStr,
-        endStr,
-        dates,
-        shortLabel: `${calMonth}월 (${startMonth}.25~${endMonth}.24)`,
-        fullLabel: `${startYear}.${startMonth}.25 ~ ${endYear}.${endMonth}.24 (월급날 ${calMonth}월 25일)`
-      };
-    }
-
-    function getMonthlySalary() {
-      if (typeof store !== 'undefined' && store && store.monthlySalary) return Number(store.monthlySalary);
-      try {
-        const local = localStorage.getItem('urban_monthly_salary');
-        if (local) return Number(local);
-      } catch(e) {}
-      return DEFAULT_MONTHLY_SALARY;
-    }
-
-    function getMealAllowanceRate() {
-      if (typeof store !== 'undefined' && store && store.mealAllowance) return Number(store.mealAllowance);
-      try {
-        const local = localStorage.getItem('urban_meal_allowance');
-        if (local) return Number(local);
-      } catch(e) {}
-      return DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
-    }
-
-    function openSalaryConfigModal() {
-      if (!requireAdmin('기본급 설정')) return;
-      const modal = document.getElementById('salaryConfigModal');
-      if (!modal) return;
-      document.getElementById('cfgMonthlySalary').value = getMonthlySalary();
-      document.getElementById('cfgMealAllowance').value = getMealAllowanceRate();
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeSalaryConfigModal() {
-      const modal = document.getElementById('salaryConfigModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function saveSalaryConfig() {
-      if (!requireAdmin('기본급 설정 저장')) return;
-      const sal = Number(document.getElementById('cfgMonthlySalary').value) || DEFAULT_MONTHLY_SALARY;
-      const meal = Number(document.getElementById('cfgMealAllowance').value) || DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
-      if (!store) store = {};
-      store.monthlySalary = sal;
-      store.mealAllowance = meal;
-      try {
-        localStorage.setItem('urban_monthly_salary', String(sal));
-        localStorage.setItem('urban_meal_allowance', String(meal));
-      } catch(e) {}
-      saveStore();
-      closeSalaryConfigModal();
-      updateLiveSalaryTracker();
-      showAuthToast('✅ 기본급 및 정산 설정이 저장되었습니다.', false);
-    }
-
-    function updateLiveSalaryTracker() {
-      const salarySection = document.getElementById('salaryTrackerSection');
-      const guestNotice = document.getElementById('salaryGuestPrivacyNotice');
-      if (!salarySection) return;
-
-      const isAdmin = checkIsAdmin();
-      if (!isAdmin) {
-        salarySection.style.display = 'none';
-        salarySection.classList.add('hidden');
-        if (guestNotice) {
-          guestNotice.style.display = 'none';
-          guestNotice.classList.add('hidden');
-        }
-        if (liveSalaryTimerInterval) {
-          clearInterval(liveSalaryTimerInterval);
-          liveSalaryTimerInterval = null;
-        }
-        return;
-      }
-
-      // Admin Mode: Show salarySection, hide guestNotice
-      salarySection.style.display = 'block';
-      salarySection.classList.remove('hidden');
-      if (guestNotice) {
-        guestNotice.style.display = 'none';
-        guestNotice.classList.add('hidden');
-      }
-
-      // Calculations:
-      const monthlySalary = getMonthlySalary();
-      const mealRate = getMealAllowanceRate();
-
-      // Current year & month from work calendar or now
-      const now = new Date();
-      const calYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
-      const calMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
-      const todayStr = getTodayDateStr();
-      const actualPay = getActualPayDate(currentWorkCalYear, currentWorkCalMonth);
-
-      // 25-25 급여 산정 주기 (월급날 25일 기준: 전월 25일 ~ 당월 24일)
-      const cycle = getSalaryCyclePeriod(calYear, calMonth);
-
-      // Update title label with the 25-25 cycle range
-      const monthLabel = document.getElementById('salaryMonthLabel');
-      if (monthLabel) {
-        monthLabel.innerText = cycle.shortLabel;
-      }
-
-      const baseDisp = document.getElementById('statMonthlyBaseDisplay');
-      if (baseDisp) baseDisp.innerText = monthlySalary.toLocaleString();
-
-      // Map workLogs across all dates in cycle
-      const logsMap = {};
-      ((typeof store !== 'undefined' && store.workLogs) || []).forEach(w => {
-        if (w.date && cycle.dates.includes(w.date)) {
-          logsMap[w.date] = w;
-        }
-      });
-
-      let totalPaidWeekdaysInCycle = 0;
-      let totalHolidaysInCycle = 0;
-      let totalLeaveCountInCycle = 0;
-      let pastPaidWeekdaysCount = 0;
-      let totalOvertimeHoursInCycle = 0;
-      let overtimeDaysCount = 0;
-
-      cycle.dates.forEach(dStr => {
-        const parts = dStr.split('-').map(Number);
-        const dt = new Date(parts[0], parts[1] - 1, parts[2]);
-        const dayOfWeek = dt.getDay();
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const holidayName = getKoreanPublicHoliday(dStr);
-        const log = logsMap[dStr];
-
-        if (!isWeekend) {
-          totalPaidWeekdaysInCycle++;
-          if (holidayName) {
-            totalHolidaysInCycle++;
-          }
-          if (log && log.deductLeave) {
-            totalLeaveCountInCycle += parseFloat(log.deductLeave) || 0;
-          }
-        }
-
-        if (log && log.overtimeHours) {
-          const ot = Number(log.overtimeHours);
-          if (ot > 0) {
-            totalOvertimeHoursInCycle += ot;
-            overtimeDaysCount++;
-          }
-        }
-
-        // 과거 일자 (cycle.startStr ~ 어제)
-        if (dStr < todayStr) {
-          // 법정공휴일과 연차도 모두 유급이므로 평일이면 일급 100% 정상 누적
-          if (!isWeekend) {
-            pastPaidWeekdaysCount++;
-          }
-        }
-      });
-
-      if (totalPaidWeekdaysInCycle === 0) totalPaidWeekdaysInCycle = 20;
-
-      // 사용자 실근무 기준 시급 (2,859,216원 ÷ 실근무일수 ÷ 8시간)
-      // 당 주기 총 실근무일수(공휴일·연차 제외)에 맞춰 160시간(20일x8h) 기준 정밀 산출
-      const netWorkDays = Math.max(1, totalPaidWeekdaysInCycle - totalHolidaysInCycle - totalLeaveCountInCycle);
-      const totalMonthWorkHours = netWorkDays * 8;
-      const hourlyRate = monthlySalary / totalMonthWorkHours;
-      const dailyBasePay = hourlyRate * 8;
-      const perSecondRate = hourlyRate / 3600;
-
-      // 2. Today's live time & remaining countdown calculation
-      let todayWorkSeconds = 0;
-      let todayRemainingSeconds = 0;
-      let todayEarnings = 0;
-      let todayStatusText = '근무 외';
-
-      const isTodayInCycle = (todayStr >= cycle.startStr && todayStr <= cycle.endStr);
-
-      if (isTodayInCycle) {
-        const todayLog = logsMap[todayStr];
-        const dayOfWeek = now.getDay();
-        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const holidayName = getKoreanPublicHoliday(todayStr);
-
-        const startSeconds = 9 * 3600;   // 09:00 출근
-        const lunchStart = 11 * 3600 + 30 * 60; // 11:30 점심 시작
-        const lunchEnd = 12 * 3600 + 30 * 60;   // 12:30 점심 종료
-        const endSeconds = 18 * 3600;    // 18:00 퇴근
-
-        const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        let todayLeaveDeduct = todayLog ? Number(todayLog.deductLeave || 0) : 0;
-        const isFullAnnualLeave = (todayLog && todayLog.type === 'annual_full') || todayLeaveDeduct >= 1.0;
-        const isHalfAm = (todayLog && todayLog.type === 'half_am');
-        const isHalfPm = (todayLog && todayLog.type === 'half_pm');
-
-        if (isWeekend) {
-          todayStatusText = '주말 휴무';
-          todayRemainingSeconds = 0;
-          todayEarnings = 0;
-        } else if (holidayName) {
-          todayStatusText = `${holidayName} (유급) 🏖️`;
-          todayRemainingSeconds = 0;
-          todayEarnings = dailyBasePay;
-        } else if (isFullAnnualLeave) {
-          todayStatusText = '연차 (유급) 🏖️';
-          todayRemainingSeconds = 0;
-          todayEarnings = dailyBasePay;
-        } else if (isHalfAm) {
-          const halfPaid = dailyBasePay * 0.5;
-          const halfWorkStart = 12 * 3600 + 30 * 60; // 12:30
-          if (curSeconds < halfWorkStart) {
-            todayStatusText = '오전반차 (출근전)';
-            todayRemainingSeconds = endSeconds - halfWorkStart;
-            todayEarnings = halfPaid;
-          } else if (curSeconds <= endSeconds) {
-            todayStatusText = '오전반차 근무중 🔥';
-            const elapsed = curSeconds - halfWorkStart;
-            todayRemainingSeconds = Math.max(0, endSeconds - curSeconds);
-            todayEarnings = halfPaid + (elapsed * perSecondRate);
-          } else {
-            todayStatusText = '퇴근 완료 🎉';
-            todayRemainingSeconds = 0;
-            todayEarnings = dailyBasePay;
-          }
-        } else if (isHalfPm) {
-          const halfPaid = dailyBasePay * 0.5;
-          const halfWorkEnd = 11 * 3600 + 30 * 60; // 11:30
-          if (curSeconds < startSeconds) {
-            todayStatusText = '출근 전';
-            todayRemainingSeconds = 2.5 * 3600;
-            todayEarnings = 0;
-          } else if (curSeconds <= halfWorkEnd) {
-            todayStatusText = '오후반차 근무중 🔥';
-            const elapsed = curSeconds - startSeconds;
-            todayRemainingSeconds = Math.max(0, halfWorkEnd - curSeconds);
-            todayEarnings = elapsed * perSecondRate;
-          } else {
-            todayStatusText = '오후반차 (퇴근완료) 🏖️';
-            todayRemainingSeconds = 0;
-            todayEarnings = dailyBasePay;
-          }
-        } else {
-          // 💼 일반 평일 근무 (09:00 ~ 18:00, 점심 11:30 ~ 12:30)
-          if (curSeconds < startSeconds) {
-            todayWorkSeconds = 0;
-            todayRemainingSeconds = 8 * 3600;
-            todayEarnings = 0;
-            todayStatusText = '출근 전';
-          } else if (curSeconds >= startSeconds && curSeconds <= endSeconds) {
-            if (curSeconds < lunchStart) {
-              todayWorkSeconds = curSeconds - startSeconds;
-              todayRemainingSeconds = (lunchStart - curSeconds) + (endSeconds - lunchEnd);
-              todayStatusText = '근무중 🔥';
-            } else if (curSeconds <= lunchEnd) {
-              todayWorkSeconds = 2.5 * 3600;
-              todayRemainingSeconds = 5.5 * 3600;
-              todayStatusText = '점심시간 🍱';
-            } else {
-              todayWorkSeconds = 2.5 * 3600 + (curSeconds - lunchEnd);
-              todayRemainingSeconds = endSeconds - curSeconds;
-              todayStatusText = '근무중 🔥';
-            }
-            todayEarnings = todayWorkSeconds * perSecondRate;
-          } else {
-            todayWorkSeconds = 8 * 3600;
-            todayRemainingSeconds = 0;
-            todayEarnings = dailyBasePay;
-            const otToday = todayLog ? Number(todayLog.overtimeHours || 0) : 0;
-            todayStatusText = otToday > 0 ? `야근중 (+${otToday}h)` : '퇴근 완료 🎉';
-          }
-        }
-      } else if (todayStr > cycle.endStr) {
-        // 과거 주기
-        pastPaidWeekdaysCount = totalPaidWeekdaysInCycle;
-        todayStatusText = '급여 지급 완료 💰';
-        todayRemainingSeconds = 0;
-        todayEarnings = 0;
-      } else {
-        // 미래 주기
-        pastPaidWeekdaysCount = 0;
-        todayStatusText = '시작 전 ⏳';
-        todayRemainingSeconds = 0;
-        todayEarnings = 0;
-      }
-
-      // Format remaining countdown timer (HH:MM:SS)
-      const rHours = Math.floor(todayRemainingSeconds / 3600);
-      const rMinutes = Math.floor((todayRemainingSeconds % 3600) / 60);
-      const rSeconds = todayRemainingSeconds % 60;
-      const timerStr = `${String(rHours).padStart(2, '0')}:${String(rMinutes).padStart(2, '0')}:${String(rSeconds).padStart(2, '0')}`;
-
-      // 과거 평일 유급액 + 오늘 수입 + 야근 식대 누적액
-      const pastBasePay = pastPaidWeekdaysCount * dailyBasePay;
-      const totalMealAllowance = overtimeDaysCount * mealRate;
-      let monthTotalEarnings = 0;
-      if (todayStr > cycle.endStr) {
-        monthTotalEarnings = monthlySalary + totalMealAllowance;
-      } else if (todayStr < cycle.startStr) {
-        monthTotalEarnings = 0;
-      } else {
-        monthTotalEarnings = Math.min(monthlySalary + totalMealAllowance, Math.round(pastBasePay + todayEarnings + totalMealAllowance));
-      }
-
-      // Update UI Elements
-      const elTotal = document.getElementById('statMonthTotalEarnings');
-      if (elTotal) elTotal.innerText = monthTotalEarnings.toLocaleString();
-
-      const elProgressPct = document.getElementById('salaryProgressPct');
-      const elProgressBar = document.getElementById('salaryProgressBar');
-      const pct = Math.min(100, (monthTotalEarnings / monthlySalary) * 100);
-      if (elProgressPct) elProgressPct.innerText = `${pct.toFixed(1)}%`;
-      if (elProgressBar) elProgressBar.style.width = `${pct}%`;
-
-      const elRemToGoal = document.getElementById('statRemainingToGoal');
-      if (elRemToGoal) {
-        const rem = Math.max(0, monthlySalary - monthTotalEarnings);
-        const actualPayText = (typeof actualPay !== 'undefined' && actualPay.isMoved) ? `${actualPay.month}.${actualPay.day}` : `${calMonth}.25`;
-        elRemToGoal.innerText = `잔여: ${rem.toLocaleString()}원 (${actualPayText} 지급)`;
-      }
-
-      const elTimer = document.getElementById('statTodayTimer');
-      if (elTimer) elTimer.innerText = timerStr;
-
-      const elTodayEarn = document.getElementById('statTodayEarnings');
-      if (elTodayEarn) elTodayEarn.innerText = Math.round(todayEarnings).toLocaleString();
-
-      const elTodayLabel = document.getElementById('todayEarningsLabel');
-      if (elTodayLabel) {
-        elTodayLabel.innerText = `오늘 번 돈 (시간당 ${Math.round(hourlyRate).toLocaleString()}원):`;
-      }
-
-      const elTodayStatus = document.getElementById('todayWorkStatusBadge');
-      if (elTodayStatus) elTodayStatus.innerText = todayStatusText;
-
-      const elMealBadge = document.getElementById('statMealCountBadge');
-      if (elMealBadge) elMealBadge.innerText = `${overtimeDaysCount}회`;
-
-      const elMealAllow = document.getElementById('statMealAllowance');
-      if (elMealAllow) elMealAllow.innerText = totalMealAllowance.toLocaleString();
-    }
-
-    function startLiveSalaryTicker() {
-      if (liveSalaryTimerInterval) clearInterval(liveSalaryTimerInterval);
-      updateLiveSalaryTracker();
-      liveSalaryTimerInterval = setInterval(() => {
-        const panel = document.getElementById('panel-workhours');
-        if (panel && !panel.classList.contains('hidden') && checkIsAdmin()) {
-          updateLiveSalaryTracker();
-        }
-      }, 1000);
-    }
-
-    
-    // ==========================================
-    // URBAN PLANNING SOLUTION CENTER SCRIPT
-    // ==========================================
     const SOLUTION_APPS_DATA = {
       land_ledger: {
         icon: '📋',
-        title: '토지조서 구축기 (Land Ledger Builder)',
-        sub: '20개 실무 표준 컬럼 & 실시간 안분 수식 완비',
+        title: '토지조서 구축기 &amp; 편집기 (Land Ledger)',
+        sub: '20개 표준 컬럼 &amp; 실시간 안분 공식(=ROUND) 완비',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">20개 표준 컬럼</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">실시간 안분 수식</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">브이월드 토지특성 연동</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">과소필지 =IF 수식</span>'
-        ],
-        rules: [
-          '<strong>실무 안분 공식</strong>: 완전편입(편입율 ≥ 98%)은 <code>=공부상면적</code>, 부분편입은 <code>=ROUND(구적편입/구적면적*공부상면적, 2)</code> 수식 형태로 저장되어 수치 변경 시 자동 연동됩니다.',
-          '<strong>브이월드 토지특성정보(lndpclAr) 결합</strong>: 도로접면, 지형형상, 개별공시지가(원/㎡), 용도지역 1·2가 빈틈없이 자동 매핑됩니다.',
-          '<strong>상단 집계 요약행(Row 1)</strong>: 총필지수(COUNTA), 총공부상면적(SUM), 총편입면적(SUM), 부편필지수(COUNTIF), 과소필지수(COUNTIF)가 완비됩니다.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">20개 표준 컬럼</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">실시간 안분 수식</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">브이월드 토지특성 연동</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">웹내 인라인 수정</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '토지조서_표준완비.xlsx',
+        defaultHeaders: ['연번', '법정동', '지번', '지목', '공부상면적(㎡)', '구적면적(㎡)', '구적편입(㎡)', '편입구분', '편입면적(㎡)', '과소필지', '도로접면', '공시지가(원/㎡)', '소유구분'],
+        sampleRows: [
+          ['1', '오류동', '118-1', '대', 1250.40, 1250.42, 1250.42, '완편', 1250.40, 'X', '세로한면(가)', 4250000, '사유지'],
+          ['2', '오류동', '118-2', '대', 850.20, 850.18, 850.18, '완편', 850.20, 'X', '세로한면(가)', 4180000, '사유지'],
+          ['3', '오류동', '119-1', '대', 30.58, 30.60, 30.60, '완편', 30.58, 'O', '소로한면', 4320000, '사유지'],
+          ['4', '오류동', '120-4', '도로', 450.00, 450.00, 220.50, '부편', 220.50, 'X', '소로각지', 2850000, '시유지(구로구)'],
+          ['5', '오류동', '120-7', '도로', 180.00, 180.00, 180.00, '완편', 180.00, 'X', '소로각지', 2800000, '국유지(국토부)']
+        ],
         promptTemplate: (proj) => `${proj} 사업구역계를 대상으로 '토지조서_만드는_법' 실무 스킬을 적용하여, 20개 표준 컬럼과 실시간 안분 공식(=ROUND) 및 브이월드 토지특성이 완비된 토지조서 엑셀을 _AI_작업문서/데이터_조서/에 생성해줘.`
       },
       building_ledger: {
         icon: '🏢',
-        title: '건축물조서 구축기 (Building Ledger Builder)',
-        sub: '27개 표준 컬럼 & 철콘 30년/비철콘 20년 노후도 판정식',
+        title: '건축물조서 구축기 &amp; 편집기 (Building Ledger)',
+        sub: '27개 표준 컬럼 &amp; 철콘 30년/비철콘 20년 노후도 판정식',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">27개 표준 컬럼</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">노후도 판정식 =IF</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">건축물연령공간정보(AL_D196)</span>'
-        ],
-        rules: [
-          '<strong>엄격한 노후도 판정</strong>: <code>=IF(건물연령>=기준년수, "노후", "양호")</code> 수식이 적용되며, 철근콘크리트 30년, 기타 구조 20년 기준이 자동 분기됩니다.',
-          '<strong>27개 실무 표준 컬럼 (B열~AB열)</strong>: GIS건물통합식별번호, 대지면적, 건축면적, 연면적, 층수, 높이, 구조, 용도, 허가/사용승인일자 완비.',
-          '<strong>Row 1 총괄 요약</strong>: 총연면적, 유허가/무허가 호수, 노후 건축물수 합계가 자동 집계됩니다.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">27개 표준 컬럼</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">노후도 판정식 =IF</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">AL_D196 연동</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">웹내 인라인 수정</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '건축물조서_노후도완비.xlsx',
+        defaultHeaders: ['연번', '건물식별번호', '지번', '건물명', '건물동명', '대지면적(㎡)', '연면적(㎡)', '구조', '용도', '층수', '사용승인일', '건물연령', '기준년수', '노후여부'],
+        sampleRows: [
+          ['1', '1153010800-001', '118-1', '가든빌라', '1동', 1250.4, 2140.5, '철근콘크리트', '공동주택', '3층', '1987-12-03', 38, 30, '노후'],
+          ['2', '1153010800-002', '118-1', '가든빌라', '2동', 1250.4, 2140.5, '철근콘크리트', '공동주택', '3층', '1987-12-03', 38, 30, '노후'],
+          ['3', '1153010800-003', '118-1', '가든빌라', '3동', 1250.4, 2140.5, '철근콘크리트', '공동주택', '3층', '1987-12-03', 38, 30, '노후'],
+          ['4', '1153010800-017', '119-1', '단독상가', '상가동', 30.58, 30.58, '벽돌조', '제1종근생', '1층', '1987-12-03', 38, 20, '노후']
+        ],
         promptTemplate: (proj) => `${proj} 사업구역계 내부 건축물을 대상으로 '건축물조서_만드는_법' 스킬을 구동하여 브이월드 건축물연령정보(AL_D196)를 연동하고 27개 표준 컬럼과 노후도 수식이 완비된 건축물조서 엑셀을 _AI_작업문서/데이터_조서/에 구축해줘.`
       },
       base_map: {
         icon: '📐',
         title: '기초도면 4km 빌더 (Base Map 4km DWG)',
-        sub: '4km×4km 정방형 도곽 100% TRIM & 엄격한 7단계 Z-Order',
+        sub: '4km×4km 정방형 도곽 100% TRIM &amp; 7단계 Z-Order',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">반경 2km (4km 도곽)</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">7단계 Z-Order</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">AutoCAD 2021 DWG</span>'
-        ],
-        rules: [
-          '<strong>엄격한 7단계 드로우 오더</strong>: 1.용도지역_해치 ➔ 2.수치지형도(253번) ➔ 3.연속지적도(253번) ➔ 4.장축회전지번(253번) ➔ 5.용도지역선(빨강1번) ➔ 6.도시계획시설선 ➔ 7.구역계/도곽 순서로 작도되어 겹침 가림이 전혀 없습니다.',
-          '<strong>지번 다각형 장축 자동 회전</strong>: QGIS 자유롭게(각을 이룸) 알고리즘을 모사하여 필지 형태에 따라 지번이 자동 회전 배치됩니다.',
-          '<strong>4km 외곽 100% TRIM</strong>: 4km 도곽 밖으로 나간 선은 깨끗하게 트리밍됩니다.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">반경 2km (4km 도곽)</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">7단계 Z-Order</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">AutoCAD 2021 DWG</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '기초현황도_4km_TRIM.dwg',
+        defaultHeaders: ['도면 레이어', '도면 요소', '색상번호', '선종류', 'Z-Order 순서', '비고'],
+        sampleRows: [
+          ['01.용도지역_해치', '용도지역 면해치', '별첨1 지침색', 'Continuous', '1단계 (최하단)', '중복가림 방지'],
+          ['02.수치지형도_통합', '건물 및 도로망', '253번 회색', 'Continuous', '2단계', '기초 배경'],
+          ['03.연속지적도_4km', '지적 경계선', '253번 회색', 'Continuous', '3단계', '4km 100% TRIM'],
+          ['04.지번_레이어', '장축회전 지번', '253번 회색', '돋움', '4단계', '면적별 9단계 크기'],
+          ['05.용도지역선', '용도지역 경계선', '1번 빨강', 'Continuous', '5단계', '가시성 확보'],
+          ['06.도시계획시설선', '시설선(도로/공원)', '1번 빨강', 'Continuous', '6단계', '도장 제외'],
+          ['07.구역계_도곽', '사업구역계/4km도곽', '1번 빨강', 'PHANTOM2', '7단계 (최상단)', '폭 2.0']
+        ],
         promptTemplate: (proj) => `${proj} 구역계를 기반으로 '기초도면_구축하는_법' 실무 스킬을 적용하여 반경 2km(4km 정방형 도곽) 외곽을 100% TRIM하고 7단계 Z-Order가 적용된 기초현황도 DWG 도면을 _AI_작업문서/데이터_조서/에 작도해줘.`
       },
       land_status_map: {
         icon: '🗺️',
-        title: '토지현황도 4종 빌더 (Thematic Maps)',
+        title: '토지현황도 4종 빌더 (Thematic Maps DWG)',
         sub: '단일 DWG 내 지목·소유·규모·토지이용 4종 통합 구축',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-lg">4종 통합 DWG</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">5단계 Z-Order</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">토지이용 공간 투영</span>'
-        ],
-        rules: [
-          '<strong>토지이용 실제 현황 투영</strong>: 건축물대장 및 공간정보를 토지 필지에 공간 조인하여 공동주택, 근린생활시설, 단독, 도로, 주차장, 나대지 등을 자동 판정합니다.',
-          '<strong>5단계 Z-Order</strong>: 1.연속지적도 ➔ 2.SOLID해치 ➔ 3.흰색(7번) 경계선 ➔ 4.지번 ➔ 5.구역계(빨강1번, 폭2) 순서 준수.',
-          '<strong>QGIS 속성 완비 SHP</strong>: PNU 기준 20개 필드가 1:1 조인된 SHP/GeoJSON 동시 출력.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-teal-50 text-teal-800 border border-teal-200 rounded-lg">4종 통합 DWG</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-lg">5단계 Z-Order</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">토지이용 공간 투영</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '토지현황도_4종통합.dwg',
+        defaultHeaders: ['주제도 구분', '해치 레이어', '표준 색상', '속성 결합 키', '포맷'],
+        sampleRows: [
+          ['01. 지목현황도', 'HATCH_JIMOK', '대(노랑), 도로(회색), 답(연두)', 'PNU 19자리', 'DWG + SHP'],
+          ['02. 토지소유현황도', 'HATCH_OWNER', '사유지(주황), 시유지(파랑), 국유지(하늘)', '소유구분', 'DWG + SHP'],
+          ['03. 필지규모현황도', 'HATCH_SCALE', '60미만(적색), 60~150, 150이상', '공부상면적', 'DWG + SHP'],
+          ['04. 토지이용현황도', 'HATCH_LANDUSE', '공동주택, 근린생활, 도로, 주차장', '실제이용현황', 'DWG + SHP']
+        ],
         promptTemplate: (proj) => `${proj} 구역계와 토지조서를 기반으로 '토지현황도_만드는_법' 스킬을 적용하여 단일 DWG 안에 지목·소유·규모·토지이용 4종 현황도 도면과 QGIS 조인 SHP를 _AI_작업문서/데이터_조서/에 구축해줘.`
       },
       building_status_map: {
         icon: '🏗️',
-        title: '건축물현황도 5종 빌더 (Building Status Maps)',
+        title: '건축물현황도 5종 빌더 (Building Status DWG)',
         sub: '노후불량·연도·용도·규모(층수)·허가 5종 통합 DWG',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">5종 통합 DWG</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">노후불량 10/140번</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">가림방지 지번</span>'
-        ],
-        rules: [
-          '<strong>5종 주제도 통합</strong>: 노후불량(10번/140번), 연도별, 용도별, 규모별, 허가유무별 해치 레이어 분리 작도.',
-          '<strong>5단계 Z-Order</strong>: 연속지적도 ➔ SOLID해치 ➔ 경계선_L(7번) ➔ 지번 ➔ 구역계/도곽 계층 정렬.',
-          '<strong>QGIS 건축물 조인 SHP 동시 구축</strong>: A13_A14 결합 키로 결측 없는 공간데이터셋 완성.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg">5종 통합 DWG</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">노후불량 10/140번</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">가림방지 지번</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '건축물현황도_5종통합.dwg',
+        defaultHeaders: ['주제도 구분', '해치 레이어', '표준 색상', '법정 기준', '포맷'],
+        sampleRows: [
+          ['01. 노후불량현황도', 'HATCH_AGING', '노후(10번 빨강), 양호(140번 파랑)', '철콘 30년 / 기타 20년', 'DWG + SHP'],
+          ['02. 준공연도별현황도', 'HATCH_YEAR', '10년미만, 10~20년, 20~30년, 30년이상', '사용승인일자', 'DWG + SHP'],
+          ['03. 건축물용도현황도', 'HATCH_USE', '공동주택, 단독, 근린생활, 업무 등', '주용도명', 'DWG + SHP'],
+          ['04. 층수규모별현황도', 'HATCH_FLOOR', '1~2층, 3~5층, 6층이상', '지상층수', 'DWG + SHP'],
+          ['05. 허가유무별현황도', 'HATCH_PERMIT', '유허가(녹색), 무허가(자주색)', '대장종류/허가일', 'DWG + SHP']
+        ],
         promptTemplate: (proj) => `${proj} 구역계와 건축물조서를 결합하여 '건축물현황도_만드는_법' 실무 스킬로 노후불량, 연도별, 용도별, 규모별, 허가유무별 5종 건축물현황도 DWG 도면을 _AI_작업문서/데이터_조서/에 구축해줘.`
       },
       vworld_downloader: {
@@ -4713,63 +2987,119 @@
         title: '브이월드 주제도 수집기 (V-World Downloader)',
         sub: '용도지역, 도시계획시설 WFS 벡터 데이터 고속 다운로드',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-cyan-50 text-cyan-800 border border-cyan-200 rounded-lg">WFS OpenAPI</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">용도지역·시설선</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">좌표계 자동감지</span>'
-        ],
-        rules: [
-          '<strong>국토교통부 표준 코드셋 적용</strong>: 표준 레이어 스키마에 따라 누락 없이 다운로드.',
-          '<strong>구역계 BBOX 클립</strong>: 불필요한 외곽 영역 없이 사업 대상지와 4km 배후 권역만 정밀 추출.',
-          '<strong>SHP/GeoJSON 인코딩</strong>: UTF-8 CPG 동봉으로 한글 깨짐 원천 차단.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-cyan-50 text-cyan-800 border border-cyan-200 rounded-lg">WFS OpenAPI</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-lg">용도지역·시설선</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg">좌표계 자동감지</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '브이월드_용도지역_도시계획시설.zip',
+        defaultHeaders: ['서비스명', '레이어 코드', '제공 기관', '포맷', '좌표계'],
+        sampleRows: [
+          ['용도지역도', 'LT_C_UQ111', '국토교통부', 'SHP (WFS)', 'EPSG:5179 (자동변환)'],
+          ['도시계획시설(도로)', 'LT_C_UPIS_UQ151', '국토교통부', 'SHP (WFS)', 'EPSG:5179 (자동변환)'],
+          ['도시계획시설(공원)', 'LT_C_UPIS_UQ152', '국토교통부', 'SHP (WFS)', 'EPSG:5179 (자동변환)'],
+          ['연속지적도', 'LP_PA_CBND_BUBUN', '국토정보공사', 'SHP (WFS)', 'EPSG:5174/5186']
+        ],
         promptTemplate: (proj) => `${proj} 구역계를 기준으로 브이월드 OpenAPI에서 최신 용도지역 및 도시계획시설선 공간데이터를 다운로드하여 _AI_작업문서/데이터_조서/에 SHP 파일로 구축해줘.`
       },
       geocoder: {
         icon: '📍',
-        title: '지오코더 & 공시지가기 (Geocoder & Price Collector)',
-        sub: '대량 주소 좌표 변환 & 부동산공시가격알리미 연동',
+        title: '지오코더 &amp; 공시지가기 (Geocoder &amp; Price Collector)',
+        sub: '대량 주소 좌표 변환 &amp; 부동산공시가격알리미 연동',
         badges: [
-          '<span class="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">좌표 일괄 변환</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">개별공시지가</span>',
-          '<span class="text-xs font-bold px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">EPSG:5174/5186</span>'
-        ],
-        rules: [
-          '<strong>지번·도로명 양방향 지오코딩</strong>: 브이월드 Geocoder 2.0 API 연동으로 WGS84 및 국내 직교좌표 산출.',
-          '<strong>실시간 공시지가 수집</strong>: 필지 목록별 토지·주택 공시가격을 대량 일괄 매핑.',
-          '<strong>결과물 엑셀 정리</strong>: PNU 19자리와 함께 정리된 CSV/XLSX로 출력.'
+          '<span class="text-xs font-bold px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg">좌표 일괄 변환</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">개별공시지가</span>',
+          '<span class="text-xs font-bold px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg">EPSG:5174/5186</span>'
         ],
         subfolder: '데이터_조서',
+        fileName: '좌표_및_공시지가_조서.xlsx',
+        defaultHeaders: ['연번', '지번 주소', '도로명 주소', 'PNU', '경도(X)', '위도(Y)', '개별공시지가(원/㎡)'],
+        sampleRows: [
+          ['1', '서울시 구로구 오류동 118-1', '서울시 구로구 경인로 192', '1153010800101180001', 126.842104, 37.498412, 4250000],
+          ['2', '서울시 구로구 오류동 118-2', '서울시 구로구 경인로 194', '1153010800101180002', 126.842350, 37.498320, 4180000],
+          ['3', '서울시 구로구 오류동 119-1', '서울시 구로구 경인로 196', '1153010800101190001', 126.842850, 37.498150, 4320000]
+        ],
         promptTemplate: (proj) => `${proj} 대상 필지들의 지번 목록을 기반으로 지오코더와 공시지가 수집기를 구동하여 좌표 및 공시지가 조서를 _AI_작업문서/데이터_조서/에 작성해줘.`
       }
     };
 
-    let currentSelectedSolutionKey = null;
-
+    // Sub-view switcher for Solution Center
     function switchSolutionSubView(view) {
       const appsView = document.getElementById('solutionAppsView');
+      const pngView = document.getElementById('solutionPngView');
       const reportView = document.getElementById('solutionReportView');
+
       const btnApps = document.getElementById('btnViewApps');
+      const btnPng = document.getElementById('btnViewPng');
       const btnReport = document.getElementById('btnViewReport');
 
-      if (!appsView || !reportView) return;
+      if (!appsView || !pngView || !reportView) return;
 
-      if (view === 'report') {
-        appsView.classList.add('hidden');
+      appsView.classList.add('hidden');
+      pngView.classList.add('hidden');
+      reportView.classList.add('hidden');
+
+      const inactiveClass = 'px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer';
+
+      if (btnApps) btnApps.className = inactiveClass;
+      if (btnPng) btnPng.className = inactiveClass;
+      if (btnReport) btnReport.className = inactiveClass;
+
+      if (view === 'png') {
+        pngView.classList.remove('hidden');
+        if (btnPng) btnPng.className = 'px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-amber-600 text-white shadow-md cursor-pointer';
+        initSolPdfDropEvents();
+      } else if (view === 'report') {
         reportView.classList.remove('hidden');
-        if (btnApps && btnReport) {
-          btnApps.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer';
-          btnReport.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-600 text-white shadow-md cursor-pointer';
-        }
+        if (btnReport) btnReport.className = 'px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-purple-600 text-white shadow-md cursor-pointer';
       } else {
-        reportView.classList.add('hidden');
         appsView.classList.remove('hidden');
-        if (btnApps && btnReport) {
-          btnApps.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow-md cursor-pointer';
-          btnReport.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-700/60 cursor-pointer';
+        if (btnApps) btnApps.className = 'px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-md cursor-pointer';
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Connect Local Project Directory via File System Access API
+    async function connectLocalProjectDirectory() {
+      if (!('showDirectoryPicker' in window)) {
+        alert('현재 사용 중인 브라우저가 File System Access API를 지원하지 않습니다.\nChrome 또는 Edge 브라우저를 사용해주세요.');
+        return;
+      }
+
+      try {
+        currentConnectedDirectoryHandle = await window.showDirectoryPicker({
+          mode: 'readwrite'
+        });
+
+        const alertEl = document.getElementById('directFolderStatusAlert');
+        const nameEl = document.getElementById('connectedFolderName');
+        const btnText = document.getElementById('btnConnectFolderText');
+
+        if (alertEl && nameEl) {
+          nameEl.innerText = currentConnectedDirectoryHandle.name;
+          alertEl.classList.remove('hidden');
+        }
+        if (btnText) {
+          btnText.innerText = '🟢 폴더 연결됨 (' + currentConnectedDirectoryHandle.name + ')';
+        }
+
+        alert('✅ 내 컴퓨터 사업 폴더 [' + currentConnectedDirectoryHandle.name + ']가 성공적으로 연결되었습니다!\n\n이제 [수정본 엑셀 다이렉트 저장] 버튼 클릭 시 다운로드 창 없이 _AI_작업문서/ 에 직접 저장됩니다.');
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Directory connection error:', err);
+          alert('폴더 연결 중 오류가 발생했습니다: ' + err.message);
         }
       }
-      if (window.lucide) lucide.createIcons();
+    }
+
+    function disconnectLocalDirectory() {
+      currentConnectedDirectoryHandle = null;
+      const alertEl = document.getElementById('directFolderStatusAlert');
+      const btnText = document.getElementById('btnConnectFolderText');
+      if (alertEl) alertEl.classList.add('hidden');
+      if (btnText) btnText.innerText = '📁 내 PC 사업 폴더 다이렉트 연결';
+      alert('로컬 폴더 연결이 해제되었습니다.');
     }
 
     function onSolutionProjectChange(projName) {
@@ -4778,24 +3108,25 @@
         const shortName = projName.split(' ')[1] || projName;
         pathBadge.innerText = shortName + '/_AI_작업문서/';
       }
-      if (currentSelectedSolutionKey) {
-        updateModalContent(currentSelectedSolutionKey);
+      if (currentWorkbenchAppKey) {
+        updateWorkbenchModalContent(currentWorkbenchAppKey);
       }
     }
 
-    function openSolutionModal(appKey) {
+    // Open Interactive Workbench Modal
+    function openSolutionWorkbench(appKey) {
       const app = SOLUTION_APPS_DATA[appKey];
       if (!app) return;
-      currentSelectedSolutionKey = appKey;
+      currentWorkbenchAppKey = appKey;
 
-      updateModalContent(appKey);
+      updateWorkbenchModalContent(appKey);
 
       const modal = document.getElementById('solutionModal');
       if (modal) modal.classList.remove('hidden');
       if (window.lucide) lucide.createIcons();
     }
 
-    function updateModalContent(appKey) {
+    function updateWorkbenchModalContent(appKey) {
       const app = SOLUTION_APPS_DATA[appKey];
       if (!app) return;
 
@@ -4805,23 +3136,223 @@
       const titleEl = document.getElementById('solModalTitle');
       const subEl = document.getElementById('solModalSub');
       const badgesEl = document.getElementById('solModalBadges');
-      const rulesEl = document.getElementById('solModalRules');
       const pathEl = document.getElementById('solModalOutputPath');
       const promptEl = document.getElementById('solModalPromptText');
 
       if (iconEl) iconEl.innerText = app.icon;
-      if (titleEl) titleEl.innerText = app.title;
+      if (titleEl) titleEl.innerHTML = app.title;
       if (subEl) subEl.innerText = app.sub;
       if (badgesEl) badgesEl.innerHTML = app.badges.join('');
-      if (rulesEl) {
-        rulesEl.innerHTML = app.rules.map(r => `<li>${r}</li>`).join('');
-      }
+
+      const targetPath = 'C:\\Users\\LSH2\\Desktop\\작업파일\\' + selProj + '\\_AI_작업문서\\' + app.subfolder + '\\';
       if (pathEl) {
-        pathEl.innerText = `C:\\Users\\LSH2\\Desktop\\작업파일\\${selProj}\\_AI_작업문서\\${app.subfolder}\\`;
+        pathEl.innerText = targetPath + (app.fileName || '');
       }
       if (promptEl) {
         promptEl.innerText = app.promptTemplate(selProj);
       }
+
+      // Initialize table with default sample rows
+      currentWorkbenchTableData = JSON.parse(JSON.stringify(app.sampleRows || []));
+      renderWorkbenchTable(app.defaultHeaders || [], currentWorkbenchTableData);
+    }
+
+    function renderWorkbenchTable(headers, rows) {
+      const thead = document.getElementById('solWorkbenchTableHead');
+      const tbody = document.getElementById('solWorkbenchTableBody');
+      const summaryBar = document.getElementById('solTableSummaryBar');
+
+      if (!thead || !tbody) return;
+
+      // Render Headers
+      let thHtml = '<tr><th class="px-3 py-2 text-center w-12 text-slate-500">#</th>';
+      headers.forEach(h => {
+        thHtml += '<th class="px-3 py-2 whitespace-nowrap">' + h + '</th>';
+      });
+      thHtml += '<th class="px-3 py-2 text-center w-14">삭제</th></tr>';
+      thead.innerHTML = thHtml;
+
+      // Render Rows with editable inputs
+      let trHtml = '';
+      rows.forEach((row, rIdx) => {
+        trHtml += '<tr class="hover:bg-blue-50/40 transition">';
+        trHtml += '<td class="px-3 py-1.5 text-center font-mono text-slate-400 font-bold">' + (rIdx + 1) + '</td>';
+        row.forEach((cell, cIdx) => {
+          const isNumeric = typeof cell === 'number';
+          trHtml += '<td class="px-2 py-1">';
+          trHtml += '<input type="text" value="' + (cell !== undefined ? cell : '') + '" onchange="updateWorkbenchCell(' + rIdx + ', ' + cIdx + ', this.value)" class="w-full px-2 py-1 bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-slate-300 focus:border-blue-500 rounded-lg text-xs outline-none transition font-medium ' + (isNumeric ? 'text-right font-mono font-bold text-blue-900' : 'text-slate-800') + '">';
+          trHtml += '</td>';
+        });
+        trHtml += '<td class="px-2 py-1 text-center">';
+        trHtml += '<button onclick="deleteWorkbenchRow(' + rIdx + ')" class="text-slate-300 hover:text-rose-600 p-1 rounded transition cursor-pointer" title="행 삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>';
+        trHtml += '</td></tr>';
+      });
+
+      tbody.innerHTML = trHtml;
+
+      // Calculate Summary
+      if (summaryBar) {
+        const totalRows = rows.length;
+        let sumArea = 0;
+        rows.forEach(r => {
+          // Look for numeric area column (approx col index 4 or 5)
+          const val = Number(r[4]);
+          if (!isNaN(val)) sumArea += val;
+        });
+
+        summaryBar.innerHTML = '<span>📊 총 ' + totalRows + '개 레코드 집계 중</span>' +
+          (sumArea > 0 ? '<span class="font-mono text-blue-800">합계 수치: ' + sumArea.toLocaleString() + ' ㎡</span>' : '') +
+          '<span class="text-[11px] text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">실시간 자동 동기화 ON</span>';
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateWorkbenchCell(rIdx, cIdx, val) {
+      if (currentWorkbenchTableData[rIdx]) {
+        const num = Number(val);
+        currentWorkbenchTableData[rIdx][cIdx] = (!isNaN(num) && val.trim() !== '') ? num : val;
+        // re-render summary
+        const summaryBar = document.getElementById('solTableSummaryBar');
+        if (summaryBar) {
+          let sumArea = 0;
+          currentWorkbenchTableData.forEach(r => {
+            const v = Number(r[4]);
+            if (!isNaN(v)) sumArea += v;
+          });
+          summaryBar.innerHTML = '<span>📊 총 ' + currentWorkbenchTableData.length + '개 레코드 집계 중</span>' +
+            (sumArea > 0 ? '<span class="font-mono text-blue-800">합계 수치: ' + sumArea.toLocaleString() + ' ㎡</span>' : '') +
+            '<span class="text-[11px] text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">실시간 자동 동기화 ON</span>';
+        }
+      }
+    }
+
+    function addWorkbenchTableRow() {
+      const app = SOLUTION_APPS_DATA[currentWorkbenchAppKey];
+      if (!app || !app.defaultHeaders) return;
+      const newRow = new Array(app.defaultHeaders.length).fill('');
+      newRow[0] = String(currentWorkbenchTableData.length + 1);
+      currentWorkbenchTableData.push(newRow);
+      renderWorkbenchTable(app.defaultHeaders, currentWorkbenchTableData);
+    }
+
+    function deleteWorkbenchRow(rIdx) {
+      currentWorkbenchTableData.splice(rIdx, 1);
+      const app = SOLUTION_APPS_DATA[currentWorkbenchAppKey];
+      if (app) {
+        renderWorkbenchTable(app.defaultHeaders, currentWorkbenchTableData);
+      }
+    }
+
+    function resetWorkbenchTable() {
+      const app = SOLUTION_APPS_DATA[currentWorkbenchAppKey];
+      if (app && app.sampleRows) {
+        currentWorkbenchTableData = JSON.parse(JSON.stringify(app.sampleRows));
+        renderWorkbenchTable(app.defaultHeaders, currentWorkbenchTableData);
+      }
+    }
+
+    function loadSampleLedgerData() {
+      resetWorkbenchTable();
+      alert('기본 인허가 표준 샘플 조서 데이터가 로드되었습니다.');
+    }
+
+    function handleWorkbenchFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const fileInfo = document.getElementById('currentLoadedDatasetName');
+      if (fileInfo) {
+        fileInfo.innerText = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB) 로드 완료';
+      }
+
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            if (json && json.length > 0) {
+              const headers = json[0];
+              const rows = json.slice(1).filter(r => r.length > 0);
+              currentWorkbenchTableData = rows;
+              renderWorkbenchTable(headers, rows);
+              alert('✅ 엑셀 파일 [' + file.name + ']에서 총 ' + rows.length + '개 행을 성공적으로 불러왔습니다!');
+            }
+          } catch (err) {
+            alert('엑셀 파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        alert('선택하신 파일 [' + file.name + ']이 작업대에 투입되었습니다.');
+      }
+    }
+
+    // Direct Save to Local Disk / Directory Handle
+    async function saveWorkbenchToLocalDisk() {
+      const app = SOLUTION_APPS_DATA[currentWorkbenchAppKey];
+      const headers = app.defaultHeaders || [];
+      const rows = currentWorkbenchTableData;
+
+      if (!rows || rows.length === 0) {
+        alert('저장할 데이터가 없습니다.');
+        return;
+      }
+
+      const aoa = [headers, ...rows];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '조서_데이터');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      const fileName = app.fileName || '조서_출력.xlsx';
+
+      // 1. If Directory Handle is connected, save directly without download prompt!
+      if (currentConnectedDirectoryHandle) {
+        try {
+          // Navigate to or create _AI_작업문서/데이터_조서/
+          let aiDir = await currentConnectedDirectoryHandle.getDirectoryHandle('_AI_작업문서', { create: true });
+          let targetDir = await aiDir.getDirectoryHandle(app.subfolder || '데이터_조서', { create: true });
+          let fileHandle = await targetDir.getFileHandle(fileName, { create: true });
+          let writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+
+          alert('🎉 [다이렉트 저장 완료!]\n\n내 컴퓨터 폴더:\n[' + currentConnectedDirectoryHandle.name + ' / _AI_작업문서 / ' + app.subfolder + ' / ' + fileName + ']\n에 성공적으로 직접 저장되었습니다!');
+          return;
+        } catch (err) {
+          console.warn('Direct directory write failed, falling back to download:', err);
+        }
+      }
+
+      // 2. Fallback: Trigger instant browser download
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      alert('📥 [' + fileName + '] 파일이 브라우저를 통해 저장되었습니다.\n\n규정 준수를 위해 해당 사업장의 [_AI_작업문서/' + app.subfolder + '/] 폴더로 이동 또는 보관해주세요.');
+    }
+
+    // Open Target Folder in Windows Explorer via Win+R Path Copy
+    function openExplorerTargetFolder() {
+      const app = SOLUTION_APPS_DATA[currentWorkbenchAppKey] || { subfolder: '데이터_조서' };
+      const selProj = document.getElementById('solutionProjectSelect') ? document.getElementById('solutionProjectSelect').value : '09. 서울시 구로구 서울가든빌라재건축';
+      const folderPath = 'C:\\Users\\LSH2\\Desktop\\작업파일\\' + selProj + '\\_AI_작업문서\\' + app.subfolder + '\\';
+
+      const explorerCmd = 'explorer.exe "' + folderPath + '"';
+      navigator.clipboard.writeText(explorerCmd).then(() => {
+        alert('📂 윈도우 탐색기 실행 경로가 클립보드에 복사되었습니다!\n\n[키보드의 Win + R 누르고 -> Ctrl + V -> 엔터]를 누르시면\n해당 폴더가 0.1초 만에 직접 팝업으로 열립니다!\n\n복사된 경로:\n' + explorerCmd);
+      }).catch(() => {
+        alert('출력 폴더 경로:\n' + folderPath);
+      });
     }
 
     function closeSolutionModal() {
@@ -4837,11 +3368,260 @@
       navigator.clipboard.writeText(promptEl.innerText).then(() => {
         if (btn) btn.innerText = '✅ 복사 완료! (채팅창에 붙여넣기 하시면 즉시 실행됩니다)';
         setTimeout(() => {
-          if (btn) btn.innerText = '지시어 복사하고 AI에게 바로 실행 요청하기';
+          if (btn) btn.innerText = '지시어 복사하기';
         }, 3000);
       }).catch(() => {
         alert('클립보드 복사 완료: ' + promptEl.innerText);
       });
+    }
+
+    // ==========================================
+    // STANDALONE HIGH-RES CAD/PDF TO PNG ENGINE
+    // ==========================================
+    function initSolPdfDropEvents() {
+      const dropZone = document.getElementById('solPdfDropZone');
+      if (!dropZone || dropZone.dataset.initialized) return;
+      dropZone.dataset.initialized = 'true';
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('border-amber-500', 'bg-amber-100/50');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('border-amber-500', 'bg-amber-100/50');
+        }, false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          processLoadedSolPdf(files[0]);
+        }
+      }, false);
+    }
+
+    function handleSolPdfFileSelect(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        processLoadedSolPdf(files[0]);
+      }
+    }
+
+    async function processLoadedSolPdf(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('PDF 파일만 선택하실 수 있습니다.');
+        return;
+      }
+
+      solLoadedPdfFile = file;
+      document.getElementById('solPdfFileName').innerText = file.name;
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        solLoadedPdfDoc = await loadingTask.promise;
+
+        document.getElementById('solPdfFileMeta').innerText = '용량: ' + sizeMb + ' MB | 총 ' + solLoadedPdfDoc.numPages + ' 페이지 | 로드 완료';
+        document.getElementById('solPdfDropZone').classList.add('hidden');
+        document.getElementById('solPdfFileInfoBar').classList.remove('hidden');
+        document.getElementById('solPdfResultActionBar').classList.add('hidden');
+        document.getElementById('solPdfPagesGallery').innerHTML = '';
+        solRenderedPageBlobs = [];
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        alert('PDF 파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+      }
+    }
+
+    function resetSolPdfUploader() {
+      solLoadedPdfDoc = null;
+      solLoadedPdfFile = null;
+      solRenderedPageBlobs = [];
+      const fileInput = document.getElementById('solPdfFileInput');
+      if (fileInput) fileInput.value = '';
+      document.getElementById('solPdfDropZone').classList.remove('hidden');
+      document.getElementById('solPdfFileInfoBar').classList.add('hidden');
+      document.getElementById('solPdfProgressContainer').classList.add('hidden');
+      document.getElementById('solPdfResultActionBar').classList.add('hidden');
+      document.getElementById('solPdfPagesGallery').innerHTML = '';
+    }
+
+    async function startSolPdfConversion() {
+      if (!solLoadedPdfDoc) {
+        alert('먼저 PDF 파일을 선택해주세요.');
+        return;
+      }
+
+      const dpi = Number(document.querySelector('input[name="solPdfDpi"]:checked')?.value || 300);
+      const scale = dpi / 72.0;
+      const enhanceLines = document.getElementById('chkSolEnhanceLines').checked;
+
+      const btn = document.getElementById('btnStartSolPdfConvert');
+      const progressContainer = document.getElementById('solPdfProgressContainer');
+      const progressBar = document.getElementById('solPdfProgressBar');
+      const progressLabel = document.getElementById('solPdfProgressLabel');
+      const progressPercent = document.getElementById('solPdfProgressPercent');
+      const gallery = document.getElementById('solPdfPagesGallery');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      progressContainer.classList.remove('hidden');
+      gallery.innerHTML = '';
+      solRenderedPageBlobs = [];
+
+      const totalPages = solLoadedPdfDoc.numPages;
+
+      try {
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+          const currentPct = Math.round(((pageNum - 1) / totalPages) * 100);
+          progressLabel.innerText = '[' + pageNum + ' / ' + totalPages + ' 페이지] ' + dpi + ' DPI 초고화질 렌더링 중 (Hairline Match)...';
+          progressPercent.innerText = currentPct + '%';
+          progressBar.style.width = currentPct + '%';
+
+          const page = await solLoadedPdfDoc.getPage(pageNum);
+          const viewport = page.getViewport({ scale: scale });
+
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d', { alpha: false });
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          if (enhanceLines) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+          }
+
+          const renderContext = {
+            canvasContext: ctx,
+            viewport: viewport,
+            intent: 'print'
+          };
+          await page.render(renderContext).promise;
+
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+          const dataUrl = canvas.toDataURL('image/png', 1.0);
+
+          const pageInfo = {
+            pageNum: pageNum,
+            blob: blob,
+            dataUrl: dataUrl,
+            width: canvas.width,
+            height: canvas.height,
+            dpi: dpi,
+            fileName: solLoadedPdfFile.name.replace(/\.[^/.]+$/, "") + '_p' + String(pageNum).padStart(2, '0') + '.png'
+          };
+          solRenderedPageBlobs.push(pageInfo);
+
+          appendSolPageCardToGallery(pageInfo);
+        }
+
+        progressBar.style.width = '100%';
+        progressPercent.innerText = '100%';
+        progressLabel.innerText = '모든 페이지 초고화질 렌더링 완료! 🎉';
+
+        document.getElementById('solConvertedPageCount').innerText = totalPages;
+        document.getElementById('solPdfResultActionBar').classList.remove('hidden');
+
+      } catch (err) {
+        alert('변환 도중 오류가 발생했습니다: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function appendSolPageCardToGallery(pageInfo) {
+      const gallery = document.getElementById('solPdfPagesGallery');
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3 flex flex-col justify-between';
+
+      card.innerHTML = 
+        '<div class="flex items-center justify-between text-xs pb-2 border-b border-slate-100">' +
+          '<span class="font-bold text-slate-800">' + pageInfo.pageNum + ' 페이지</span>' +
+          '<span class="text-[11px] font-mono text-slate-400">' + pageInfo.width + ' × ' + pageInfo.height + ' px (' + pageInfo.dpi + ' DPI)</span>' +
+        '</div>' +
+        '<div class="w-full h-64 bg-slate-50 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center p-2 group relative cursor-pointer" onclick="window.open(\'' + pageInfo.dataUrl + '\', \'_blank\')">' +
+          '<img src="' + pageInfo.dataUrl + '" class="max-w-full max-h-full object-contain shadow-xs transition group-hover:scale-105" alt="Page ' + pageInfo.pageNum + '">' +
+          '<div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">' +
+            '<i data-lucide="zoom-in" class="w-4 h-4"></i> 크게 보기' +
+          '</div>' +
+        '</div>' +
+        '<div class="flex gap-2 text-xs">' +
+          '<button onclick="downloadSingleSolPng(' + (pageInfo.pageNum - 1) + ')" class="flex-1 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">' +
+            '<i data-lucide="download" class="w-3.5 h-3.5"></i> <span>PNG 다운로드</span>' +
+          '</button>' +
+          '<button onclick="copySolPngToClipboard(' + (pageInfo.pageNum - 1) + ')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl border border-slate-200 transition flex items-center justify-center gap-1 cursor-pointer" title="PPT에 바로 붙여넣기">' +
+            '<i data-lucide="copy" class="w-3.5 h-3.5"></i> <span>복사</span>' +
+          '</button>' +
+        '</div>';
+
+      gallery.appendChild(card);
+    }
+
+    function downloadSingleSolPng(idx) {
+      const item = solRenderedPageBlobs[idx];
+      if (!item) return;
+      const a = document.createElement('a');
+      a.href = item.dataUrl;
+      a.download = item.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    async function copySolPngToClipboard(idx) {
+      const item = solRenderedPageBlobs[idx];
+      if (!item) return;
+
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.write) {
+          throw new Error('이 브라우저는 클립보드 이미지 복사를 지원하지 않습니다.');
+        }
+        const clipboardItem = new ClipboardItem({ 'image/png': item.blob });
+        await navigator.clipboard.write([clipboardItem]);
+        alert('✅ 제 ' + item.pageNum + '페이지 PNG 이미지가 클립보드에 복사되었습니다!\n\n(파워포인트나 한글 문서에서 Ctrl + V로 바로 붙여넣기 하실 수 있습니다)');
+      } catch (err) {
+        alert('복사 실패: ' + err.message);
+      }
+    }
+
+    async function downloadAllSolAsZip() {
+      if (!solRenderedPageBlobs || solRenderedPageBlobs.length === 0) {
+        alert('변환된 이미지가 없습니다.');
+        return;
+      }
+
+      const zip = new JSZip();
+      const baseName = solLoadedPdfFile ? solLoadedPdfFile.name.replace(/\.[^/.]+$/, "") : "도면";
+
+      solRenderedPageBlobs.forEach(item => {
+        zip.file(item.fileName, item.blob);
+      });
+
+      try {
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = baseName + '_초고화질PNG_일괄.zip';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (err) {
+        alert('ZIP 파일 압축 생성 중 오류가 발생했습니다: ' + err.message);
+      }
     }
 
 
@@ -5696,6 +4476,28 @@
 
         
         const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.22.0',
+    date: '2026-10-14',
+    badge: '다이렉트 제어 워크벤치 & PNG 변환기 통합',
+    badgeColor: 'emerald',
+    title: '🕹️ 내 컴퓨터 다이렉트 제어 워크벤치 & CAD/PDF 초고화질 PNG 변환기 메인 전면 탑재',
+    summary: '프롬프트를 복사하여 대화창에 넣던 방식을 전면 개편하여, 웹 화면 안에서 내 PC 사업 폴더를 다이렉트로 연결(File System Access API)하고 조서 데이터를 웹 스프레드시트 표로 직접 확인·수정하여 _AI_작업문서/에 즉시 저장하는 대화형 워크벤치를 구축했습니다. 또한 검수기 서브탭에 숨어있던 [CAD/PDF ➔ 초고화질 PNG 변환기 (Hairline Match)]를 솔루션 센터 메인에 독립 앱으로 전면 배치하여 300·600 DPI 변환 및 클립보드 복사(Ctrl+V)를 원스톱으로 지원합니다.',
+    changes: [
+      '🕹️ [내 PC 사업 폴더 다이렉트 연결]: Chrome/Edge File System Access API를 연동하여 버튼 클릭으로 로컬 사업장 폴더를 연결하고, 다운로드 창 없이 _AI_작업문서/데이터_조서/ 에 엑셀(.xlsx)을 다이렉트 저장 지원.',
+      '✏️ [웹 내 실시간 스프레드시트 뷰어 & 인라인 편집기]: 20개/27개 표준 컬럼 조서를 화면 내 격자형 그리드로 즉시 시각화하고, 셀 더블클릭/수정 시 총면적과 노후도 수식이 실시간으로 자동 재계산.',
+      '📂 [윈도우 탐색기 원클릭 열기 연동]: Win+R 즉시 실행 경로 자동 복사 및 원클릭 탐색기 오픈 지원.',
+      '📐 [CAD 도면 & 심의 PDF ➔ 초고화질 PNG 변환기 메인 전면 탑재]: PDF.js 및 JSZip 기반으로 150/300/450/600 DPI 해상도 선택, Hairline Match 미세선 보존, 페이지별 클립보드 복사(PPT 바로 붙여넣기) 및 ZIP 일괄 다운로드 엔진을 솔루션 센터에 단독 통합.'
+    ],
+    issues: [
+      {
+        symptom: '솔루션 센터가 프롬프트 복사 안내창 형태로만 동작하여 사용자가 다시 채팅창에 붙여넣어야 하고, PNG 변환기가 검수기 탭 안에 숨어 있어 직관적인 접근이 어려웠던 점',
+        cause: '웹과 로컬 파일 시스템 간의 상호작용 부재 및 도구별 독립 뷰 분리 미흡',
+        solution: 'File System Access API 기반 다이렉트 저장, 웹 내 스프레드시트 인라인 수정 엔진, 윈도우 탐색기 오픈 연동, 및 초고화질 PNG 변환기 전면 통합을 통해 완전한 독립형 업무 워크벤치 완성'
+      }
+    ]
+  },
+
   {
     version: 'v1.21.0',
     date: '2026-10-14',
