@@ -2861,7 +2861,2045 @@
 
   <script>
 
+    // ==========================================
+    // 🔑 AUTHENTICATION & GUEST MODE SYSTEM (v1.14.0)
+    // ==========================================
+    const DEFAULT_MASTER_PASSWORD = 'urban2026';
+
+    function getMasterPassword() {
+      if (typeof store !== 'undefined' && store && store.masterPassword) {
+        return String(store.masterPassword);
+      }
+      try {
+        const local = localStorage.getItem('urban_admin_passcode');
+        if (local) return String(local);
+      } catch(e) {}
+      return DEFAULT_MASTER_PASSWORD;
+    }
+
+    function setMasterPassword(newPass) {
+      if (!newPass || !newPass.trim()) return false;
+      const pass = newPass.trim();
+      try {
+        localStorage.setItem('urban_admin_passcode', pass);
+      } catch(e) {}
+      if (typeof store !== 'undefined' && store) {
+        store.masterPassword = pass;
+        if (typeof saveStore === 'function') saveStore();
+      }
+      return true;
+    }
+
     
+    
+    // 🔒 Security: Always clear any cross-tab localStorage auth session
+    // Every newly opened tab / reconnect must start fresh at the Login Portal Screen
+    try {
+      localStorage.removeItem('urban_auth_session');
+    } catch(e) {}
+
+    // ==========================================
+    // 🚪 PORTAL LANDING & GUEST ENTRY SYSTEM (v1.15.0)
+    // ==========================================
+    const DEFAULT_MASTER_ID = 'admin';
+
+    function checkIsAdmin() {
+      try {
+        // Strictly per-tab session so opening a link in a new tab/window always requires login
+        return sessionStorage.getItem('urban_auth_session') === 'admin';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function checkHasGuestAccess() {
+      try {
+        return sessionStorage.getItem('urban_guest_entered') === 'true';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function syncAppViews() {
+      const portal = document.getElementById('loginLandingPortal');
+      const mainApp = document.getElementById('mainAppContainer');
+      const isAdmin = checkIsAdmin();
+      const hasGuest = checkHasGuestAccess();
+
+      if (isAdmin || hasGuest) {
+        if (portal) portal.style.display = 'none';
+        if (mainApp) mainApp.style.display = 'flex';
+      } else {
+        if (portal) portal.style.display = 'flex';
+        if (mainApp) mainApp.style.display = 'none';
+      }
+      updateAuthUI();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handlePortalLoginSubmit() {
+      const idInput = document.getElementById('portalLoginId');
+      const pwInput = document.getElementById('portalLoginPassword');
+      const remember = document.getElementById('portalRememberMe');
+      const err = document.getElementById('portalLoginErrorMsg');
+
+      const idVal = (idInput ? idInput.value : '').trim();
+      const pwVal = (pwInput ? pwInput.value : '').trim();
+      const masterPass = getMasterPassword();
+
+      if (idVal.toLowerCase() === DEFAULT_MASTER_ID && pwVal === masterPass) {
+        if (err) err.classList.add('hidden');
+        // Save strictly to sessionStorage so newly opened tabs/windows always show login screen
+        sessionStorage.setItem('urban_auth_session', 'admin');
+        sessionStorage.removeItem('urban_guest_entered');
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_guest_entered');
+        syncAppViews();
+        renderAll();
+        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
+      } else {
+        if (err) {
+          err.classList.remove('hidden');
+        } else {
+          alert('아이디 또는 비밀번호가 일치하지 않습니다.\n(기본: admin / urban2026)');
+        }
+        if (pwInput) {
+          pwInput.focus();
+          pwInput.select();
+        }
+      }
+    }
+
+    function enterGuestMode() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.setItem('urban_guest_entered', 'true');
+      } catch(e) {}
+      syncAppViews();
+      renderAll();
+      showAuthToast('👀 게스트 모드로 접속했습니다. (조회 전용)', false);
+    }
+
+    function showLoginPortal() {
+      try {
+        localStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_auth_session');
+        sessionStorage.removeItem('urban_guest_entered');
+      } catch(e) {}
+      const pwInput = document.getElementById('portalLoginPassword');
+      if (pwInput) pwInput.value = '';
+      const err = document.getElementById('portalLoginErrorMsg');
+      if (err) err.classList.add('hidden');
+      syncAppViews();
+      if (pwInput) setTimeout(() => pwInput.focus(), 150);
+    }
+
+    // Original checkIsAdmin replaced above
+    function _unusedCheckIsAdmin() {
+      try {
+        return sessionStorage.getItem('urban_auth_session') === 'admin';
+      } catch(e) {
+        return false;
+      }
+    }
+
+    function requireAdmin(actionName = '데이터 변경') {
+      if (checkIsAdmin()) return true;
+      showAuthToast(`🔒 게스트(조회 전용) 모드입니다.\n[${actionName}] 기능은 관리자 로그인 후 이용하실 수 있습니다.`, true);
+      return false;
+    }
+
+    function showAuthToast(msg, showLoginBtn = true) {
+      const container = document.getElementById('authToastContainer');
+      if (!container) {
+        alert(msg);
+        return;
+      }
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto flex items-center gap-3 bg-slate-900/95 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 transition-all duration-300 transform translate-y-2 opacity-0';
+      
+      const icon = document.createElement('span');
+      icon.className = 'text-lg shrink-0';
+      icon.textContent = '🔒';
+      toast.appendChild(icon);
+
+      const text = document.createElement('div');
+      text.className = 'flex-1 leading-snug whitespace-pre-line font-medium';
+      text.textContent = msg;
+      toast.appendChild(text);
+
+      if (showLoginBtn) {
+        const btn = document.createElement('button');
+        btn.className = 'shrink-0 px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition whitespace-nowrap';
+        btn.textContent = '🔑 로그인';
+        btn.onclick = () => {
+          if (toast.parentNode) container.removeChild(toast);
+          openLoginModal();
+        };
+        toast.appendChild(btn);
+      }
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'text-slate-400 hover:text-white p-1 rounded transition shrink-0 text-base leading-none';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.onclick = () => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      };
+      toast.appendChild(closeBtn);
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.classList.add('opacity-0', '-translate-y-2');
+          setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+        }
+      }, 4500);
+    }
+
+    function openLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+      const err = document.getElementById('loginErrorMsg');
+      if (err) err.classList.add('hidden');
+      const input = document.getElementById('loginPasswordInput');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeLoginModal() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleLoginSubmit() {
+      const input = document.getElementById('loginPasswordInput');
+      const remember = document.getElementById('loginRememberMe');
+      const err = document.getElementById('loginErrorMsg');
+      const val = input ? input.value : '';
+      const currentMaster = getMasterPassword();
+
+      if (val === currentMaster) {
+        sessionStorage.setItem('urban_auth_session', 'admin');
+        sessionStorage.removeItem('urban_guest_entered');
+        localStorage.removeItem('urban_auth_session');
+        closeLoginModal();
+        updateAuthUI();
+        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
+      } else {
+        if (err) {
+          err.classList.remove('hidden');
+        } else {
+          alert('비밀번호가 일치하지 않습니다.');
+        }
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+    }
+
+    function handleLogout() {
+      if (!confirm('로그아웃하시겠습니까?\n초기 로그인 화면으로 이동합니다.')) return;
+      showLoginPortal();
+    }
+
+    function openChangePasswordModal() {
+      if (!requireAdmin('비밀번호 변경')) return;
+      const modal = document.getElementById('changePasswordModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+      const err = document.getElementById('changePasswordErrorMsg');
+      if (err) err.classList.add('hidden');
+      ['curPasswordInput', 'newPasswordInput', 'confirmNewPasswordInput'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeChangePasswordModal() {
+      const modal = document.getElementById('changePasswordModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+
+    function handleChangePasswordSubmit() {
+      const cur = document.getElementById('curPasswordInput').value;
+      const newPass = document.getElementById('newPasswordInput').value;
+      const confirmPass = document.getElementById('confirmNewPasswordInput').value;
+      const err = document.getElementById('changePasswordErrorMsg');
+
+      const setError = (msg) => {
+        if (err) {
+          err.textContent = '⚠️ ' + msg;
+          err.classList.remove('hidden');
+        } else {
+          alert(msg);
+        }
+      };
+
+      if (cur !== getMasterPassword()) {
+        setError('현재 비밀번호가 일치하지 않습니다.');
+        return;
+      }
+      if (!newPass || newPass.trim().length < 3) {
+        setError('새 비밀번호를 3자 이상 입력해 주세요.');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        setError('새 비밀번호가 서로 일치하지 않습니다.');
+        return;
+      }
+
+      setMasterPassword(newPass);
+      closeChangePasswordModal();
+      showAuthToast('✅ 관리자 비밀번호가 성공적으로 변경되었습니다.', false);
+    }
+
+    function updateAuthUI() {
+      const isAdmin = checkIsAdmin();
+      if (typeof updateLiveSalaryTracker === 'function') updateLiveSalaryTracker();
+
+      // Tab 6 (Career) Guest Privacy Control
+      const headerStatCareer = document.getElementById('headerStatCareer');
+      if (headerStatCareer) {
+        headerStatCareer.style.display = isAdmin ? '' : 'none';
+      }
+
+      const tabCareerIcon = document.getElementById('tabCareerIcon');
+      const tabCareerText = document.getElementById('tabCareerText');
+      if (tabCareerIcon && tabCareerText) {
+        if (isAdmin) {
+          tabCareerIcon.textContent = '💼';
+          tabCareerText.innerHTML = '6. 경력관리';
+        } else {
+          tabCareerIcon.textContent = '🔒';
+          tabCareerText.innerHTML = '6. 경력관리 <span class="text-[10px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-md font-bold ml-1">비공개</span>';
+        }
+      }
+
+      const mobTopCareer = document.getElementById('mob-top-career');
+      if (mobTopCareer) {
+        mobTopCareer.innerHTML = isAdmin ? '💼 6. 경력관리' : '🔒 6. 경력관리';
+      }
+
+      const mobTabCareer = document.getElementById('mob-tab-career');
+      if (mobTabCareer) {
+        const spanLabel = mobTabCareer.querySelector('span:last-child');
+        if (spanLabel) {
+          spanLabel.textContent = isAdmin ? '경력관리' : '경력(비공개)';
+        }
+      }
+
+      // If currently on Tab 6, re-render career logs view
+      const panelCareer = document.getElementById('panel-career');
+      if (panelCareer && !panelCareer.classList.contains('hidden')) {
+        renderCareerLogs();
+      }
+      
+      // Desktop header auth container
+      const desktopContainer = document.getElementById('desktopAuthStatus');
+      if (desktopContainer) {
+        if (isAdmin) {
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                👑 관리자 모드
+              </span>
+              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1" title="관리자 비밀번호 변경">
+                ⚙️ 비번 변경
+              </button>
+              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1" title="로그아웃 (게스트 모드로 전환)">
+                🚪 로그아웃
+              </button>
+            </div>
+          `;
+        } else {
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-3 py-1.5 bg-amber-50 text-amber-800 font-bold border border-amber-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                👀 게스트 (조회 전용)
+              </span>
+              <button onclick="showLoginPortal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition text-xs flex items-center gap-1.5">
+                🚪 로그인 화면으로
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // Mobile header auth container
+      const mobContainer = document.getElementById('mobileAuthContainer');
+      if (mobContainer) {
+        if (isAdmin) {
+          mobContainer.innerHTML = `
+            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg text-[11px] font-bold">👑 관리자</span>
+            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold" title="로그아웃">🚪</button>
+          `;
+        } else {
+          mobContainer.innerHTML = `
+            <button onclick="showLoginPortal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1">🚪 로그인</button>
+          `;
+        }
+      }
+
+      // Guest banner visibility
+      const guestBanner = document.getElementById('guestModeBanner');
+      if (guestBanner) {
+        if (isAdmin) {
+          guestBanner.classList.add('hidden');
+        } else {
+          guestBanner.classList.remove('hidden');
+        }
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+
+    function openMobileModal() { document.getElementById('mobileModal').classList.remove('hidden'); lucide.createIcons(); }
+
+    function closeMobileModal() { document.getElementById('mobileModal').classList.add('hidden'); }
+
+    let store = {
+
+      projects: [],
+
+      dailyTasks: [],
+
+      calendarEvents: [], careerLogs: [], workLogs: []
+
+    };
+
+
+
+    let calendarCurrentDate = new Date();
+
+    let currentCareerFilter = 'all';
+
+
+
+    
+
+    // FIREBASE REALTIME SYNC ENGINE
+
+    let isCloudSyncActive = false;
+
+    let fbDbRef = null;
+
+
+
+    function openCloudSyncModal() {
+
+      const modal = document.getElementById('cloudSyncModal');
+
+      if (modal) {
+
+        modal.style.display = 'flex';
+
+        modal.classList.remove('hidden');
+
+        const savedUrl = localStorage.getItem('urban_firebase_url') || '';
+
+        document.getElementById('firebaseUrlInput').value = savedUrl;
+
+        if (window.lucide) lucide.createIcons();
+
+      }
+
+    }
+
+    function closeCloudSyncModal() {
+
+      const modal = document.getElementById('cloudSyncModal');
+
+      if (modal) {
+
+        modal.style.display = 'none';
+
+        modal.classList.add('hidden');
+
+      }
+
+    }
+
+
+
+    function saveFirebaseConfig() {
+      if (!requireAdmin("클라우드 동기화 설정 변경")) return;
+
+      const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
+
+      if (!inputUrl) {
+
+        alert("Firebase Database URL을 입력해 주세요!");
+
+        return;
+
+      }
+
+      localStorage.setItem('urban_firebase_url', inputUrl);
+
+      closeCloudSyncModal();
+
+      initFirebaseSync(inputUrl);
+
+    }
+
+
+
+    function initFirebaseSync(dbUrl) {
+
+      if (!dbUrl || typeof firebase === 'undefined') return;
+
+      try {
+
+        let cleanUrl = dbUrl.trim();
+
+        if (cleanUrl.startsWith('{')) {
+
+          const cfg = JSON.parse(cleanUrl);
+
+          if (!firebase.apps.length) firebase.initializeApp(cfg);
+
+        } else {
+
+          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
+
+          if (!firebase.apps.length) firebase.initializeApp({ databaseURL: cleanUrl });
+
+        }
+
+
+
+        const db = firebase.database();
+
+        fbDbRef = db.ref('urban_project_store');
+
+
+
+        fbDbRef.on('value', (snapshot) => {
+          const remoteData = snapshot.val();
+          if (remoteData && remoteData.projects) {
+            const cleanRemote = sanitizeStore(remoteData);
+            const remoteTs = cleanRemote.lastLocalUpdate || 0;
+            const localTs = store.lastLocalUpdate || 0;
+
+            // [BI-DIRECTIONAL SAFE MERGE] Never overwrite or lose local tasks!
+            const mergedTasksMap = new Map();
+            // Put remote tasks first
+            (cleanRemote.dailyTasks || []).forEach(t => {
+              if (t && t.id) mergedTasksMap.set(t.id, t);
+            });
+            // If local has tasks that remote doesn't have, PRESERVE THEM!
+            let localHadNewTasks = false;
+            (store.dailyTasks || []).forEach(lt => {
+              if (lt && lt.id && !mergedTasksMap.has(lt.id)) {
+                mergedTasksMap.set(lt.id, lt);
+                localHadNewTasks = true;
+              }
+            });
+
+            // Merge trash tasks safely
+            const mergedTrashMap = new Map();
+            (cleanRemote.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
+            (store.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
+
+            cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
+            cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
+
+            // Merge workLogs safely
+            const mergedWorkMap = new Map();
+            (cleanRemote.workLogs || []).forEach(w => { if (w && w.date) mergedWorkMap.set(w.date, w); });
+            (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
+            cleanRemote.workLogs = Array.from(mergedWorkMap.values());
+
+            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
+              store = cleanRemote;
+              store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
+              localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+              recordAutoSnapshot(store);
+              autoSyncCareerFromCompletedTasks();
+              renderAll();
+              updateSyncStatusUI(true, "실시간 연동 중");
+
+              // If local had tasks missing from cloud, push back combined data so cloud is also updated
+              if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
+                fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
+              }
+            }
+          } else if (store.projects && store.projects.length > 0) {
+            fbDbRef.set(sanitizeStore(store)).catch(e => console.error("Cloud auto-seed failed:", e));
+          }
+        }, (err) => {
+
+          console.error("Firebase sync error", err);
+
+          updateSyncStatusUI(false, "연동 오류");
+
+        });
+
+
+
+        isCloudSyncActive = true;
+
+        updateSyncStatusUI(true, "실시간 연동 중");
+
+      } catch(e) {
+
+        console.error("Firebase init failed:", e);
+
+        updateSyncStatusUI(false, "설정 오류");
+
+      }
+
+    }
+
+
+
+    function updateSyncStatusUI(active, text) {
+
+      const dot = document.getElementById('syncStatusDot');
+
+      const txt = document.getElementById('syncStatusText');
+
+      if (dot && txt) {
+
+        dot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
+
+        txt.innerText = text;
+
+        const mdot = document.getElementById('mobSyncDot');
+
+        const mtxt = document.getElementById('mobSyncText');
+
+        if (mdot) mdot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
+
+        if (mtxt) mtxt.innerText = active ? "연동중" : "설정";
+
+      }
+
+    }
+
+
+
+    
+
+                        
+
+    
+
+    
+
+    
+
+    
+    function getInitialDefaultProjects() {
+      return [
+  {
+    "category": "기본계획",
+    "desc": "∘착수 : '24.07.10.\n∘착수보고 : '24.08.13.\n∘주민설문조사 : '25.03~04.\n∘주민설문조사 : '25.10.~11.\n∘국장보고 : '26.02 ~ 매월\n∘중간보고 : '26.07\n∘관련기관(부서)협의 : '26.07~'26.08.\n∘최종보고 : '26.09.\n∘주민공람 : '26.10.(14일간)\n∘시의회의견청취 : '26.11.\n∘용인시 심의 : '26.12.\n∘도 승인신청 : '27.01.\n∘도 관련기관(부서)협의 : '27.02.\n∘경기도 심의 : '27.04.\n∘국토교통부 협의 : '27.05.\n∘도 승인 및 고시 : '27.06.\n (준공목표 : '27.06.)",
+    "endDate": "'27.06",
+    "id": "p_yongin_default",
+    "name": "용인시 노후계획도시기본계획",
+    "progress": 80,
+    "startDate": "'24.07.10",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "착수",
+        "date": "'24.07.10.",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "착수보고",
+        "date": "'24.08.13.",
+        "status": null
+      },
+      {
+        "id": "m_2",
+        "title": "주민설문조사",
+        "date": "'25.03~04.",
+        "status": null
+      },
+      {
+        "id": "m_3",
+        "title": "주민설문조사",
+        "date": "'25.10.~11.",
+        "status": null
+      },
+      {
+        "id": "m_4",
+        "title": "국장보고",
+        "date": "'26.02 ~ 매월",
+        "status": null
+      },
+      {
+        "id": "m_5",
+        "title": "중간보고",
+        "date": "'26.07",
+        "status": null
+      },
+      {
+        "id": "m_6",
+        "title": "관련기관(부서)협의",
+        "date": "'26.07~'26.08.",
+        "status": null
+      },
+      {
+        "id": "m_7",
+        "title": "최종보고",
+        "date": "'26.09.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "주민공람",
+        "date": "'26.10.(14일간)",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "시의회의견청취",
+        "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_10",
+        "title": "용인시 심의",
+        "date": "'26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_11",
+        "title": "도 승인신청",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_12",
+        "title": "도 관련기관(부서)협의",
+        "date": "'27.02.",
+        "status": null
+      },
+      {
+        "id": "m_13",
+        "title": "경기도 심의",
+        "date": "'27.04.",
+        "status": null
+      },
+      {
+        "id": "m_14",
+        "title": "국토교통부 협의",
+        "date": "'27.05.",
+        "status": null
+      },
+      {
+        "id": "m_15",
+        "title": "도 승인 및 고시",
+        "date": "'27.06.",
+        "status": null
+      }
+    ]
+  },
+  {
+    "category": "노후계획도시 특별정비사업",
+    "desc": "∘착수 : '25.09\n∘접수 : '26.7.1.~7.10.\n∘자문 및 결과통보 : '26.7.\n∘제안서 본안 접수 : '26.9.1.\n∘수용여부 결정 : '26.10.\n∘주민공람·공고 : '26.10.\n∘시의회의견청취 : '26.10.\n∘경기도협의 : '26.11.\n∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.\n∘국토부 보고 : '26.12.",
+    "endDate": "'26.12",
+    "id": "p_bundang_default",
+    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
+    "progress": 20,
+    "startDate": "'25.09",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "착수",
+        "date": "'25.09",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "접수",
+        "date": "'26.7.1.~7.10.",
+        "status": null
+      },
+      {
+        "id": "m_2",
+        "title": "자문 및 결과통보",
+        "date": "'26.7.",
+        "status": "done"
+      },
+      {
+        "id": "m_3",
+        "title": "제안서 본안 접수",
+        "date": "'26.9.1.",
+        "status": "done"
+      },
+      {
+        "id": "m_4",
+        "title": "수용여부 결정",
+        "date": "'26.10.",
+        "status": "in_progress"
+      },
+      {
+        "id": "m_5",
+        "title": "주민공람·공고",
+        "date": "'26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_6",
+        "title": "시의회의견청취",
+        "date": "'26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_7",
+        "title": "경기도협의",
+        "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "성남시 도시계획위원회 심의 및 구역지정",
+        "date": "'26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "국토부 보고",
+        "date": "'26.12.",
+        "status": "todo"
+      }
+    ]
+  },
+  {
+    "category": "정비사업(재개발)",
+    "desc": "∘착수 : '25.10.\n∘사전검토신청 : '26.3.16.\n∘관련기관(부서)1차 협의 : '26.3.~'26.7.15\n∘관련기관(부서)2차 협의 : '26.7.~'26.9.\n∘자문단컨설팅 : '26.10.\n∘주민제안서 접수 : '26.11.\n∘관련기관(부서)협의 : '26.11.~12.\n∘주민공람 : '27.01.\n∘주민설명회 : '27.01.\n∘의회의견청취 : '27.02.\n∘시 결정신청 : '27.03.\n∘시 도시경관공동위원회 : '27.04.\n∘고시 : '27.05.",
+    "endDate": "'27.05",
+    "id": "p_incheon_default",
+    "name": "인천시 계산역북측구역 재개발사업",
+    "progress": 10,
+    "startDate": "'25.10",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "착수",
+        "date": "'25.10.",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "사전검토신청",
+        "date": "'26.3.16.",
+        "status": "done"
+      },
+      {
+        "id": "m_2",
+        "title": "관련기관(부서)1차 협의",
+        "date": "'26.3.~'26.7.15",
+        "status": "done"
+      },
+      {
+        "id": "m_3",
+        "title": "관련기관(부서)2차 협의",
+        "date": "'26.7.~'26.9.",
+        "status": null
+      },
+      {
+        "id": "m_4",
+        "title": "자문단컨설팅",
+        "date": "'26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_5",
+        "title": "주민제안서 접수",
+        "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_6",
+        "title": "관련기관(부서)협의",
+        "date": "'26.11.~12.",
+        "status": null
+      },
+      {
+        "id": "m_7",
+        "title": "주민공람",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_8",
+        "title": "주민설명회",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_9",
+        "title": "의회의견청취",
+        "date": "'27.02.",
+        "status": null
+      },
+      {
+        "id": "m_10",
+        "title": "시 결정신청",
+        "date": "'27.03.",
+        "status": null
+      },
+      {
+        "id": "m_11",
+        "title": "시 도시경관공동위원회",
+        "date": "'27.04.",
+        "status": null
+      },
+      {
+        "id": "m_12",
+        "title": "고시",
+        "date": "'27.05.",
+        "status": null
+      }
+    ]
+  },
+  {
+    "category": "재개발사업",
+    "desc": "∘착수 : `26.5.\n∘접수 : `26.9.",
+    "endDate": "미정",
+    "id": "p_gwangmyeong",
+    "name": "광명시 광명동 재개발사업",
+    "progress": 7,
+    "startDate": "'25.05",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "착수",
+        "date": "`26.5.",
+        "status": "done"
+      },
+      {
+        "id": "m_1",
+        "title": "접수",
+        "date": "`26.9.",
+        "status": null
+      }
+    ]
+  },
+  {
+    "category": "재개발사업",
+    "desc": "∘사전검토신청 : `25.05.30\n∘관련기관(부서)협의 : `25.6.~8.\n∘인천시 사전컨설팅 : `25.10.\n∘주민입안제안 : `26.6.\n∘관련기관(부서)협의 : `26.6.~8.\n∘주민공람 : `26.9.\n∘주민설명회 : `26.10.\n∘의회의견청취 : `26.11.\n∘시 결정신청 : `26.12.\n∘시 도시경관공동위원회 : `26.12.\n∘고시 : `27.1.\n (준공목표 :‘27.1.)",
+    "endDate": "'27.01",
+    "id": "p_jakjeon",
+    "name": "인천 작전역인근 재개발사업",
+    "progress": 10,
+    "startDate": "'25.05.30",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "사전검토신청",
+        "date": "`25.05.30",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "관련기관(부서)협의",
+        "date": "`25.6.~8.",
+        "status": null
+      },
+      {
+        "id": "m_2",
+        "title": "인천시 사전컨설팅",
+        "date": "`25.10.",
+        "status": null
+      },
+      {
+        "id": "m_3",
+        "title": "주민입안제안",
+        "date": "`26.6.",
+        "status": "done"
+      },
+      {
+        "id": "m_4",
+        "title": "관련기관(부서)협의",
+        "date": "`26.6.~8.",
+        "status": "in_progress"
+      },
+      {
+        "id": "m_5",
+        "title": "주민공람",
+        "date": "`26.9.",
+        "status": "todo"
+      },
+      {
+        "id": "m_6",
+        "title": "주민설명회",
+        "date": "`26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_7",
+        "title": "의회의견청취",
+        "date": "`26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "시 결정신청",
+        "date": "`26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "시 도시경관공동위원회",
+        "date": "`26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_10",
+        "title": "고시",
+        "date": "`27.1.",
+        "status": null
+      }
+    ]
+  }
+];
+    }
+
+    function getInitialDefaultEvents() {
+      return [
+  {
+    "attendees": [
+      "김아현 이사님",
+      "최지율 주임님"
+    ],
+    "date": "2026-09-15",
+    "desc": "오전 10시",
+    "id": "e_user_11",
+    "projId": "p_jakjeon",
+    "title": "조치계획 접수",
+    "type": "출장"
+  },
+  {
+    "date": "2026-09-14",
+    "desc": "PC 직접 등록",
+    "id": "e_user_14",
+    "title": "교통연구원 출장",
+    "type": "출장"
+  },
+  {
+    "attendees": [
+      "김아현 이사님",
+      "최지율 주임님"
+    ],
+    "date": "2026-09-11",
+    "desc": "",
+    "id": "e_1789084641338",
+    "projId": "p_jakjeon",
+    "title": "작전 추준위 회의",
+    "type": "출장"
+  },
+  {
+    "attendees": [
+      "나",
+      "김아현 이사님"
+    ],
+    "date": "2026-09-24",
+    "desc": "광명시청 도시재생과 현장 방문 및 입안제안서 사전 조율",
+    "id": "e_gm_20260924_01",
+    "projId": "p_gwangmyeong",
+    "title": "광명동 정비계획 제안서 사전협의",
+    "type": "출장"
+  }
+];
+    }
+
+    function getInitialDefaultTasks() {
+      return [
+  {
+    "completed": true,
+    "date": "2026-09-09",
+    "id": "t_user_20260909_01",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789001173719_0",
+        "text": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정"
+      },
+      {
+        "completed": true,
+        "id": "it_1789001173719_1",
+        "text": "도면수정"
+      },
+      {
+        "completed": true,
+        "id": "it_1789001173719_2",
+        "text": "첨부자료 표 수정"
+      }
+    ],
+    "projId": "p_jakjeon",
+    "theme": "1차 관련부서 협의 조치계획 첨부자료 작성",
+    "title": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정 도면수정 첨부자료 표 수정"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-10",
+    "id": "t_1789000652240_c6of",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789000652240_0",
+        "text": "가구및 획지계획 각주 수정"
+      },
+      {
+        "completed": true,
+        "id": "it_1789000652240_1",
+        "text": "도로 외 조서 날리고 기반시설계획 총괄표 삽입"
+      }
+    ],
+    "projId": "p_jakjeon",
+    "theme": "1차 관련부서 협의 참고자료",
+    "title": "가구및 획지계획 각주 수정 도로 외 조서 날리고 기반시설계획 총괄표 삽입"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-10",
+    "id": "t_1789005476131_jnyf",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789005476131_0",
+        "text": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
+      }
+    ],
+    "projId": "p_jakjeon",
+    "theme": "1차 관련부서 협의 조치계획 첨부자료",
+    "title": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-11",
+    "id": "t_1789110233633_qy6i",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789110233633_0",
+        "text": "조치계획서 작성"
+      }
+    ],
+    "projId": "p_incheon_default",
+    "theme": "2차 협의 조치계획서 작성",
+    "title": "조치계획서 작성"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-14",
+    "id": "t_1789115579613_3feg",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789115579613_0",
+        "text": "조치계획 작성"
+      }
+    ],
+    "projId": "p_incheon_default",
+    "theme": "2차 관련부서 협의 조치계획",
+    "title": "조치계획 작성"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-14",
+    "id": "t_1789350785767_8ytw",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_1789350785767_0",
+        "text": "고시도 접지"
+      },
+      {
+        "completed": true,
+        "id": "it_1789350785767_1",
+        "text": "고시문 출력"
+      },
+      {
+        "completed": true,
+        "id": "it_1789350785767_2",
+        "text": "묶기"
+      }
+    ],
+    "projId": "p_incheon_default",
+    "theme": "지금도농3구역",
+    "title": "고시도 접지 고시문 출력 묶기"
+  },
+  {
+    "completed": false,
+    "date": "2026-09-15",
+    "id": "t_gm_20260915_01",
+    "items": [
+      {
+        "completed": false,
+        "id": "it_gm_1",
+        "text": "정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성"
+      },
+      {
+        "completed": false,
+        "id": "it_gm_2",
+        "text": "토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토"
+      },
+      {
+        "completed": false,
+        "id": "it_gm_3",
+        "text": "정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
+      }
+    ],
+    "projId": "p_gwangmyeong",
+    "theme": "정비구역 지정 신청도서 작성 및 사전검토",
+    "title": "1. 정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성 2. 토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토 3. 정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-08",
+    "id": "t_gm_20260908_02",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_gm_4",
+        "text": "대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사"
+      },
+      {
+        "completed": true,
+        "id": "it_gm_5",
+        "text": "과소필지 및 접도율 현황 분석표 작성"
+      }
+    ],
+    "projId": "p_gwangmyeong",
+    "theme": "기초현황조사 및 노후도 분석",
+    "title": "1. 대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사 2. 과소필지 및 접도율 현황 분석표 작성"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-05",
+    "id": "t_yi_20260905_01",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_yi_1",
+        "text": "노후계획도시기본계획 최종보고서 도서 검토"
+      },
+      {
+        "completed": true,
+        "id": "it_yi_2",
+        "text": "10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
+      }
+    ],
+    "projId": "p_yongin_default",
+    "theme": "최종보고서 작성 및 주민공람 준비",
+    "title": "1. 노후계획도시기본계획 최종보고서 도서 검토 2. 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
+  },
+  {
+    "completed": true,
+    "date": "2026-09-04",
+    "id": "t_bd_20260904_01",
+    "items": [
+      {
+        "completed": true,
+        "id": "it_bd_1",
+        "text": "선도지구 공모신청서 평가 배점표 분석"
+      },
+      {
+        "completed": true,
+        "id": "it_bd_2",
+        "text": "주민동의율 제고 방안 및 동의서 정밀 검증"
+      }
+    ],
+    "projId": "p_bundang_default",
+    "theme": "선도지구 제안서 및 평가기준 검토",
+    "title": "1. 선도지구 공모신청서 평가 배점표 분석 2. 주민동의율 제고 방안 및 동의서 정밀 검증"
+  }
+];
+    }
+
+    function restoreDefaultProjectsData() {
+      if (!requireAdmin("기본 데이터 복구")) return;
+      store.projects = getInitialDefaultProjects();
+      store.calendarEvents = getInitialDefaultEvents();
+      store.dailyTasks = getInitialDefaultTasks();
+      saveStore();
+      alert("사용자 백업 파일 데이터가 성공적으로 복구되었습니다!");
+    }
+
+
+    
+    function sanitizeStore(s) {
+      if (!s || typeof s !== 'object') s = {};
+      if (!Array.isArray(s.projects)) s.projects = s.projects ? Object.values(s.projects) : getInitialDefaultProjects();
+      s.projects.forEach((p, pIdx) => {
+        if (!p.id) p.id = 'p_' + pIdx;
+        if (!p.name) p.name = '무제 사업';
+        if (typeof p.progress !== 'number') p.progress = 0;
+        if (!Array.isArray(p.milestones)) p.milestones = [];
+        p.milestones.forEach((m, idx) => {
+          if (!m.id) m.id = 'm_' + idx;
+          if (m.status === undefined || m.status === null) m.status = 'todo';
+          if (!m.title) m.title = '';
+          if (!m.date) m.date = '';
+        });
+      });
+      if (!Array.isArray(s.calendarEvents)) s.calendarEvents = s.calendarEvents ? Object.values(s.calendarEvents) : getInitialDefaultEvents();
+      s.calendarEvents.forEach((e, eIdx) => {
+        if (!e.id) e.id = 'e_' + eIdx;
+        if (!e.title) e.title = '';
+        if (!e.date) e.date = '';
+      });
+      if (!Array.isArray(s.dailyTasks)) s.dailyTasks = s.dailyTasks ? Object.values(s.dailyTasks) : getInitialDefaultTasks();
+      if (s.dailyTasks.length === 0) s.dailyTasks = getInitialDefaultTasks();
+      s.dailyTasks.forEach((t, tIdx) => {
+        if (!t.id) t.id = 't_' + tIdx;
+        if (!t.date) t.date = getTodayDateStr();
+        if (!t.theme) t.theme = '';
+        if (!Array.isArray(t.items) || t.items.length === 0) {
+          if (t.title) {
+            const lines = t.title.split(/(?=\s+\d+[\.\)]\s+)|[\r\n]+/).map(x => x.trim()).filter(Boolean);
+            if (lines.length > 1) {
+              t.items = lines.map((line, i) => ({
+                id: 'it_' + i,
+                text: line,
+                completed: !!t.completed
+              }));
+            } else {
+              t.items = [{ id: 'it_0', text: t.title, completed: !!t.completed }];
+            }
+          } else {
+            t.items = [{ id: 'it_0', text: '할 일 내용 없음', completed: false }];
+          }
+        }
+        t.items.forEach((it, iIdx) => {
+          if (!it.id) it.id = 'it_' + iIdx;
+          if (!it.text) it.text = '';
+          if (typeof it.completed !== 'boolean') it.completed = false;
+        });
+        t.title = t.items.map(it => it.text).join(' ');
+        t.completed = t.items.length > 0 && t.items.every(it => it.completed);
+      });
+      if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
+      if (!Array.isArray(s.workLogs)) s.workLogs = s.workLogs ? Object.values(s.workLogs) : [];
+      if (!Array.isArray(s.trashTasks)) s.trashTasks = s.trashTasks ? Object.values(s.trashTasks) : [];
+      if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
+      return JSON.parse(JSON.stringify(s));
+    }
+  
+    function loadStore() {
+      const saved = localStorage.getItem('urban_clean_store_v11') || localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v9');
+      if (saved) {
+        try { store = JSON.parse(saved); } catch(e) {}
+      }
+
+      if (!store || !Array.isArray(store.projects) || store.projects.length === 0) {
+        store = {
+          projects: getInitialDefaultProjects(),
+          dailyTasks: getInitialDefaultTasks(),
+          calendarEvents: getInitialDefaultEvents(),
+          careerLogs: [],
+          lastLocalUpdate: 0
+        };
+      }
+
+      if (!store.calendarEvents) store.calendarEvents = getInitialDefaultEvents();
+      if (!store.dailyTasks) store.dailyTasks = [];
+      if (!store.careerLogs) store.careerLogs = [];
+      store = sanitizeStore(store);
+
+      try {
+        localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+      } catch(e) {}
+
+      autoSyncCareerFromCompletedTasks();
+      if (typeof ensureBaselineSnapshot === 'function') ensureBaselineSnapshot();
+    }
+
+    
+    function recordAutoSnapshot(s) {
+      try {
+        const historyKey = 'urban_snapshot_history_v1';
+        let history = [];
+        try {
+          const raw = localStorage.getItem(historyKey);
+          if (raw) history = JSON.parse(raw);
+        } catch(e) {}
+        if (!Array.isArray(history)) history = [];
+
+        const snap = {
+          time: Date.now(),
+          iso: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+          taskCount: Array.isArray(s.dailyTasks) ? s.dailyTasks.length : 0,
+          projectCount: Array.isArray(s.projects) ? s.projects.length : 0,
+          data: JSON.parse(JSON.stringify(s))
+        };
+
+        // Don't save identical consecutive snapshot
+        if (history.length > 0) {
+          const last = history[0];
+          if (JSON.stringify(last.data.dailyTasks) === JSON.stringify(snap.data.dailyTasks) &&
+              JSON.stringify(last.data.projects) === JSON.stringify(snap.data.projects)) {
+            return;
+          }
+        }
+
+        history.unshift(snap);
+        if (history.length > 50) history = history.slice(0, 50);
+        localStorage.setItem(historyKey, JSON.stringify(history));
+
+        // Also save daily archive
+        const todayKey = 'urban_daily_archive_' + (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0,10));
+        localStorage.setItem(todayKey, JSON.stringify(s));
+      } catch(e) {
+        console.warn("Snapshot record failed:", e);
+      }
+    }
+  
+    function saveStore() {
+      store = sanitizeStore(store);
+      store.lastLocalUpdate = Date.now();
+      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+      renderAll();
+      if (isCloudSyncActive && fbDbRef) {
+        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
+      }
+    }
+
+
+
+    
+    // =========================================================================
+    // 5. WORK HOURS & ANNUAL LEAVE SYSTEM (근무 및 연차 관리)
+    // =========================================================================
+
+    // Statutory Korean Public Holidays (법정공휴일)
+    const KOREAN_PUBLIC_HOLIDAYS = {
+      // 2025
+      "2025-01-01": "신정",
+      "2025-01-28": "설날 연휴",
+      "2025-01-29": "설날",
+      "2025-01-30": "설날 연휴",
+      "2025-03-01": "삼일절",
+      "2025-03-03": "대체공휴일 (삼일절)",
+      "2025-05-05": "어린이날",
+      "2025-05-06": "부처님오신날",
+      "2025-06-06": "현충일",
+      "2025-08-15": "광복절",
+      "2025-10-03": "개천절",
+      "2025-10-05": "추석 연휴",
+      "2025-10-06": "추석",
+      "2025-10-07": "추석 연휴",
+      "2025-10-08": "대체공휴일 (추석)",
+      "2025-10-09": "한글날",
+      "2025-12-25": "성탄절",
+
+      // 2026
+      "2026-01-01": "신정",
+      "2026-02-16": "설날 연휴",
+      "2026-02-17": "설날",
+      "2026-02-18": "설날 연휴",
+      "2026-03-01": "삼일절",
+      "2026-03-02": "대체공휴일 (삼일절)",
+      "2026-05-05": "어린이날",
+      "2026-05-24": "부처님오신날",
+      "2026-05-25": "대체공휴일 (부처님오신날)",
+      "2026-06-06": "현충일",
+      "2026-08-15": "광복절",
+      "2026-08-17": "대체공휴일 (광복절)",
+      "2026-09-24": "추석 연휴",
+      "2026-09-25": "추석",
+      "2026-09-26": "추석 연휴",
+      "2026-10-03": "개천절",
+      "2026-10-05": "대체공휴일 (개천절)",
+      "2026-10-09": "한글날",
+      "2026-12-25": "성탄절",
+
+      // 2027
+      "2027-01-01": "신정",
+      "2027-02-06": "설날 연휴",
+      "2027-02-07": "설날",
+      "2027-02-08": "설날 연휴",
+      "2027-02-09": "대체공휴일 (설날)",
+      "2027-03-01": "삼일절",
+      "2027-05-05": "어린이날",
+      "2027-05-13": "부처님오신날",
+      "2027-06-06": "현충일",
+      "2027-06-07": "대체공휴일 (현충일)",
+      "2027-08-15": "광복절",
+      "2027-08-16": "대체공휴일 (광복절)",
+      "2027-09-14": "추석 연휴",
+      "2027-09-15": "추석",
+      "2027-09-16": "추석 연휴",
+      "2027-10-03": "개천절",
+      "2027-10-04": "대체공휴일 (개천절)",
+      "2027-10-09": "한글날",
+      "2027-10-11": "대체공휴일 (한글날)",
+      "2027-12-25": "성탄절"
+    };
+
+    function getKoreanPublicHoliday(dateStr) {
+      if (!dateStr) return null;
+      if (KOREAN_PUBLIC_HOLIDAYS[dateStr]) return KOREAN_PUBLIC_HOLIDAYS[dateStr];
+      const mmdd = dateStr.substring(5);
+      if (mmdd === "01-01") return "신정";
+      if (mmdd === "03-01") return "삼일절";
+      if (mmdd === "05-05") return "어린이날";
+      if (mmdd === "06-06") return "현충일";
+      if (mmdd === "08-15") return "광복절";
+      if (mmdd === "10-03") return "개천절";
+      if (mmdd === "10-09") return "한글날";
+      if (mmdd === "12-25") return "성탄절";
+      return null;
+    }
+
+    // Rule: 올해(2026)는 총연차 10개(사용 4개, 잔여 6개), 내년(2027부터)은 매년 1월 1일 15개
+    function getTotalAnnualLeaveForYear(year) {
+      const y = parseInt(year, 10) || 2026;
+      if (y <= 2026) return 10.0;
+      return 15.0;
+    }
+
+    // Ensure user's historical 2026 leave days are seeded
+    function ensureInitialUserLeaveLogs() {
+      if (!store.workLogs) store.workLogs = [];
+      const userLeaves2026 = [
+        { date: "2026-05-04", note: "개인 연차 (5월 황금연휴)" },
+        { date: "2026-07-20", note: "하계 휴가 (연차)" },
+        { date: "2026-07-21", note: "하계 휴가 (연차)" },
+        { date: "2026-07-22", note: "하계 휴가 (연차)" }
+      ];
+
+      let added = false;
+      userLeaves2026.forEach(ul => {
+        const exists = store.workLogs.some(w => w.date === ul.date);
+        if (!exists) {
+          store.workLogs.push({
+            id: "work_" + ul.date,
+            date: ul.date,
+            type: "annual_full",
+            startTime: "-",
+            endTime: "-",
+            overtimeHours: 0,
+            note: ul.note,
+            deductLeave: 1.0
+          });
+          added = true;
+        }
+      });
+      return added;
+    }
+
+
+    let currentWorkCalYear = new Date().getFullYear();
+    let currentWorkCalMonth = new Date().getMonth() + 1;
+    let currentEditingWorkDate = null;
+
+    function changeWorkMonth(offset) {
+      currentWorkCalMonth += offset;
+      if (currentWorkCalMonth > 12) {
+        currentWorkCalMonth = 1;
+        currentWorkCalYear++;
+      } else if (currentWorkCalMonth < 1) {
+        currentWorkCalMonth = 12;
+        currentWorkCalYear--;
+      }
+      renderWorkCalendar();
+    }
+
+    function goToCurrentWorkMonth() {
+      const now = new Date();
+      currentWorkCalYear = now.getFullYear();
+      currentWorkCalMonth = now.getMonth() + 1;
+      renderWorkCalendar();
+    }
+
+    function getWorkLogForDate(dateStr) {
+      if (!store.workLogs) store.workLogs = [];
+      return store.workLogs.find(w => w.date === dateStr);
+    }
+
+    function syncLeaveFromCalendar(dateStr, title) {
+      if (!dateStr) return;
+      if (!store.workLogs) store.workLogs = [];
+      let w = store.workLogs.find(x => x.date === dateStr);
+      if (!w) {
+        w = {
+          id: "work_" + dateStr,
+          date: dateStr,
+          type: "annual_full",
+          startTime: "-",
+          endTime: "-",
+          overtimeHours: 0,
+          note: title || "월간 일정 연차",
+          deductLeave: 1.0
+        };
+        store.workLogs.push(w);
+      } else {
+        w.type = "annual_full";
+        w.deductLeave = 1.0;
+        if (!w.note) w.note = title || "월간 일정 연차";
+      }
+      saveStore();
+      renderWorkCalendar();
+    }
+
+    
+    // ==========================================
+    // 💰 REAL-TIME SALARY & WORK TIMER ENGINE (v1.16.0)
+    // ==========================================
+    const DEFAULT_MONTHLY_SALARY = 2859216;
+    const DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME = 10000;
+    const STANDARD_MONTHLY_HOURS = 209; // 근로기준법 통상시급 산정 기준시간
+
+    let liveSalaryTimerInterval = null;
+
+    
+    
+    function getActualPayDate(calYear, calMonth) {
+      // 기본 급여일은 해당 월 25일
+      let dt = new Date(calYear, calMonth - 1, 25);
+      // 25일이 주말(토/일)이거나 법정공휴일이면 직전 평일(근무일)로 앞당김
+      while (true) {
+        const dayOfWeek = dt.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const dStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+        const isHoliday = !!getKoreanPublicHoliday(dStr);
+        if (!isWeekend && !isHoliday) {
+          break; // 유효한 평일(근무일)
+        }
+        dt.setDate(dt.getDate() - 1);
+      }
+      return {
+        year: dt.getFullYear(),
+        month: dt.getMonth() + 1,
+        day: dt.getDate(),
+        dateStr: `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`,
+        isMoved: (dt.getDate() !== 25)
+      };
+    }
+
+    function getSalaryCyclePeriod(calYear, calMonth) {
+      // 25-25 급여 주기: (calMonth-1)월 25일 ~ calMonth월 24일 (지급일: calMonth월 25일)
+      const startDate = new Date(calYear, calMonth - 2, 25);
+      const endDate = new Date(calYear, calMonth - 1, 24);
+
+      const startYear = startDate.getFullYear();
+      const startMonth = startDate.getMonth() + 1;
+      const endYear = endDate.getFullYear();
+      const endMonth = endDate.getMonth() + 1;
+
+      const startStr = `${startYear}-${String(startMonth).padStart(2, '0')}-25`;
+      const endStr = `${endYear}-${String(endMonth).padStart(2, '0')}-24`;
+
+      const dates = [];
+      let cur = new Date(startDate);
+      while (cur <= endDate) {
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, '0');
+        const d = String(cur.getDate()).padStart(2, '0');
+        dates.push(`${y}-${m}-${d}`);
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      return {
+        payYear: calYear,
+        payMonth: calMonth,
+        payDay: 25,
+        startDate,
+        endDate,
+        startStr,
+        endStr,
+        dates,
+        shortLabel: `${calMonth}월 (${startMonth}.25~${endMonth}.24)`,
+        fullLabel: `${startYear}.${startMonth}.25 ~ ${endYear}.${endMonth}.24 (월급날 ${calMonth}월 25일)`
+      };
+    }
+
+    function getMonthlySalary() {
+      if (typeof store !== 'undefined' && store && store.monthlySalary) return Number(store.monthlySalary);
+      try {
+        const local = localStorage.getItem('urban_monthly_salary');
+        if (local) return Number(local);
+      } catch(e) {}
+      return DEFAULT_MONTHLY_SALARY;
+    }
+
+    function getMealAllowanceRate() {
+      if (typeof store !== 'undefined' && store && store.mealAllowance) return Number(store.mealAllowance);
+      try {
+        const local = localStorage.getItem('urban_meal_allowance');
+        if (local) return Number(local);
+      } catch(e) {}
+      return DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
+    }
+
+    function openSalaryConfigModal() {
+      if (!requireAdmin('기본급 설정')) return;
+      const modal = document.getElementById('salaryConfigModal');
+      if (!modal) return;
+      document.getElementById('cfgMonthlySalary').value = getMonthlySalary();
+      document.getElementById('cfgMealAllowance').value = getMealAllowanceRate();
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeSalaryConfigModal() {
+      const modal = document.getElementById('salaryConfigModal');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+      }
+    }
+
+    function saveSalaryConfig() {
+      if (!requireAdmin('기본급 설정 저장')) return;
+      const sal = Number(document.getElementById('cfgMonthlySalary').value) || DEFAULT_MONTHLY_SALARY;
+      const meal = Number(document.getElementById('cfgMealAllowance').value) || DEFAULT_MEAL_ALLOWANCE_PER_OVERTIME;
+      if (!store) store = {};
+      store.monthlySalary = sal;
+      store.mealAllowance = meal;
+      try {
+        localStorage.setItem('urban_monthly_salary', String(sal));
+        localStorage.setItem('urban_meal_allowance', String(meal));
+      } catch(e) {}
+      saveStore();
+      closeSalaryConfigModal();
+      updateLiveSalaryTracker();
+      showAuthToast('✅ 기본급 및 정산 설정이 저장되었습니다.', false);
+    }
+
+    function updateLiveSalaryTracker() {
+      const salarySection = document.getElementById('salaryTrackerSection');
+      const guestNotice = document.getElementById('salaryGuestPrivacyNotice');
+      if (!salarySection) return;
+
+      const isAdmin = checkIsAdmin();
+      if (!isAdmin) {
+        salarySection.style.display = 'none';
+        salarySection.classList.add('hidden');
+        if (guestNotice) {
+          guestNotice.style.display = 'none';
+          guestNotice.classList.add('hidden');
+        }
+        if (liveSalaryTimerInterval) {
+          clearInterval(liveSalaryTimerInterval);
+          liveSalaryTimerInterval = null;
+        }
+        return;
+      }
+
+      // Admin Mode: Show salarySection, hide guestNotice
+      salarySection.style.display = 'block';
+      salarySection.classList.remove('hidden');
+      if (guestNotice) {
+        guestNotice.style.display = 'none';
+        guestNotice.classList.add('hidden');
+      }
+
+      // Calculations:
+      const monthlySalary = getMonthlySalary();
+      const mealRate = getMealAllowanceRate();
+
+      // Current year & month from work calendar or now
+      const now = new Date();
+      const calYear = (typeof currentWorkCalYear !== 'undefined') ? currentWorkCalYear : now.getFullYear();
+      const calMonth = (typeof currentWorkCalMonth !== 'undefined') ? currentWorkCalMonth : (now.getMonth() + 1);
+      const todayStr = getTodayDateStr();
+      const actualPay = getActualPayDate(currentWorkCalYear, currentWorkCalMonth);
+
+      // 25-25 급여 산정 주기 (월급날 25일 기준: 전월 25일 ~ 당월 24일)
+      const cycle = getSalaryCyclePeriod(calYear, calMonth);
+
+      // Update title label with the 25-25 cycle range
+      const monthLabel = document.getElementById('salaryMonthLabel');
+      if (monthLabel) {
+        monthLabel.innerText = cycle.shortLabel;
+      }
+
+      const baseDisp = document.getElementById('statMonthlyBaseDisplay');
+      if (baseDisp) baseDisp.innerText = monthlySalary.toLocaleString();
+
+      // Map workLogs across all dates in cycle
+      const logsMap = {};
+      ((typeof store !== 'undefined' && store.workLogs) || []).forEach(w => {
+        if (w.date && cycle.dates.includes(w.date)) {
+          logsMap[w.date] = w;
+        }
+      });
+
+      let totalPaidWeekdaysInCycle = 0;
+      let totalHolidaysInCycle = 0;
+      let totalLeaveCountInCycle = 0;
+      let pastPaidWeekdaysCount = 0;
+      let totalOvertimeHoursInCycle = 0;
+      let overtimeDaysCount = 0;
+
+      cycle.dates.forEach(dStr => {
+        const parts = dStr.split('-').map(Number);
+        const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+        const dayOfWeek = dt.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const holidayName = getKoreanPublicHoliday(dStr);
+        const log = logsMap[dStr];
+
+        if (!isWeekend) {
+          totalPaidWeekdaysInCycle++;
+          if (holidayName) {
+            totalHolidaysInCycle++;
+          }
+          if (log && log.deductLeave) {
+            totalLeaveCountInCycle += parseFloat(log.deductLeave) || 0;
+          }
+        }
+
+        if (log && log.overtimeHours) {
+          const ot = Number(log.overtimeHours);
+          if (ot > 0) {
+            totalOvertimeHoursInCycle += ot;
+            overtimeDaysCount++;
+          }
+        }
+
+        // 과거 일자 (cycle.startStr ~ 어제)
+        if (dStr < todayStr) {
+          // 법정공휴일과 연차도 모두 유급이므로 평일이면 일급 100% 정상 누적
+          if (!isWeekend) {
+            pastPaidWeekdaysCount++;
+          }
+        }
+      });
+
+      if (totalPaidWeekdaysInCycle === 0) totalPaidWeekdaysInCycle = 20;
+
+      // 사용자 실근무 기준 시급 (2,859,216원 ÷ 실근무일수 ÷ 8시간)
+      // 당 주기 총 실근무일수(공휴일·연차 제외)에 맞춰 160시간(20일x8h) 기준 정밀 산출
+      const netWorkDays = Math.max(1, totalPaidWeekdaysInCycle - totalHolidaysInCycle - totalLeaveCountInCycle);
+      const totalMonthWorkHours = netWorkDays * 8;
+      const hourlyRate = monthlySalary / totalMonthWorkHours;
+      const dailyBasePay = hourlyRate * 8;
+      const perSecondRate = hourlyRate / 3600;
+
+      // 2. Today's live time & remaining countdown calculation
+      let todayWorkSeconds = 0;
+      let todayRemainingSeconds = 0;
+      let todayEarnings = 0;
+      let todayStatusText = '근무 외';
+
+      const isTodayInCycle = (todayStr >= cycle.startStr && todayStr <= cycle.endStr);
+
+      if (isTodayInCycle) {
+        const todayLog = logsMap[todayStr];
+        const dayOfWeek = now.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const holidayName = getKoreanPublicHoliday(todayStr);
+
+        const startSeconds = 9 * 3600;   // 09:00 출근
+        const lunchStart = 11 * 3600 + 30 * 60; // 11:30 점심 시작
+        const lunchEnd = 12 * 3600 + 30 * 60;   // 12:30 점심 종료
+        const endSeconds = 18 * 3600;    // 18:00 퇴근
+
+        const curSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        let todayLeaveDeduct = todayLog ? Number(todayLog.deductLeave || 0) : 0;
+        const isFullAnnualLeave = (todayLog && todayLog.type === 'annual_full') || todayLeaveDeduct >= 1.0;
+        const isHalfAm = (todayLog && todayLog.type === 'half_am');
+        const isHalfPm = (todayLog && todayLog.type === 'half_pm');
+
+        if (isWeekend) {
+          todayStatusText = '주말 휴무';
+          todayRemainingSeconds = 0;
+          todayEarnings = 0;
+        } else if (holidayName) {
+          todayStatusText = `${holidayName} (유급) 🏖️`;
+          todayRemainingSeconds = 0;
+          todayEarnings = dailyBasePay;
+        } else if (isFullAnnualLeave) {
+          todayStatusText = '연차 (유급) 🏖️';
+          todayRemainingSeconds = 0;
+          todayEarnings = dailyBasePay;
+        } else if (isHalfAm) {
+          const halfPaid = dailyBasePay * 0.5;
+          const halfWorkStart = 12 * 3600 + 30 * 60; // 12:30
+          if (curSeconds < halfWorkStart) {
+            todayStatusText = '오전반차 (출근전)';
+            todayRemainingSeconds = endSeconds - halfWorkStart;
+            todayEarnings = halfPaid;
+          } else if (curSeconds <= endSeconds) {
+            todayStatusText = '오전반차 근무중 🔥';
+            const elapsed = curSeconds - halfWorkStart;
+            todayRemainingSeconds = Math.max(0, endSeconds - curSeconds);
+            todayEarnings = halfPaid + (elapsed * perSecondRate);
+          } else {
+            todayStatusText = '퇴근 완료 🎉';
+            todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
+          }
+        } else if (isHalfPm) {
+          const halfPaid = dailyBasePay * 0.5;
+          const halfWorkEnd = 11 * 3600 + 30 * 60; // 11:30
+          if (curSeconds < startSeconds) {
+            todayStatusText = '출근 전';
+            todayRemainingSeconds = 2.5 * 3600;
+            todayEarnings = 0;
+          } else if (curSeconds <= halfWorkEnd) {
+            todayStatusText = '오후반차 근무중 🔥';
+            const elapsed = curSeconds - startSeconds;
+            todayRemainingSeconds = Math.max(0, halfWorkEnd - curSeconds);
+            todayEarnings = elapsed * perSecondRate;
+          } else {
+            todayStatusText = '오후반차 (퇴근완료) 🏖️';
+            todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
+          }
+        } else {
+          // 💼 일반 평일 근무 (09:00 ~ 18:00, 점심 11:30 ~ 12:30)
+          if (curSeconds < startSeconds) {
+            todayWorkSeconds = 0;
+            todayRemainingSeconds = 8 * 3600;
+            todayEarnings = 0;
+            todayStatusText = '출근 전';
+          } else if (curSeconds >= startSeconds && curSeconds <= endSeconds) {
+            if (curSeconds < lunchStart) {
+              todayWorkSeconds = curSeconds - startSeconds;
+              todayRemainingSeconds = (lunchStart - curSeconds) + (endSeconds - lunchEnd);
+              todayStatusText = '근무중 🔥';
+            } else if (curSeconds <= lunchEnd) {
+              todayWorkSeconds = 2.5 * 3600;
+              todayRemainingSeconds = 5.5 * 3600;
+              todayStatusText = '점심시간 🍱';
+            } else {
+              todayWorkSeconds = 2.5 * 3600 + (curSeconds - lunchEnd);
+              todayRemainingSeconds = endSeconds - curSeconds;
+              todayStatusText = '근무중 🔥';
+            }
+            todayEarnings = todayWorkSeconds * perSecondRate;
+          } else {
+            todayWorkSeconds = 8 * 3600;
+            todayRemainingSeconds = 0;
+            todayEarnings = dailyBasePay;
+            const otToday = todayLog ? Number(todayLog.overtimeHours || 0) : 0;
+            todayStatusText = otToday > 0 ? `야근중 (+${otToday}h)` : '퇴근 완료 🎉';
+          }
+        }
+      } else if (todayStr > cycle.endStr) {
+        // 과거 주기
+        pastPaidWeekdaysCount = totalPaidWeekdaysInCycle;
+        todayStatusText = '급여 지급 완료 💰';
+        todayRemainingSeconds = 0;
+        todayEarnings = 0;
+      } else {
+        // 미래 주기
+        pastPaidWeekdaysCount = 0;
+        todayStatusText = '시작 전 ⏳';
+        todayRemainingSeconds = 0;
+        todayEarnings = 0;
+      }
+
+      // Format remaining countdown timer (HH:MM:SS)
+      const rHours = Math.floor(todayRemainingSeconds / 3600);
+      const rMinutes = Math.floor((todayRemainingSeconds % 3600) / 60);
+      const rSeconds = todayRemainingSeconds % 60;
+      const timerStr = `${String(rHours).padStart(2, '0')}:${String(rMinutes).padStart(2, '0')}:${String(rSeconds).padStart(2, '0')}`;
+
+      // 과거 평일 유급액 + 오늘 수입 + 야근 식대 누적액
+      const pastBasePay = pastPaidWeekdaysCount * dailyBasePay;
+      const totalMealAllowance = overtimeDaysCount * mealRate;
+      let monthTotalEarnings = 0;
+      if (todayStr > cycle.endStr) {
+        monthTotalEarnings = monthlySalary + totalMealAllowance;
+      } else if (todayStr < cycle.startStr) {
+        monthTotalEarnings = 0;
+      } else {
+        monthTotalEarnings = Math.min(monthlySalary + totalMealAllowance, Math.round(pastBasePay + todayEarnings + totalMealAllowance));
+      }
+
+      // Update UI Elements
+      const elTotal = document.getElementById('statMonthTotalEarnings');
+      if (elTotal) elTotal.innerText = monthTotalEarnings.toLocaleString();
+
+      const elProgressPct = document.getElementById('salaryProgressPct');
+      const elProgressBar = document.getElementById('salaryProgressBar');
+      const pct = Math.min(100, (monthTotalEarnings / monthlySalary) * 100);
+      if (elProgressPct) elProgressPct.innerText = `${pct.toFixed(1)}%`;
+      if (elProgressBar) elProgressBar.style.width = `${pct}%`;
+
+      const elRemToGoal = document.getElementById('statRemainingToGoal');
+      if (elRemToGoal) {
+        const rem = Math.max(0, monthlySalary - monthTotalEarnings);
+        const actualPayText = (typeof actualPay !== 'undefined' && actualPay.isMoved) ? `${actualPay.month}.${actualPay.day}` : `${calMonth}.25`;
+        elRemToGoal.innerText = `잔여: ${rem.toLocaleString()}원 (${actualPayText} 지급)`;
+      }
+
+      const elTimer = document.getElementById('statTodayTimer');
+      if (elTimer) elTimer.innerText = timerStr;
+
+      const elTodayEarn = document.getElementById('statTodayEarnings');
+      if (elTodayEarn) elTodayEarn.innerText = Math.round(todayEarnings).toLocaleString();
+
+      const elTodayLabel = document.getElementById('todayEarningsLabel');
+      if (elTodayLabel) {
+        elTodayLabel.innerText = `오늘 번 돈 (시간당 ${Math.round(hourlyRate).toLocaleString()}원):`;
+      }
+
+      const elTodayStatus = document.getElementById('todayWorkStatusBadge');
+      if (elTodayStatus) elTodayStatus.innerText = todayStatusText;
+
+      const elMealBadge = document.getElementById('statMealCountBadge');
+      if (elMealBadge) elMealBadge.innerText = `${overtimeDaysCount}회`;
+
+      const elMealAllow = document.getElementById('statMealAllowance');
+      if (elMealAllow) elMealAllow.innerText = totalMealAllowance.toLocaleString();
+    }
+
+    function startLiveSalaryTicker() {
+      if (liveSalaryTimerInterval) clearInterval(liveSalaryTimerInterval);
+      updateLiveSalaryTracker();
+      liveSalaryTimerInterval = setInterval(() => {
+        const panel = document.getElementById('panel-workhours');
+        if (panel && !panel.classList.contains('hidden') && checkIsAdmin()) {
+          updateLiveSalaryTracker();
+        }
+      }, 1000);
+    }
+
+    
+    // ==========================================
+    // URBAN PLANNING SOLUTION CENTER SCRIPT
     // ==========================================
     // URBAN PLANNING SOLUTION CENTER & DIRECT WORKBENCH JS
     // ==========================================
@@ -3623,7 +5661,6 @@
         alert('ZIP 파일 압축 생성 중 오류가 발생했습니다: ' + err.message);
       }
     }
-
 
     function renderWorkCalendar() {
       startLiveSalaryTicker();
