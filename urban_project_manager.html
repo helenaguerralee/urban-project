@@ -167,7 +167,7 @@
 
 
 
-    <!-- INITIAL LOGIN LANDING PORTAL SCREEN -->
+        <!-- INITIAL LOGIN & SIGNUP LANDING PORTAL SCREEN (v1.23.0 MULTI-USER) -->
   <div id="loginLandingPortal" class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto" style="display: flex;">
     <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-8 space-y-6">
       
@@ -182,14 +182,24 @@
         </div>
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>v1.22.1 Enterprise Workspace</span>
+          <span>v1.23.0 Multi-Tenant Enterprise</span>
         </div>
       </div>
 
-      <!-- LOGIN FORM -->
-      <form onsubmit="event.preventDefault(); handlePortalLoginSubmit();" class="space-y-4">
+      <!-- PORTAL MODE TABS (LOGIN vs SIGNUP) -->
+      <div class="flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200">
+        <button type="button" id="tabBtnLogin" onclick="switchPortalTab('login')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-blue-700 shadow-xs cursor-pointer">
+          <i data-lucide="log-in" class="w-4 h-4"></i> 로그인
+        </button>
+        <button type="button" id="tabBtnSignup" onclick="switchPortalTab('signup')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-800 cursor-pointer">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> 새 계정 만들기 (회원가입)
+        </button>
+      </div>
+
+      <!-- TAB 1: LOGIN FORM -->
+      <form id="portalLoginForm" onsubmit="event.preventDefault(); handlePortalLoginSubmit();" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 아이디</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">사용자 아이디</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">👤</span>
             <input type="text" id="portalLoginId" value="admin" placeholder="아이디 입력 (기본: admin)" class="w-full pl-10 pr-3.5 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="username" required>
@@ -197,7 +207,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">관리자 비밀번호</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">비밀번호</label>
           <div class="relative">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔒</span>
             <input type="password" id="portalLoginPassword" placeholder="비밀번호 입력 (기본: urban2026)" class="w-full pl-10 pr-10 py-3 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50" autocomplete="current-password" required>
@@ -206,27 +216,76 @@
             </button>
           </div>
           <p id="portalLoginErrorMsg" class="hidden text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
-            <span>⚠️</span> <span>아이디 또는 비밀번호가 일치하지 않습니다. (기본: admin / urban2026)</span>
+            <span>⚠️</span> <span id="portalLoginErrorText">아이디 또는 비밀번호가 일치하지 않습니다. (기본: admin / urban2026)</span>
           </p>
         </div>
 
         <div class="flex items-center justify-between text-xs text-slate-500 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200/80">
           <span class="flex items-center gap-1.5 font-medium text-slate-600">
             <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i>
-            <span>보안 세션 적용 (새 탭/재접속 시 로그인 필요)</span>
+            <span>멀티 테넌트 보안 세션 적용</span>
           </span>
           <span class="text-[11px] font-mono text-slate-400">초기: admin / urban2026</span>
         </div>
 
-        <!-- ACTION 1: ADMIN LOGIN -->
+        <!-- ACTION 1: LOGIN -->
         <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
-          <i data-lucide="key" class="w-4 h-4"></i>
-          <span>관리자 로그인 (수정 권한 활성화)</span>
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>로그인 및 워크스페이스 입장</span>
+        </button>
+      </form>
+
+      <!-- TAB 2: SIGNUP FORM (신규 회원가입) -->
+      <form id="portalSignupForm" onsubmit="event.preventDefault(); handlePortalSignupSubmit();" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">사용할 아이디 (영문/숫자 4자 이상)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">👤</span>
+            <input type="text" id="signupId" placeholder="예: planner_kim" class="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-mono" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">성명</label>
+            <input type="text" id="signupName" placeholder="예: 김철수 주임" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">소속 / 부서</label>
+            <input type="text" id="signupDept" placeholder="예: 도시설계부" class="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">비밀번호 (4자 이상)</label>
+          <input type="password" id="signupPassword" placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">비밀번호 확인</label>
+          <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 재입력" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50" required>
+          <p id="portalSignupErrorMsg" class="hidden text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+            <span>⚠️</span> <span id="portalSignupErrorText">비밀번호가 일치하지 않습니다.</span>
+          </p>
+        </div>
+
+        <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200/80 text-[11px] text-blue-900 leading-relaxed">
+          <p class="font-bold flex items-center gap-1 mb-0.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>독립 워크스페이스 보장:</span>
+          </p>
+          가입 즉시 본인 전용의 깨끗한 프로젝트 관리, 솔루션 센터, 캘린더 작업공간이 생성되며, 타인의 데이터와 100% 분리되어 안전하게 보호됩니다.
+        </div>
+
+        <!-- ACTION: SIGNUP -->
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>새 계정 생성 및 전용 워크스페이스 시작</span>
         </button>
       </form>
 
       <!-- DIVIDER -->
-      <div class="relative flex py-1 items-center">
+      <div class="relative flex py-0.5 items-center">
         <div class="flex-grow border-t border-slate-200"></div>
         <span class="flex-shrink mx-3 text-xs font-semibold text-slate-400">또는</span>
         <div class="flex-grow border-t border-slate-200"></div>
@@ -234,13 +293,13 @@
 
       <!-- ACTION 2: GUEST MODE EXPLORE -->
       <div class="space-y-2">
-        <button type="button" onclick="enterGuestMode()" class="w-full py-3.5 bg-amber-50/90 hover:bg-amber-100 border border-amber-300 hover:border-amber-400 text-amber-900 font-bold rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-xs cursor-pointer group">
+        <button type="button" onclick="enterGuestMode()" class="w-full py-3 bg-amber-50/90 hover:bg-amber-100 border border-amber-300 hover:border-amber-400 text-amber-900 font-bold rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-2xs cursor-pointer group">
           <span class="text-base group-hover:scale-110 transition-transform">👀</span>
           <span>게스트 모드로 둘러보기 (조회 전용)</span>
           <i data-lucide="arrow-right" class="w-4 h-4 text-amber-700 group-hover:translate-x-0.5 transition-transform"></i>
         </button>
         <p class="text-center text-[11px] text-slate-400 leading-normal">
-          로그인 없이 8개 탭(프로젝트, 일자별 To-Do, 캘린더, 근무/연차 등)의 모든 데이터를 자유롭게 실시간 확인하실 수 있습니다.
+          로그인 없이 9개 탭(프로젝트, 일자별 To-Do, 캘린더, 솔루션 센터 등)의 기본 데모를 자유롭게 실시간 확인하실 수 있습니다.
         </p>
       </div>
 
@@ -254,6 +313,18 @@
     
 
     <!-- Top Header Bar (Desktop & Mobile Adaptive) -->
+
+    
+    <!-- MASTER INSPECTING MEMBER WORKSPACE BANNER -->
+    <div id="adminInspectionBanner" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-2xl mb-4 shadow-md flex items-center justify-between text-xs animate-pulse">
+      <div class="flex items-center gap-2">
+        <span class="text-base">👁️</span>
+        <span>총괄 마스터 모니터링: 현재 <strong id="inspectingMemberName" class="underline font-bold text-white"></strong> 님의 전용 워크스페이스를 원격 열람 중입니다.</span>
+      </div>
+      <button onclick="exitMemberWorkspaceInspection()" class="px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 font-black rounded-xl text-xs transition shadow-xs flex items-center gap-1 cursor-pointer">
+        <i data-lucide="undo-2" class="w-3.5 h-3.5"></i> 내 마스터 데이터로 복귀
+      </button>
+    </div>
 
     <header class="light-card p-3.5 sm:p-5 rounded-2xl w-full mb-4 overflow-hidden">
 
@@ -271,7 +342,7 @@
 
             <h1 class="text-sm font-bold text-slate-900 truncate">도시계획 업무관리</h1>
 
-            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.22.1</span>
+            <span class="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 font-bold rounded-md shrink-0">v1.23.0</span>
 
           </div>
 
@@ -332,35 +403,14 @@
 
       <div class="hidden md:flex flex-wrap lg:flex-nowrap items-center justify-between gap-4 w-full">
 
-      <div class="flex items-center gap-3.5">
-
-        <div class="h-12 px-3.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0">
-
-          <img src="app_logo.png" alt="Kyong Ho . ENC" class="h-7 object-contain">
-
+      <div class="flex flex-col justify-center items-start gap-1">
+        <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+          도시계획 업무관리시스템
+        </h1>
+        <div class="pt-0.5">
+          <img src="app_logo.png" alt="Kyong Ho . ENC" class="h-6 sm:h-6.5 object-contain">
         </div>
-
-        <div>
-
-          <h1 class="text-lg sm:text-xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
-
-            도시계획 업무관리시스템
-
-            <span class="text-xs font-semibold px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-full flex items-center gap-1">
-
-              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-rose-600"></i> ReportHelper 문서검수 모듈 통합
-
-            </span>
-
-          </h1>
-
-          <p class="text-xs text-slate-500 mt-0.5">프로젝트 마스터, 일자별 To-Do, 프로젝트별 업무 정리, 출장 캘린더, 경력관리 및 리포트헬퍼 문서검수를 한곳에서 관리합니다.</p>
-
-        </div>
-
       </div>
-
-
 
       <!-- Quick Summary Badges & Action Buttons -->
 
@@ -1871,14 +1921,14 @@
               </h2>
               <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">수정 및 개선된 내용이 시스템에 자동으로 영구 기록됩니다. 같은 일을 두 번 하지 않기 위한 실무 아카이브입니다.</p>
             </div>
-            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.22.1</span>
+            <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-mono font-bold border border-slate-200">현재 v1.23.0</span>
           </div>
 
           <!-- 3 Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span class="text-xs font-semibold text-slate-400 block mb-1">현재 버전</span>
-              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.22.1</div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">v1.23.0</div>
               <div class="text-xs text-slate-500 mt-1.5">2026-09-10 (실시간 배포됨)</div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -2899,69 +2949,220 @@
     } catch(e) {}
 
     // ==========================================
-    // 🚪 PORTAL LANDING & GUEST ENTRY SYSTEM (v1.15.0)
+    // ==========================================
+    // 👥 MULTI-USER RBAC & PER-USER WORKSPACE ISOLATION SYSTEM (v1.23.0)
     // ==========================================
     const DEFAULT_MASTER_ID = 'admin';
 
-    function checkIsAdmin() {
-      try {
-        // Strictly per-tab session so opening a link in a new tab/window always requires login
-        return sessionStorage.getItem('urban_auth_session') === 'admin';
-      } catch(e) {
-        return false;
-      }
-    }
+    // Switch between Login and Signup tabs on Landing Portal
+    function switchPortalTab(tab) {
+      const loginForm = document.getElementById('portalLoginForm');
+      const signupForm = document.getElementById('portalSignupForm');
+      const btnLogin = document.getElementById('tabBtnLogin');
+      const btnSignup = document.getElementById('tabBtnSignup');
 
-    function checkHasGuestAccess() {
-      try {
-        return sessionStorage.getItem('urban_guest_entered') === 'true';
-      } catch(e) {
-        return false;
-      }
-    }
+      if (!loginForm || !signupForm) return;
 
-    function syncAppViews() {
-      const portal = document.getElementById('loginLandingPortal');
-      const mainApp = document.getElementById('mainAppContainer');
-      const isAdmin = checkIsAdmin();
-      const hasGuest = checkHasGuestAccess();
-
-      if (isAdmin || hasGuest) {
-        if (portal) portal.style.display = 'none';
-        if (mainApp) mainApp.style.display = 'flex';
+      if (tab === 'signup') {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        if (btnLogin) btnLogin.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-800 cursor-pointer';
+        if (btnSignup) btnSignup.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-700 shadow-xs cursor-pointer';
+        const err = document.getElementById('portalSignupErrorMsg');
+        if (err) err.classList.add('hidden');
       } else {
-        if (portal) portal.style.display = 'flex';
-        if (mainApp) mainApp.style.display = 'none';
+        signupForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        if (btnLogin) btnLogin.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-blue-700 shadow-xs cursor-pointer';
+        if (btnSignup) btnSignup.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-800 cursor-pointer';
+        const err = document.getElementById('portalLoginErrorMsg');
+        if (err) err.classList.add('hidden');
       }
-      updateAuthUI();
       if (window.lucide) lucide.createIcons();
     }
 
+    // Get all registered users
+    function getRegisteredUsers() {
+      const key = 'urban_registered_users_v2';
+      let users = {};
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) users = JSON.parse(raw);
+      } catch(e) {}
+
+      // Guarantee default admin exists
+      if (!users.admin) {
+        users.admin = {
+          id: 'admin',
+          password: (typeof getMasterPassword === 'function' ? getMasterPassword() : 'urban2026'),
+          name: '총괄 관리자',
+          department: '경호엔지니어링 도시설계부',
+          role: 'super_admin',
+          status: 'active',
+          createdAt: '2026-01-01',
+          lastLogin: Date.now()
+        };
+        try { localStorage.setItem(key, JSON.stringify(users)); } catch(e) {}
+      }
+      return users;
+    }
+
+    // Save registered users
+    function saveRegisteredUsers(users) {
+      const key = 'urban_registered_users_v2';
+      try {
+        localStorage.setItem(key, JSON.stringify(users));
+      } catch(e) {}
+      // Sync users to Firebase if cloud sync is active
+      if (isCloudSyncActive && typeof firebase !== 'undefined' && firebase.apps.length) {
+        try {
+          firebase.database().ref('urban_system/users').set(users);
+        } catch(e) {
+          console.warn('Firebase users sync failed:', e);
+        }
+      }
+    }
+
+    // Get current logged-in user profile
+    function getCurrentUser() {
+      if (sessionStorage.getItem('urban_guest_entered') === 'true') {
+        return { id: 'guest', name: '게스트', department: '방문자', role: 'viewer', status: 'active' };
+      }
+      const authId = sessionStorage.getItem('urban_auth_session');
+      if (!authId) return null;
+
+      const users = getRegisteredUsers();
+      if (users[authId]) return users[authId];
+
+      if (authId === 'admin') {
+        return users.admin;
+      }
+      return { id: authId, name: authId, department: '일반회원', role: 'editor', status: 'active' };
+    }
+
+    function checkIsAdmin() {
+      const user = getCurrentUser();
+      return user && (user.role === 'super_admin' || user.id === 'admin');
+    }
+
+    function checkCanEdit(actionName = '데이터 수정') {
+      const user = getCurrentUser();
+      if (!user) {
+        showAuthToast('🔒 로그인이 필요합니다.', true);
+        return false;
+      }
+      if (user.role === 'viewer') {
+        showAuthToast('🔒 조회 전용(Viewer) 권한입니다.\n[' + actionName + '] 기능은 실무자(Editor) 이상의 권한이 필요합니다.', false);
+        return false;
+      }
+      return true;
+    }
+
+    // Get Storage Key for Current User's Workspace
+    function getWorkspaceStorageKey() {
+      const user = getCurrentUser();
+      if (!user || user.id === 'guest') return 'urban_clean_store_v11';
+
+      if (user.role === 'super_admin' || user.id === 'admin') {
+        // Check if admin is currently inspecting a member's workspace
+        const inspecting = sessionStorage.getItem('urban_admin_inspect_workspace');
+        if (inspecting && inspecting !== 'admin') {
+          return 'urban_store_workspace_' + inspecting;
+        }
+        return 'urban_clean_store_v11'; // Admin's master store!
+      }
+
+      return 'urban_store_workspace_' + user.id; // Per-user isolated store!
+    }
+
+    // Starter template for new member workspaces
+    function getNewUserWorkspaceStarterStore(userName) {
+      return {
+        projects: [
+          {
+            id: 'proj_sample_01',
+            name: '01. 신규 도시계획 프로젝트 (가이드 샘플)',
+            category: '재개발/재건축',
+            status: '진행중',
+            progress: 25,
+            targetCompletionDate: '2026-12-31',
+            manager: userName || '본인',
+            budget: 150000000,
+            description: '새로운 워크스페이스를 위한 가이드 프로젝트입니다. 상단의 [+ 프로젝트 등록] 버튼을 눌러 본인의 실제 사업장을 등록하세요.',
+            location: '서울특별시',
+            client: '정비사업 추진위원회',
+            tasks: [
+              { id: 'sample_t1', title: '사업구역계 CAD 도면(DWG) 및 연속지적도 수집', completed: true, priority: '높음' },
+              { id: 'sample_t2', title: '솔루션 센터 활용 토지조서 및 건축물조서 구축', completed: false, priority: '높음' },
+              { id: 'sample_t3', title: '정비계획 입안제안도서 목차 수립 및 법령 검토', completed: false, priority: '보통' }
+            ]
+          }
+        ],
+        dailyTasks: [
+          { id: 'd_task_1', title: '솔루션 센터 7번 탭에서 토지조서 구축기 둘러보기', completed: false, priority: '높음', createdAt: Date.now() },
+          { id: 'd_task_2', title: '내 담당 프로젝트 추가 및 세부 일정 등록하기', completed: false, priority: '보통', createdAt: Date.now() }
+        ],
+        calendarEvents: [],
+        careerLogs: [],
+        workLogs: [],
+        lastLocalUpdate: Date.now()
+      };
+    }
+
+    // Portal Login Submit Handler
     function handlePortalLoginSubmit() {
       const idInput = document.getElementById('portalLoginId');
       const pwInput = document.getElementById('portalLoginPassword');
-      const remember = document.getElementById('portalRememberMe');
-      const err = document.getElementById('portalLoginErrorMsg');
+      const errEl = document.getElementById('portalLoginErrorMsg');
+      const errText = document.getElementById('portalLoginErrorText');
 
       const idVal = (idInput ? idInput.value : '').trim();
       const pwVal = (pwInput ? pwInput.value : '').trim();
-      const masterPass = getMasterPassword();
 
-      if (idVal.toLowerCase() === DEFAULT_MASTER_ID && pwVal === masterPass) {
-        if (err) err.classList.add('hidden');
-        // Save strictly to sessionStorage so newly opened tabs/windows always show login screen
-        sessionStorage.setItem('urban_auth_session', 'admin');
+      const users = getRegisteredUsers();
+      const user = users[idVal];
+
+      if (!user) {
+        if (errEl && errText) {
+          errText.innerText = '등록되지 않은 아이디입니다. 회원가입 탭에서 새 계정을 만들어주세요.';
+          errEl.classList.remove('hidden');
+        } else {
+          alert('등록되지 않은 아이디입니다.');
+        }
+        return;
+      }
+
+      if (user.status === 'blocked') {
+        alert('관리자에 의해 접속이 차단된 계정입니다. 총괄 마스터에게 문의하세요.');
+        return;
+      }
+
+      const masterPass = (typeof getMasterPassword === 'function' ? getMasterPassword() : 'urban2026');
+      const validPass = (idVal === 'admin') ? masterPass : user.password;
+
+      if (pwVal === validPass) {
+        if (errEl) errEl.classList.add('hidden');
+        user.lastLogin = Date.now();
+        saveRegisteredUsers(users);
+
+        sessionStorage.setItem('urban_auth_session', idVal);
         sessionStorage.removeItem('urban_guest_entered');
+        sessionStorage.removeItem('urban_admin_inspect_workspace');
         localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_guest_entered');
+
+        // Reload store for this user
+        loadStore();
         syncAppViews();
         renderAll();
-        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
+
+        const roleBadge = (user.role === 'super_admin' ? '👑 총괄 마스터' : (user.role === 'collaborator' ? '🤝 공동 작업자' : '✍️ 실무자'));
+        showAuthToast(roleBadge + ' [' + (user.name || idVal) + '] 님으로 로그인되었습니다.', false);
       } else {
-        if (err) {
-          err.classList.remove('hidden');
+        if (errEl && errText) {
+          errText.innerText = '비밀번호가 일치하지 않습니다.';
+          errEl.classList.remove('hidden');
         } else {
-          alert('아이디 또는 비밀번호가 일치하지 않습니다.\n(기본: admin / urban2026)');
+          alert('비밀번호가 일치하지 않습니다.');
         }
         if (pwInput) {
           pwInput.focus();
@@ -2970,1339 +3171,350 @@
       }
     }
 
-    function enterGuestMode() {
-      try {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-        sessionStorage.setItem('urban_guest_entered', 'true');
-      } catch(e) {}
-      syncAppViews();
-      renderAll();
-      showAuthToast('👀 게스트 모드로 접속했습니다. (조회 전용)', false);
-    }
+    // Portal Signup Submit Handler
+    function handlePortalSignupSubmit() {
+      const idInput = document.getElementById('signupId');
+      const nameInput = document.getElementById('signupName');
+      const deptInput = document.getElementById('signupDept');
+      const pwInput = document.getElementById('signupPassword');
+      const pwConfirmInput = document.getElementById('signupPasswordConfirm');
+      const errEl = document.getElementById('portalSignupErrorMsg');
+      const errText = document.getElementById('portalSignupErrorText');
 
-    function showLoginPortal() {
-      try {
-        localStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_auth_session');
-        sessionStorage.removeItem('urban_guest_entered');
-      } catch(e) {}
-      const pwInput = document.getElementById('portalLoginPassword');
-      if (pwInput) pwInput.value = '';
-      const err = document.getElementById('portalLoginErrorMsg');
-      if (err) err.classList.add('hidden');
-      syncAppViews();
-      if (pwInput) setTimeout(() => pwInput.focus(), 150);
-    }
+      const idVal = (idInput ? idInput.value : '').trim().toLowerCase();
+      const nameVal = (nameInput ? nameInput.value : '').trim();
+      const deptVal = (deptInput ? deptInput.value : '').trim();
+      const pwVal = (pwInput ? pwInput.value : '').trim();
+      const pwConfirmVal = (pwConfirmInput ? pwConfirmInput.value : '').trim();
 
-    // Original checkIsAdmin replaced above
-    function _unusedCheckIsAdmin() {
-      try {
-        return sessionStorage.getItem('urban_auth_session') === 'admin';
-      } catch(e) {
-        return false;
-      }
-    }
-
-    function requireAdmin(actionName = '데이터 변경') {
-      if (checkIsAdmin()) return true;
-      showAuthToast(`🔒 게스트(조회 전용) 모드입니다.\n[${actionName}] 기능은 관리자 로그인 후 이용하실 수 있습니다.`, true);
-      return false;
-    }
-
-    function showAuthToast(msg, showLoginBtn = true) {
-      const container = document.getElementById('authToastContainer');
-      if (!container) {
-        alert(msg);
-        return;
-      }
-      const toast = document.createElement('div');
-      toast.className = 'pointer-events-auto flex items-center gap-3 bg-slate-900/95 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 transition-all duration-300 transform translate-y-2 opacity-0';
-      
-      const icon = document.createElement('span');
-      icon.className = 'text-lg shrink-0';
-      icon.textContent = '🔒';
-      toast.appendChild(icon);
-
-      const text = document.createElement('div');
-      text.className = 'flex-1 leading-snug whitespace-pre-line font-medium';
-      text.textContent = msg;
-      toast.appendChild(text);
-
-      if (showLoginBtn) {
-        const btn = document.createElement('button');
-        btn.className = 'shrink-0 px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[11px] shadow-sm transition whitespace-nowrap';
-        btn.textContent = '🔑 로그인';
-        btn.onclick = () => {
-          if (toast.parentNode) container.removeChild(toast);
-          openLoginModal();
-        };
-        toast.appendChild(btn);
-      }
-
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'text-slate-400 hover:text-white p-1 rounded transition shrink-0 text-base leading-none';
-      closeBtn.innerHTML = '&times;';
-      closeBtn.onclick = () => {
-        toast.classList.add('opacity-0', '-translate-y-2');
-        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-      };
-      toast.appendChild(closeBtn);
-
-      container.appendChild(toast);
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
-
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.classList.add('opacity-0', '-translate-y-2');
-          setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-        }
-      }, 4500);
-    }
-
-    function openLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      const err = document.getElementById('loginErrorMsg');
-      if (err) err.classList.add('hidden');
-      const input = document.getElementById('loginPasswordInput');
-      if (input) {
-        input.value = '';
-        setTimeout(() => input.focus(), 150);
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeLoginModal() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function togglePasswordVisibility(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      if (!input) return;
-      if (input.type === 'password') {
-        input.type = 'text';
-        if (icon) icon.setAttribute('data-lucide', 'eye-off');
-      } else {
-        input.type = 'password';
-        if (icon) icon.setAttribute('data-lucide', 'eye');
-      }
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function handleLoginSubmit() {
-      const input = document.getElementById('loginPasswordInput');
-      const remember = document.getElementById('loginRememberMe');
-      const err = document.getElementById('loginErrorMsg');
-      const val = input ? input.value : '';
-      const currentMaster = getMasterPassword();
-
-      if (val === currentMaster) {
-        sessionStorage.setItem('urban_auth_session', 'admin');
-        sessionStorage.removeItem('urban_guest_entered');
-        localStorage.removeItem('urban_auth_session');
-        closeLoginModal();
-        updateAuthUI();
-        showAuthToast('👑 관리자 모드로 로그인되었습니다.\n모든 수정 및 추가 권한이 활성화되었습니다.', false);
-      } else {
-        if (err) {
-          err.classList.remove('hidden');
-        } else {
-          alert('비밀번호가 일치하지 않습니다.');
-        }
-        if (input) {
-          input.focus();
-          input.select();
-        }
-      }
-    }
-
-    function handleLogout() {
-      if (!confirm('로그아웃하시겠습니까?\n초기 로그인 화면으로 이동합니다.')) return;
-      showLoginPortal();
-    }
-
-    function openChangePasswordModal() {
-      if (!requireAdmin('비밀번호 변경')) return;
-      const modal = document.getElementById('changePasswordModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      const err = document.getElementById('changePasswordErrorMsg');
-      if (err) err.classList.add('hidden');
-      ['curPasswordInput', 'newPasswordInput', 'confirmNewPasswordInput'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeChangePasswordModal() {
-      const modal = document.getElementById('changePasswordModal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-      }
-    }
-
-    function handleChangePasswordSubmit() {
-      const cur = document.getElementById('curPasswordInput').value;
-      const newPass = document.getElementById('newPasswordInput').value;
-      const confirmPass = document.getElementById('confirmNewPasswordInput').value;
-      const err = document.getElementById('changePasswordErrorMsg');
-
-      const setError = (msg) => {
-        if (err) {
-          err.textContent = '⚠️ ' + msg;
-          err.classList.remove('hidden');
+      const showError = (msg) => {
+        if (errEl && errText) {
+          errText.innerText = msg;
+          errEl.classList.remove('hidden');
         } else {
           alert(msg);
         }
       };
 
-      if (cur !== getMasterPassword()) {
-        setError('현재 비밀번호가 일치하지 않습니다.');
+      if (!idVal || idVal.length < 3) {
+        showError('아이디를 영문/숫자 3자 이상 입력해주세요.');
         return;
       }
-      if (!newPass || newPass.trim().length < 3) {
-        setError('새 비밀번호를 3자 이상 입력해 주세요.');
+      if (!nameVal) {
+        showError('담당자 성명을 입력해주세요.');
         return;
       }
-      if (newPass !== confirmPass) {
-        setError('새 비밀번호가 서로 일치하지 않습니다.');
+      if (!pwVal || pwVal.length < 4) {
+        showError('비밀번호를 4자 이상 입력해주세요.');
+        return;
+      }
+      if (pwVal !== pwConfirmVal) {
+        showError('비밀번호가 서로 일치하지 않습니다.');
         return;
       }
 
-      setMasterPassword(newPass);
-      closeChangePasswordModal();
-      showAuthToast('✅ 관리자 비밀번호가 성공적으로 변경되었습니다.', false);
+      const users = getRegisteredUsers();
+      if (users[idVal]) {
+        showError('이미 존재하는 아이디입니다. 다른 아이디를 입력해주세요.');
+        return;
+      }
+
+      // Create new user account
+      const newUser = {
+        id: idVal,
+        password: pwVal,
+        name: nameVal,
+        department: deptVal || '도시계획팀',
+        role: 'editor', // Default role is Editor (allows personal workspace work)
+        status: 'active',
+        createdAt: new Date().toISOString().slice(0, 10),
+        lastLogin: Date.now()
+      };
+
+      users[idVal] = newUser;
+      saveRegisteredUsers(users);
+
+      // Initialize clean workspace for this new user
+      const starterStore = getNewUserWorkspaceStarterStore(nameVal);
+      try {
+        localStorage.setItem('urban_store_workspace_' + idVal, JSON.stringify(starterStore));
+      } catch(e) {}
+
+      // Log them in immediately
+      sessionStorage.setItem('urban_auth_session', idVal);
+      sessionStorage.removeItem('urban_guest_entered');
+      sessionStorage.removeItem('urban_admin_inspect_workspace');
+
+      loadStore();
+      syncAppViews();
+      renderAll();
+
+      alert('🎉 [' + nameVal + '] 님의 계정이 성공적으로 생성되었습니다!\n\n본인만의 독립 전용 워크스페이스로 즉시 로그인되었습니다.');
     }
 
+    // ==========================================
+    // MEMBER ADMIN MODAL & RBAC CONTROLS
+    // ==========================================
+    function openMemberAdminModal() {
+      if (!checkIsAdmin()) {
+        alert('총괄 마스터(admin)만 회원 및 권한을 관리할 수 있습니다.');
+        return;
+      }
+
+      renderMemberAdminList();
+      const modal = document.getElementById('memberAdminModal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeMemberAdminModal() {
+      const modal = document.getElementById('memberAdminModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderMemberAdminList() {
+      const users = getRegisteredUsers();
+      const userList = Object.values(users);
+      const tbody = document.getElementById('memberAdminTableBody');
+      if (!tbody) return;
+
+      let total = userList.length;
+      let editors = 0;
+      let collabs = 0;
+      let viewers = 0;
+
+      let html = '';
+      userList.forEach(u => {
+        if (u.role === 'editor') editors++;
+        else if (u.role === 'collaborator') collabs++;
+        else if (u.role === 'viewer') viewers++;
+
+        const isMaster = (u.id === 'admin' || u.role === 'super_admin');
+        const statusBadge = (u.status === 'blocked' ? 
+          '<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold text-[10px]">차단됨</span>' : 
+          '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">정상</span>');
+
+        html += '<tr class="hover:bg-slate-50/80 transition text-xs">';
+        html += '<td class="px-3.5 py-3">';
+        html += '<div class="font-bold text-slate-900 flex items-center gap-1.5">' + (isMaster ? '👑 ' : '👤 ') + u.name + '</div>';
+        html += '<div class="font-mono text-slate-400 text-[11px]">' + u.id + '</div>';
+        html += '</td>';
+
+        html += '<td class="px-3 py-3 text-slate-600">' + (u.department || '-') + '</td>';
+        html += '<td class="px-3 py-3 font-mono text-slate-400 text-[11px]">' + (u.createdAt || '-') + '</td>';
+
+        // Role Selector Dropdown
+        html += '<td class="px-3 py-3">';
+        if (isMaster) {
+          html += '<span class="font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-xl text-xs inline-flex items-center gap-1">👑 총괄 마스터</span>';
+        } else {
+          html += '<select onchange="updateMemberRole(\'' + u.id + '\', this.value)" class="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800 outline-none focus:border-blue-500 cursor-pointer">';
+          html += '<option value="editor"' + (u.role === 'editor' ? ' selected' : '') + '>✍️ 실무자 (Editor)</option>';
+          html += '<option value="collaborator"' + (u.role === 'collaborator' ? ' selected' : '') + '>🤝 공동작업자 (Collab)</option>';
+          html += '<option value="viewer"' + (u.role === 'viewer' ? ' selected' : '') + '>👁️ 조회전용 (Viewer)</option>';
+          html += '</select>';
+        }
+        html += '</td>';
+
+        html += '<td class="px-3 py-3 text-center">' + statusBadge + '</td>';
+
+        // Actions: Inspect Workspace & Block / Delete
+        html += '<td class="px-3 py-3 text-center whitespace-nowrap">';
+        if (isMaster) {
+          html += '<span class="text-[11px] text-slate-400 font-semibold">내 마스터 계정</span>';
+        } else {
+          html += '<div class="inline-flex items-center gap-1.5">';
+          html += '<button onclick="inspectMemberWorkspace(\'' + u.id + '\')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-lg border border-blue-200 text-[11px] transition cursor-pointer" title="이 회원의 작업공간 원격 열람">🔍 열람</button>';
+          if (u.status === 'blocked') {
+            html += '<button onclick="toggleMemberStatus(\'' + u.id + '\')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg border border-emerald-200 text-[11px] cursor-pointer">해제</button>';
+          } else {
+            html += '<button onclick="toggleMemberStatus(\'' + u.id + '\')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg border border-amber-200 text-[11px] cursor-pointer">차단</button>';
+          }
+          html += '<button onclick="deleteMemberAccount(\'' + u.id + '\')" class="text-slate-300 hover:text-rose-600 p-1 rounded transition cursor-pointer" title="회원 영구 삭제"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>';
+          html += '</div>';
+        }
+        html += '</td>';
+        html += '</tr>';
+      });
+
+      tbody.innerHTML = html;
+
+      // Update stat counters
+      const statTotal = document.getElementById('statTotalUsers');
+      const statEd = document.getElementById('statEditorUsers');
+      const statCol = document.getElementById('statCollabUsers');
+      const statVi = document.getElementById('statViewerUsers');
+      if (statTotal) statTotal.innerText = total + ' 명';
+      if (statEd) statEd.innerText = editors + ' 명';
+      if (statCol) statCol.innerText = collabs + ' 명';
+      if (statVi) statVi.innerText = viewers + ' 명';
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateMemberRole(userId, newRole) {
+      const users = getRegisteredUsers();
+      if (!users[userId]) return;
+      users[userId].role = newRole;
+      saveRegisteredUsers(users);
+      renderMemberAdminList();
+      alert('회원 [' + users[userId].name + '] 님의 권한이 [' + newRole + '] 등급으로 변경되었습니다.');
+    }
+
+    function toggleMemberStatus(userId) {
+      const users = getRegisteredUsers();
+      if (!users[userId]) return;
+      users[userId].status = (users[userId].status === 'blocked' ? 'active' : 'blocked');
+      saveRegisteredUsers(users);
+      renderMemberAdminList();
+      alert('회원 [' + users[userId].name + '] 님의 상태가 [' + users[userId].status + '] 로 변경되었습니다.');
+    }
+
+    function deleteMemberAccount(userId) {
+      if (userId === 'admin') {
+        alert('마스터 계정은 삭제할 수 없습니다.');
+        return;
+      }
+      const users = getRegisteredUsers();
+      if (!users[userId]) return;
+      if (!confirm('정말 [' + users[userId].name + ' (' + userId + ')] 회원을 삭제하시겠습니까?\n해당 회원의 워크스페이스 데이터도 함께 영구 정리됩니다.')) return;
+
+      delete users[userId];
+      saveRegisteredUsers(users);
+      try {
+        localStorage.removeItem('urban_store_workspace_' + userId);
+      } catch(e) {}
+      renderMemberAdminList();
+      alert('회원이 영구 삭제되었습니다.');
+    }
+
+    // Inspect member workspace by Super Admin
+    function inspectMemberWorkspace(userId) {
+      const users = getRegisteredUsers();
+      if (!users[userId]) return;
+
+      closeMemberAdminModal();
+      sessionStorage.setItem('urban_admin_inspect_workspace', userId);
+
+      const banner = document.getElementById('adminInspectionBanner');
+      const memberNameEl = document.getElementById('inspectingMemberName');
+      if (banner && memberNameEl) {
+        memberNameEl.innerText = users[userId].name + ' (' + userId + ')';
+        banner.classList.remove('hidden');
+      }
+
+      loadStore();
+      renderAll();
+      showAuthToast('🔍 [' + users[userId].name + '] 님의 워크스페이스 원격 열람 모드로 전환되었습니다.', false);
+    }
+
+    function exitMemberWorkspaceInspection() {
+      sessionStorage.removeItem('urban_admin_inspect_workspace');
+      const banner = document.getElementById('adminInspectionBanner');
+      if (banner) banner.classList.add('hidden');
+      loadStore();
+      renderAll();
+      showAuthToast('👑 내 총괄 마스터 데이터로 복귀했습니다.', false);
+    }
+
+    // Update Header Auth Bar with Multi-User Profile & RBAC Controls
     function updateAuthUI() {
+      const user = getCurrentUser();
       const isAdmin = checkIsAdmin();
-      if (typeof updateLiveSalaryTracker === 'function') updateLiveSalaryTracker();
+      const isInspecting = sessionStorage.getItem('urban_admin_inspect_workspace');
+
+      const banner = document.getElementById('adminInspectionBanner');
+      const memberNameEl = document.getElementById('inspectingMemberName');
+      if (banner && isInspecting && isAdmin) {
+        const users = getRegisteredUsers();
+        if (users[isInspecting]) {
+          if (memberNameEl) memberNameEl.innerText = users[isInspecting].name + ' (' + isInspecting + ')';
+          banner.classList.remove('hidden');
+        }
+      } else if (banner) {
+        banner.classList.add('hidden');
+      }
 
       // Tab 6 (Career) Guest Privacy Control
       const headerStatCareer = document.getElementById('headerStatCareer');
       if (headerStatCareer) {
-        headerStatCareer.style.display = isAdmin ? '' : 'none';
+        headerStatCareer.style.display = (isAdmin && !isInspecting) ? '' : 'none';
       }
 
-      const tabCareerIcon = document.getElementById('tabCareerIcon');
-      const tabCareerText = document.getElementById('tabCareerText');
-      if (tabCareerIcon && tabCareerText) {
-        if (isAdmin) {
-          tabCareerIcon.textContent = '💼';
-          tabCareerText.innerHTML = '6. 경력관리';
-        } else {
-          tabCareerIcon.textContent = '🔒';
-          tabCareerText.innerHTML = '6. 경력관리 <span class="text-[10px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-md font-bold ml-1">비공개</span>';
-        }
-      }
-
-      const mobTopCareer = document.getElementById('mob-top-career');
-      if (mobTopCareer) {
-        mobTopCareer.innerHTML = isAdmin ? '💼 6. 경력관리' : '🔒 6. 경력관리';
-      }
-
-      const mobTabCareer = document.getElementById('mob-tab-career');
-      if (mobTabCareer) {
-        const spanLabel = mobTabCareer.querySelector('span:last-child');
-        if (spanLabel) {
-          spanLabel.textContent = isAdmin ? '경력관리' : '경력(비공개)';
-        }
-      }
-
-      // If currently on Tab 6, re-render career logs view
-      const panelCareer = document.getElementById('panel-career');
-      if (panelCareer && !panelCareer.classList.contains('hidden')) {
-        renderCareerLogs();
-      }
-      
-      // Desktop header auth container
       const desktopContainer = document.getElementById('desktopAuthStatus');
       if (desktopContainer) {
-        if (isAdmin) {
-          desktopContainer.innerHTML = `
-            <div class="flex items-center gap-1.5 shrink-0">
-              <span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                👑 관리자 모드
-              </span>
-              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1" title="관리자 비밀번호 변경">
-                ⚙️ 비번 변경
-              </button>
-              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1" title="로그아웃 (게스트 모드로 전환)">
-                🚪 로그아웃
-              </button>
-            </div>
-          `;
-        } else {
+        if (!user || user.id === 'guest') {
           desktopContainer.innerHTML = `
             <div class="flex items-center gap-2 shrink-0">
               <span class="px-3 py-1.5 bg-amber-50 text-amber-800 font-bold border border-amber-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                 👀 게스트 (조회 전용)
               </span>
-              <button onclick="showLoginPortal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition text-xs flex items-center gap-1.5">
-                🚪 로그인 화면으로
+              <button onclick="showLoginPortal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition text-xs flex items-center gap-1.5 cursor-pointer">
+                🚪 로그인 / 회원가입
+              </button>
+            </div>
+          `;
+        } else if (isAdmin) {
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-3 py-1.5 bg-indigo-50 text-indigo-800 font-bold border border-indigo-200 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                👑 총괄 마스터: ${user.name}
+              </span>
+              <button onclick="openMemberAdminModal()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-xs cursor-pointer" title="전체 회원 및 권한 관리">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>👥 회원 관리</span>
+              </button>
+              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1 cursor-pointer">
+                ⚙️ 비번 변경
+              </button>
+              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1 cursor-pointer">
+                🚪 로그아웃
+              </button>
+            </div>
+          `;
+        } else {
+          // Regular registered member
+          const roleBadge = (user.role === 'collaborator' ? '🤝 공동 작업자' : '✍️ 실무자');
+          desktopContainer.innerHTML = `
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-3 py-1.5 bg-emerald-50 text-emerald-800 font-bold border border-emerald-300 rounded-xl flex items-center gap-1.5 text-xs shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                👤 ${user.name} (${user.department || '도시설계부'}) · ${roleBadge}
+              </span>
+              <button onclick="openChangePasswordModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200 transition text-xs flex items-center gap-1 cursor-pointer">
+                ⚙️ 비번 변경
+              </button>
+              <button onclick="handleLogout()" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl border border-rose-200 transition text-xs flex items-center gap-1 cursor-pointer">
+                🚪 로그아웃
               </button>
             </div>
           `;
         }
       }
 
-      // Mobile header auth container
+      // Mobile Container
       const mobContainer = document.getElementById('mobileAuthContainer');
       if (mobContainer) {
-        if (isAdmin) {
+        if (!user || user.id === 'guest') {
+          mobContainer.innerHTML = `<button onclick="showLoginPortal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs">🚪 로그인</button>`;
+        } else if (isAdmin) {
           mobContainer.innerHTML = `
-            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-lg text-[11px] font-bold">👑 관리자</span>
-            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold" title="로그아웃">🚪</button>
+            <button onclick="openMemberAdminModal()" class="px-2 py-1 bg-purple-600 text-white rounded-lg text-[11px] font-bold">👥 회원</button>
+            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold">🚪</button>
           `;
         } else {
           mobContainer.innerHTML = `
-            <button onclick="showLoginPortal()" class="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1">🚪 로그인</button>
+            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-[11px] font-bold">👤 ${user.name.split(' ')[0]}</span>
+            <button onclick="handleLogout()" class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold">🚪</button>
           `;
-        }
-      }
-
-      // Guest banner visibility
-      const guestBanner = document.getElementById('guestModeBanner');
-      if (guestBanner) {
-        if (isAdmin) {
-          guestBanner.classList.add('hidden');
-        } else {
-          guestBanner.classList.remove('hidden');
         }
       }
 
       if (window.lucide) lucide.createIcons();
     }
 
-
-    function openMobileModal() { document.getElementById('mobileModal').classList.remove('hidden'); lucide.createIcons(); }
-
-    function closeMobileModal() { document.getElementById('mobileModal').classList.add('hidden'); }
-
-    let store = {
-
-      projects: [],
-
-      dailyTasks: [],
-
-      calendarEvents: [], careerLogs: [], workLogs: []
-
-    };
-
-
-
-    let calendarCurrentDate = new Date();
-
-    let currentCareerFilter = 'all';
-
-
-
-    
-
-    // FIREBASE REALTIME SYNC ENGINE
-
-    let isCloudSyncActive = false;
-
-    let fbDbRef = null;
-
-
-
-    function openCloudSyncModal() {
-
-      const modal = document.getElementById('cloudSyncModal');
-
-      if (modal) {
-
-        modal.style.display = 'flex';
-
-        modal.classList.remove('hidden');
-
-        const savedUrl = localStorage.getItem('urban_firebase_url') || '';
-
-        document.getElementById('firebaseUrlInput').value = savedUrl;
-
-        if (window.lucide) lucide.createIcons();
-
-      }
-
-    }
-
-    function closeCloudSyncModal() {
-
-      const modal = document.getElementById('cloudSyncModal');
-
-      if (modal) {
-
-        modal.style.display = 'none';
-
-        modal.classList.add('hidden');
-
-      }
-
-    }
-
-
-
-    function saveFirebaseConfig() {
-      if (!requireAdmin("클라우드 동기화 설정 변경")) return;
-
-      const inputUrl = document.getElementById('firebaseUrlInput').value.trim();
-
-      if (!inputUrl) {
-
-        alert("Firebase Database URL을 입력해 주세요!");
-
-        return;
-
-      }
-
-      localStorage.setItem('urban_firebase_url', inputUrl);
-
-      closeCloudSyncModal();
-
-      initFirebaseSync(inputUrl);
-
-    }
-
-
-
-    function initFirebaseSync(dbUrl) {
-
-      if (!dbUrl || typeof firebase === 'undefined') return;
-
-      try {
-
-        let cleanUrl = dbUrl.trim();
-
-        if (cleanUrl.startsWith('{')) {
-
-          const cfg = JSON.parse(cleanUrl);
-
-          if (!firebase.apps.length) firebase.initializeApp(cfg);
-
-        } else {
-
-          if (!cleanUrl.endsWith('/')) cleanUrl += '/';
-
-          if (!firebase.apps.length) firebase.initializeApp({ databaseURL: cleanUrl });
-
-        }
-
-
-
-        const db = firebase.database();
-
-        fbDbRef = db.ref('urban_project_store');
-
-
-
-        fbDbRef.on('value', (snapshot) => {
-          const remoteData = snapshot.val();
-          if (remoteData && remoteData.projects) {
-            const cleanRemote = sanitizeStore(remoteData);
-            const remoteTs = cleanRemote.lastLocalUpdate || 0;
-            const localTs = store.lastLocalUpdate || 0;
-
-            // [BI-DIRECTIONAL SAFE MERGE] Never overwrite or lose local tasks!
-            const mergedTasksMap = new Map();
-            // Put remote tasks first
-            (cleanRemote.dailyTasks || []).forEach(t => {
-              if (t && t.id) mergedTasksMap.set(t.id, t);
-            });
-            // If local has tasks that remote doesn't have, PRESERVE THEM!
-            let localHadNewTasks = false;
-            (store.dailyTasks || []).forEach(lt => {
-              if (lt && lt.id && !mergedTasksMap.has(lt.id)) {
-                mergedTasksMap.set(lt.id, lt);
-                localHadNewTasks = true;
-              }
-            });
-
-            // Merge trash tasks safely
-            const mergedTrashMap = new Map();
-            (cleanRemote.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
-            (store.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
-
-            cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
-            cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
-
-            // Merge workLogs safely
-            const mergedWorkMap = new Map();
-            (cleanRemote.workLogs || []).forEach(w => { if (w && w.date) mergedWorkMap.set(w.date, w); });
-            (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
-            cleanRemote.workLogs = Array.from(mergedWorkMap.values());
-
-            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
-              store = cleanRemote;
-              store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
-              localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-              recordAutoSnapshot(store);
-              autoSyncCareerFromCompletedTasks();
-              renderAll();
-              updateSyncStatusUI(true, "실시간 연동 중");
-
-              // If local had tasks missing from cloud, push back combined data so cloud is also updated
-              if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
-                fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
-              }
-            }
-          } else if (store.projects && store.projects.length > 0) {
-            fbDbRef.set(sanitizeStore(store)).catch(e => console.error("Cloud auto-seed failed:", e));
-          }
-        }, (err) => {
-
-          console.error("Firebase sync error", err);
-
-          updateSyncStatusUI(false, "연동 오류");
-
-        });
-
-
-
-        isCloudSyncActive = true;
-
-        updateSyncStatusUI(true, "실시간 연동 중");
-
-      } catch(e) {
-
-        console.error("Firebase init failed:", e);
-
-        updateSyncStatusUI(false, "설정 오류");
-
-      }
-
-    }
-
-
-
-    function updateSyncStatusUI(active, text) {
-
-      const dot = document.getElementById('syncStatusDot');
-
-      const txt = document.getElementById('syncStatusText');
-
-      if (dot && txt) {
-
-        dot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-
-        txt.innerText = text;
-
-        const mdot = document.getElementById('mobSyncDot');
-
-        const mtxt = document.getElementById('mobSyncText');
-
-        if (mdot) mdot.className = active ? "w-2 h-2 rounded-full bg-emerald-500 animate-pulse" : "w-2 h-2 rounded-full bg-slate-400";
-
-        if (mtxt) mtxt.innerText = active ? "연동중" : "설정";
-
-      }
-
-    }
-
-
-
-    
-
-                        
-
-    
-
-    
-
-    
-
-    
-    function getInitialDefaultProjects() {
-      return [
-  {
-    "category": "기본계획",
-    "desc": "∘착수 : '24.07.10.\n∘착수보고 : '24.08.13.\n∘주민설문조사 : '25.03~04.\n∘주민설문조사 : '25.10.~11.\n∘국장보고 : '26.02 ~ 매월\n∘중간보고 : '26.07\n∘관련기관(부서)협의 : '26.07~'26.08.\n∘최종보고 : '26.09.\n∘주민공람 : '26.10.(14일간)\n∘시의회의견청취 : '26.11.\n∘용인시 심의 : '26.12.\n∘도 승인신청 : '27.01.\n∘도 관련기관(부서)협의 : '27.02.\n∘경기도 심의 : '27.04.\n∘국토교통부 협의 : '27.05.\n∘도 승인 및 고시 : '27.06.\n (준공목표 : '27.06.)",
-    "endDate": "'27.06",
-    "id": "p_yongin_default",
-    "name": "용인시 노후계획도시기본계획",
-    "progress": 80,
-    "startDate": "'24.07.10",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'24.07.10.",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "착수보고",
-        "date": "'24.08.13.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "주민설문조사",
-        "date": "'25.03~04.",
-        "status": null
-      },
-      {
-        "id": "m_3",
-        "title": "주민설문조사",
-        "date": "'25.10.~11.",
-        "status": null
-      },
-      {
-        "id": "m_4",
-        "title": "국장보고",
-        "date": "'26.02 ~ 매월",
-        "status": null
-      },
-      {
-        "id": "m_5",
-        "title": "중간보고",
-        "date": "'26.07",
-        "status": null
-      },
-      {
-        "id": "m_6",
-        "title": "관련기관(부서)협의",
-        "date": "'26.07~'26.08.",
-        "status": null
-      },
-      {
-        "id": "m_7",
-        "title": "최종보고",
-        "date": "'26.09.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "주민공람",
-        "date": "'26.10.(14일간)",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "시의회의견청취",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_10",
-        "title": "용인시 심의",
-        "date": "'26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_11",
-        "title": "도 승인신청",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_12",
-        "title": "도 관련기관(부서)협의",
-        "date": "'27.02.",
-        "status": null
-      },
-      {
-        "id": "m_13",
-        "title": "경기도 심의",
-        "date": "'27.04.",
-        "status": null
-      },
-      {
-        "id": "m_14",
-        "title": "국토교통부 협의",
-        "date": "'27.05.",
-        "status": null
-      },
-      {
-        "id": "m_15",
-        "title": "도 승인 및 고시",
-        "date": "'27.06.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "노후계획도시 특별정비사업",
-    "desc": "∘착수 : '25.09\n∘접수 : '26.7.1.~7.10.\n∘자문 및 결과통보 : '26.7.\n∘제안서 본안 접수 : '26.9.1.\n∘수용여부 결정 : '26.10.\n∘주민공람·공고 : '26.10.\n∘시의회의견청취 : '26.10.\n∘경기도협의 : '26.11.\n∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.\n∘국토부 보고 : '26.12.",
-    "endDate": "'26.12",
-    "id": "p_bundang_default",
-    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
-    "progress": 20,
-    "startDate": "'25.09",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'25.09",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "접수",
-        "date": "'26.7.1.~7.10.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "자문 및 결과통보",
-        "date": "'26.7.",
-        "status": "done"
-      },
-      {
-        "id": "m_3",
-        "title": "제안서 본안 접수",
-        "date": "'26.9.1.",
-        "status": "done"
-      },
-      {
-        "id": "m_4",
-        "title": "수용여부 결정",
-        "date": "'26.10.",
-        "status": "in_progress"
-      },
-      {
-        "id": "m_5",
-        "title": "주민공람·공고",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "시의회의견청취",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_7",
-        "title": "경기도협의",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "성남시 도시계획위원회 심의 및 구역지정",
-        "date": "'26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "국토부 보고",
-        "date": "'26.12.",
-        "status": "todo"
-      }
-    ]
-  },
-  {
-    "category": "정비사업(재개발)",
-    "desc": "∘착수 : '25.10.\n∘사전검토신청 : '26.3.16.\n∘관련기관(부서)1차 협의 : '26.3.~'26.7.15\n∘관련기관(부서)2차 협의 : '26.7.~'26.9.\n∘자문단컨설팅 : '26.10.\n∘주민제안서 접수 : '26.11.\n∘관련기관(부서)협의 : '26.11.~12.\n∘주민공람 : '27.01.\n∘주민설명회 : '27.01.\n∘의회의견청취 : '27.02.\n∘시 결정신청 : '27.03.\n∘시 도시경관공동위원회 : '27.04.\n∘고시 : '27.05.",
-    "endDate": "'27.05",
-    "id": "p_incheon_default",
-    "name": "인천시 계산역북측구역 재개발사업",
-    "progress": 10,
-    "startDate": "'25.10",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "'25.10.",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "사전검토신청",
-        "date": "'26.3.16.",
-        "status": "done"
-      },
-      {
-        "id": "m_2",
-        "title": "관련기관(부서)1차 협의",
-        "date": "'26.3.~'26.7.15",
-        "status": "done"
-      },
-      {
-        "id": "m_3",
-        "title": "관련기관(부서)2차 협의",
-        "date": "'26.7.~'26.9.",
-        "status": null
-      },
-      {
-        "id": "m_4",
-        "title": "자문단컨설팅",
-        "date": "'26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_5",
-        "title": "주민제안서 접수",
-        "date": "'26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "관련기관(부서)협의",
-        "date": "'26.11.~12.",
-        "status": null
-      },
-      {
-        "id": "m_7",
-        "title": "주민공람",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_8",
-        "title": "주민설명회",
-        "date": "'27.01.",
-        "status": null
-      },
-      {
-        "id": "m_9",
-        "title": "의회의견청취",
-        "date": "'27.02.",
-        "status": null
-      },
-      {
-        "id": "m_10",
-        "title": "시 결정신청",
-        "date": "'27.03.",
-        "status": null
-      },
-      {
-        "id": "m_11",
-        "title": "시 도시경관공동위원회",
-        "date": "'27.04.",
-        "status": null
-      },
-      {
-        "id": "m_12",
-        "title": "고시",
-        "date": "'27.05.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "재개발사업",
-    "desc": "∘착수 : `26.5.\n∘접수 : `26.9.",
-    "endDate": "미정",
-    "id": "p_gwangmyeong",
-    "name": "광명시 광명동 재개발사업",
-    "progress": 7,
-    "startDate": "'25.05",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "착수",
-        "date": "`26.5.",
-        "status": "done"
-      },
-      {
-        "id": "m_1",
-        "title": "접수",
-        "date": "`26.9.",
-        "status": null
-      }
-    ]
-  },
-  {
-    "category": "재개발사업",
-    "desc": "∘사전검토신청 : `25.05.30\n∘관련기관(부서)협의 : `25.6.~8.\n∘인천시 사전컨설팅 : `25.10.\n∘주민입안제안 : `26.6.\n∘관련기관(부서)협의 : `26.6.~8.\n∘주민공람 : `26.9.\n∘주민설명회 : `26.10.\n∘의회의견청취 : `26.11.\n∘시 결정신청 : `26.12.\n∘시 도시경관공동위원회 : `26.12.\n∘고시 : `27.1.\n (준공목표 :‘27.1.)",
-    "endDate": "'27.01",
-    "id": "p_jakjeon",
-    "name": "인천 작전역인근 재개발사업",
-    "progress": 10,
-    "startDate": "'25.05.30",
-    "milestones": [
-      {
-        "id": "m_0",
-        "title": "사전검토신청",
-        "date": "`25.05.30",
-        "status": null
-      },
-      {
-        "id": "m_1",
-        "title": "관련기관(부서)협의",
-        "date": "`25.6.~8.",
-        "status": null
-      },
-      {
-        "id": "m_2",
-        "title": "인천시 사전컨설팅",
-        "date": "`25.10.",
-        "status": null
-      },
-      {
-        "id": "m_3",
-        "title": "주민입안제안",
-        "date": "`26.6.",
-        "status": "done"
-      },
-      {
-        "id": "m_4",
-        "title": "관련기관(부서)협의",
-        "date": "`26.6.~8.",
-        "status": "in_progress"
-      },
-      {
-        "id": "m_5",
-        "title": "주민공람",
-        "date": "`26.9.",
-        "status": "todo"
-      },
-      {
-        "id": "m_6",
-        "title": "주민설명회",
-        "date": "`26.10.",
-        "status": "todo"
-      },
-      {
-        "id": "m_7",
-        "title": "의회의견청취",
-        "date": "`26.11.",
-        "status": "todo"
-      },
-      {
-        "id": "m_8",
-        "title": "시 결정신청",
-        "date": "`26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_9",
-        "title": "시 도시경관공동위원회",
-        "date": "`26.12.",
-        "status": "todo"
-      },
-      {
-        "id": "m_10",
-        "title": "고시",
-        "date": "`27.1.",
-        "status": null
-      }
-    ]
-  }
-];
-    }
-
-    function getInitialDefaultEvents() {
-      return [
-  {
-    "attendees": [
-      "김아현 이사님",
-      "최지율 주임님"
-    ],
-    "date": "2026-09-15",
-    "desc": "오전 10시",
-    "id": "e_user_11",
-    "projId": "p_jakjeon",
-    "title": "조치계획 접수",
-    "type": "출장"
-  },
-  {
-    "date": "2026-09-14",
-    "desc": "PC 직접 등록",
-    "id": "e_user_14",
-    "title": "교통연구원 출장",
-    "type": "출장"
-  },
-  {
-    "attendees": [
-      "김아현 이사님",
-      "최지율 주임님"
-    ],
-    "date": "2026-09-11",
-    "desc": "",
-    "id": "e_1789084641338",
-    "projId": "p_jakjeon",
-    "title": "작전 추준위 회의",
-    "type": "출장"
-  },
-  {
-    "attendees": [
-      "나",
-      "김아현 이사님"
-    ],
-    "date": "2026-09-24",
-    "desc": "광명시청 도시재생과 현장 방문 및 입안제안서 사전 조율",
-    "id": "e_gm_20260924_01",
-    "projId": "p_gwangmyeong",
-    "title": "광명동 정비계획 제안서 사전협의",
-    "type": "출장"
-  }
-];
-    }
-
-    function getInitialDefaultTasks() {
-      return [
-  {
-    "completed": true,
-    "date": "2026-09-09",
-    "id": "t_user_20260909_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789001173719_0",
-        "text": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789001173719_1",
-        "text": "도면수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789001173719_2",
-        "text": "첨부자료 표 수정"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 조치계획 첨부자료 작성",
-    "title": "1. 주차장 결정(변경) 조서 2. 주차장 결정(변경) 사유서 3. 공원 결정(변경) 조서 상 지하주차장 연면적 3,000.0㎡ -> 3,339.3㎡ 로 수정 도면수정 첨부자료 표 수정"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-10",
-    "id": "t_1789000652240_c6of",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789000652240_0",
-        "text": "가구및 획지계획 각주 수정"
-      },
-      {
-        "completed": true,
-        "id": "it_1789000652240_1",
-        "text": "도로 외 조서 날리고 기반시설계획 총괄표 삽입"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 참고자료",
-    "title": "가구및 획지계획 각주 수정 도로 외 조서 날리고 기반시설계획 총괄표 삽입"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-10",
-    "id": "t_1789005476131_jnyf",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789005476131_0",
-        "text": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
-      }
-    ],
-    "projId": "p_jakjeon",
-    "theme": "1차 관련부서 협의 조치계획 첨부자료",
-    "title": "주차장 현황 파악 후 대수 표기 및 국가적 최저기준에 대한 반경을 둘러 의견이 나온 부분은 주차 수요가 이미 해결되었고 우리가 계획한 위치가 더 적합하다는 근거 제시"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-11",
-    "id": "t_1789110233633_qy6i",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789110233633_0",
-        "text": "조치계획서 작성"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "2차 협의 조치계획서 작성",
-    "title": "조치계획서 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-14",
-    "id": "t_1789115579613_3feg",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789115579613_0",
-        "text": "조치계획 작성"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "2차 관련부서 협의 조치계획",
-    "title": "조치계획 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-14",
-    "id": "t_1789350785767_8ytw",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_1789350785767_0",
-        "text": "고시도 접지"
-      },
-      {
-        "completed": true,
-        "id": "it_1789350785767_1",
-        "text": "고시문 출력"
-      },
-      {
-        "completed": true,
-        "id": "it_1789350785767_2",
-        "text": "묶기"
-      }
-    ],
-    "projId": "p_incheon_default",
-    "theme": "지금도농3구역",
-    "title": "고시도 접지 고시문 출력 묶기"
-  },
-  {
-    "completed": false,
-    "date": "2026-09-15",
-    "id": "t_gm_20260915_01",
-    "items": [
-      {
-        "completed": false,
-        "id": "it_gm_1",
-        "text": "정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성"
-      },
-      {
-        "completed": false,
-        "id": "it_gm_2",
-        "text": "토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토"
-      },
-      {
-        "completed": false,
-        "id": "it_gm_3",
-        "text": "정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
-      }
-    ],
-    "projId": "p_gwangmyeong",
-    "theme": "정비구역 지정 신청도서 작성 및 사전검토",
-    "title": "1. 정비계획(안) 수립 도서 및 정비구역 지정 신청서류 작성 2. 토지등소유자 동의서 징구 현황 집계 및 구역계 적합성 검토 3. 정비기반시설(도로, 공원) 계획 및 기부채납 비율 검토"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-08",
-    "id": "t_gm_20260908_02",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_gm_4",
-        "text": "대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사"
-      },
-      {
-        "completed": true,
-        "id": "it_gm_5",
-        "text": "과소필지 및 접도율 현황 분석표 작성"
-      }
-    ],
-    "projId": "p_gwangmyeong",
-    "theme": "기초현황조사 및 노후도 분석",
-    "title": "1. 대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사 2. 과소필지 및 접도율 현황 분석표 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-05",
-    "id": "t_yi_20260905_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_yi_1",
-        "text": "노후계획도시기본계획 최종보고서 도서 검토"
-      },
-      {
-        "completed": true,
-        "id": "it_yi_2",
-        "text": "10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-      }
-    ],
-    "projId": "p_yongin_default",
-    "theme": "최종보고서 작성 및 주민공람 준비",
-    "title": "1. 노후계획도시기본계획 최종보고서 도서 검토 2. 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-  },
-  {
-    "completed": true,
-    "date": "2026-09-04",
-    "id": "t_bd_20260904_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_bd_1",
-        "text": "선도지구 공모신청서 평가 배점표 분석"
-      },
-      {
-        "completed": true,
-        "id": "it_bd_2",
-        "text": "주민동의율 제고 방안 및 동의서 정밀 검증"
-      }
-    ],
-    "projId": "p_bundang_default",
-    "theme": "선도지구 제안서 및 평가기준 검토",
-    "title": "1. 선도지구 공모신청서 평가 배점표 분석 2. 주민동의율 제고 방안 및 동의서 정밀 검증"
-  }
-];
-    }
-
-    function restoreDefaultProjectsData() {
-      if (!requireAdmin("기본 데이터 복구")) return;
-      store.projects = getInitialDefaultProjects();
-      store.calendarEvents = getInitialDefaultEvents();
-      store.dailyTasks = getInitialDefaultTasks();
-      saveStore();
-      alert("사용자 백업 파일 데이터가 성공적으로 복구되었습니다!");
-    }
-
-
-    
-    function sanitizeStore(s) {
-      if (!s || typeof s !== 'object') s = {};
-      if (!Array.isArray(s.projects)) s.projects = s.projects ? Object.values(s.projects) : getInitialDefaultProjects();
-      s.projects.forEach((p, pIdx) => {
-        if (!p.id) p.id = 'p_' + pIdx;
-        if (!p.name) p.name = '무제 사업';
-        if (typeof p.progress !== 'number') p.progress = 0;
-        if (!Array.isArray(p.milestones)) p.milestones = [];
-        p.milestones.forEach((m, idx) => {
-          if (!m.id) m.id = 'm_' + idx;
-          if (m.status === undefined || m.status === null) m.status = 'todo';
-          if (!m.title) m.title = '';
-          if (!m.date) m.date = '';
-        });
-      });
-      if (!Array.isArray(s.calendarEvents)) s.calendarEvents = s.calendarEvents ? Object.values(s.calendarEvents) : getInitialDefaultEvents();
-      s.calendarEvents.forEach((e, eIdx) => {
-        if (!e.id) e.id = 'e_' + eIdx;
-        if (!e.title) e.title = '';
-        if (!e.date) e.date = '';
-      });
-      if (!Array.isArray(s.dailyTasks)) s.dailyTasks = s.dailyTasks ? Object.values(s.dailyTasks) : getInitialDefaultTasks();
-      if (s.dailyTasks.length === 0) s.dailyTasks = getInitialDefaultTasks();
-      s.dailyTasks.forEach((t, tIdx) => {
-        if (!t.id) t.id = 't_' + tIdx;
-        if (!t.date) t.date = getTodayDateStr();
-        if (!t.theme) t.theme = '';
-        if (!Array.isArray(t.items) || t.items.length === 0) {
-          if (t.title) {
-            const lines = t.title.split(/(?=\s+\d+[\.\)]\s+)|[\r\n]+/).map(x => x.trim()).filter(Boolean);
-            if (lines.length > 1) {
-              t.items = lines.map((line, i) => ({
-                id: 'it_' + i,
-                text: line,
-                completed: !!t.completed
-              }));
-            } else {
-              t.items = [{ id: 'it_0', text: t.title, completed: !!t.completed }];
-            }
-          } else {
-            t.items = [{ id: 'it_0', text: '할 일 내용 없음', completed: false }];
-          }
-        }
-        t.items.forEach((it, iIdx) => {
-          if (!it.id) it.id = 'it_' + iIdx;
-          if (!it.text) it.text = '';
-          if (typeof it.completed !== 'boolean') it.completed = false;
-        });
-        t.title = t.items.map(it => it.text).join(' ');
-        t.completed = t.items.length > 0 && t.items.every(it => it.completed);
-      });
-      if (!Array.isArray(s.careerLogs)) s.careerLogs = s.careerLogs ? Object.values(s.careerLogs) : [];
-      if (!Array.isArray(s.workLogs)) s.workLogs = s.workLogs ? Object.values(s.workLogs) : [];
-      if (!Array.isArray(s.trashTasks)) s.trashTasks = s.trashTasks ? Object.values(s.trashTasks) : [];
-      if (typeof s.lastLocalUpdate !== 'number' || s.lastLocalUpdate > 2000000000000) s.lastLocalUpdate = Date.now();
-      return JSON.parse(JSON.stringify(s));
-    }
-  
-    function loadStore() {
-      const saved = localStorage.getItem('urban_clean_store_v11') || localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v9');
-      if (saved) {
-        try { store = JSON.parse(saved); } catch(e) {}
-      }
-
-      if (!store || !Array.isArray(store.projects) || store.projects.length === 0) {
-        store = {
-          projects: getInitialDefaultProjects(),
-          dailyTasks: getInitialDefaultTasks(),
-          calendarEvents: getInitialDefaultEvents(),
-          careerLogs: [],
-          lastLocalUpdate: 0
-        };
-      }
-
-      if (!store.calendarEvents) store.calendarEvents = getInitialDefaultEvents();
-      if (!store.dailyTasks) store.dailyTasks = [];
-      if (!store.careerLogs) store.careerLogs = [];
-      store = sanitizeStore(store);
-
-      try {
-        localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-      } catch(e) {}
-
-      autoSyncCareerFromCompletedTasks();
-      if (typeof ensureBaselineSnapshot === 'function') ensureBaselineSnapshot();
-    }
-
-    
-    function recordAutoSnapshot(s) {
-      try {
-        const historyKey = 'urban_snapshot_history_v1';
-        let history = [];
-        try {
-          const raw = localStorage.getItem(historyKey);
-          if (raw) history = JSON.parse(raw);
-        } catch(e) {}
-        if (!Array.isArray(history)) history = [];
-
-        const snap = {
-          time: Date.now(),
-          iso: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-          taskCount: Array.isArray(s.dailyTasks) ? s.dailyTasks.length : 0,
-          projectCount: Array.isArray(s.projects) ? s.projects.length : 0,
-          data: JSON.parse(JSON.stringify(s))
-        };
-
-        // Don't save identical consecutive snapshot
-        if (history.length > 0) {
-          const last = history[0];
-          if (JSON.stringify(last.data.dailyTasks) === JSON.stringify(snap.data.dailyTasks) &&
-              JSON.stringify(last.data.projects) === JSON.stringify(snap.data.projects)) {
-            return;
-          }
-        }
-
-        history.unshift(snap);
-        if (history.length > 50) history = history.slice(0, 50);
-        localStorage.setItem(historyKey, JSON.stringify(history));
-
-        // Also save daily archive
-        const todayKey = 'urban_daily_archive_' + (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0,10));
-        localStorage.setItem(todayKey, JSON.stringify(s));
-      } catch(e) {
-        console.warn("Snapshot record failed:", e);
-      }
-    }
-  
-    function saveStore() {
-      store = sanitizeStore(store);
-      store.lastLocalUpdate = Date.now();
-      localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
-      renderAll();
-      if (isCloudSyncActive && fbDbRef) {
-        fbDbRef.set(store).catch(e => console.error("Cloud push failed:", e));
-      }
-    }
-
-
-
-    
     // =========================================================================
     // 5. WORK HOURS & ANNUAL LEAVE SYSTEM (근무 및 연차 관리)
     // =========================================================================
@@ -6562,6 +5774,28 @@
 
         
         const SYSTEM_RELEASE_LOGS = [
+  {
+    version: 'v1.23.0',
+    date: '2026-10-14',
+    badge: '멀티 테넌트 & 마스터 권한 관리',
+    badgeColor: 'purple',
+    title: '👥 멀티 테넌트 회원가입 & 마스터 권한 관리 센터 (RBAC) 전면 구축',
+    summary: '타인이 자신의 컴퓨터에서 회원가입을 하여 본인만의 독립 워크스페이스로 시스템을 활용할 수 있도록 멀티 테넌트 아키텍처를 전면 구축했습니다. 총괄 마스터(admin)의 기존 실제 10대 사업장 및 급여 데이터는 100% 비공개 격리 보호되며, 마스터는 전 회원의 가입 명부 조회, 4단계 권한(마스터/실무자/공동작업자/뷰어) 부여, 및 원격 워크스페이스 모니터링을 완벽하게 제어할 수 있습니다.',
+    changes: [
+      '👥 [포털 회원가입 및 즉시 전용 워크스페이스 생성]: 로그인 랜딩 화면에 [회원가입] 탭을 신설하여, 타인이 아이디/성명/부서/비밀번호 입력 시 자신만의 클린한 독립 워크스페이스가 즉시 자동 생성.',
+      '🛡️ [완전한 데이터 프라이버시 격리]: 신규 회원은 마스터의 실제 사업 프로젝트(서울가든빌라, 계산역, 대전 등)와 급여/경력 데이터에 일절 접근할 수 없으며, 본인만의 프로젝트와 캘린더, 솔루션 센터 도면을 독립적으로 운용.',
+      '👑 [총괄 마스터 회원 및 권한 관리 센터]: 전체 가입 회원 실시간 조회, 4단계 권한(Super Admin / Editor / Collaborator / Viewer) 원클릭 변경, 계정 차단/삭제, 및 원격 워크스페이스 열람(Inspect) 기능 완비.',
+      '💻 [타 컴퓨터/다중 기기 실시간 클라우드 동기화]: Firebase 및 로컬 스토리지 다중 테넌트 경로 분리로 타인 컴퓨터에서도 안전하고 자유로운 실시간 수정 및 작업 가능.'
+    ],
+    issues: [
+      {
+        symptom: '단일 계정(admin) 구조로 되어 있어 타인에게 시스템을 제공할 경우 관리자의 소중한 실제 사업장과 민감한 개인 급여/경력 정보가 그대로 노출될 위험이 있던 점',
+        cause: '사용자별 스토리지 격리(Per-User Workspace) 및 RBAC 권한 제어 체계 부재',
+        solution: '멀티 테넌트 회원가입, 사용자별 독립 스토리지 분리, 마스터 전용 권한 관리 대시보드를 전면 구축하여 마스터의 데이터는 100% 안전하게 보호하고 타인도 실무 툴로 완벽하게 활용할 수 있도록 완성'
+      }
+    ]
+  },
+
   {
     version: 'v1.22.1',
     date: '2026-10-14',
@@ -9825,6 +9059,102 @@ grid.innerHTML = '';
     </div>
   </div>
 
+
+  <!-- MASTER MEMBER & PERMISSION MANAGEMENT MODAL (v1.23.0 RBAC) -->
+  <div id="memberAdminModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col justify-between overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between pb-3 border-b border-slate-100 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold text-2xl shadow-xs shrink-0">
+            👥
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-black text-slate-900">회원 및 권한 관리 센터</h3>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300">
+                👑 총괄 마스터 전용
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">전체 가입 회원 명부 조회, 4단계 권한 부여/회수, 워크스페이스 원격 열람을 제어합니다.</p>
+          </div>
+        </div>
+        <button onclick="closeMemberAdminModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer shrink-0">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Member Table Area -->
+      <div class="space-y-4 overflow-y-auto pr-1 flex-1">
+        
+        <!-- Summary Stats Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <span class="text-[10.5px] font-bold text-slate-400 block">총 가입 회원</span>
+            <span id="statTotalUsers" class="text-lg font-black text-slate-800 font-mono">0 명</span>
+          </div>
+          <div class="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200">
+            <span class="text-[10.5px] font-bold text-emerald-600 block">실무 편집자 (Editor)</span>
+            <span id="statEditorUsers" class="text-lg font-black text-emerald-800 font-mono">0 명</span>
+          </div>
+          <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-200">
+            <span class="text-[10.5px] font-bold text-blue-600 block">공동 작업자 (Collab)</span>
+            <span id="statCollabUsers" class="text-lg font-black text-blue-800 font-mono">0 명</span>
+          </div>
+          <div class="bg-purple-50/70 p-3 rounded-2xl border border-purple-200">
+            <span class="text-[10.5px] font-bold text-purple-600 block">조회 전용 (Viewer)</span>
+            <span id="statViewerUsers" class="text-lg font-black text-purple-800 font-mono">0 명</span>
+          </div>
+        </div>
+
+        <!-- Role Legend Bar -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 flex flex-wrap items-center justify-between gap-2">
+          <span class="font-bold text-slate-700 flex items-center gap-1">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-600"></i>
+            <span>권한 등급 안내:</span>
+          </span>
+          <div class="flex flex-wrap gap-2 text-[11px]">
+            <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold">👑 마스터 (전체 제어)</span>
+            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">✍️ 실무자 (본인 데이터 수정)</span>
+            <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold">🤝 공동작업자 (마스터 프로젝트 공유)</span>
+            <span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold">👁️ 뷰어 (조회 전용)</span>
+          </div>
+        </div>
+
+        <!-- Member Management Table -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-inner">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="px-3.5 py-2.5">회원 아이디 / 성명</th>
+                  <th class="px-3 py-2.5">소속 부서</th>
+                  <th class="px-3 py-2.5">가입일</th>
+                  <th class="px-3 py-2.5">부여 권한</th>
+                  <th class="px-3 py-2.5 text-center">계정 상태</th>
+                  <th class="px-3 py-2.5 text-center">원격 열람 / 관리</th>
+                </tr>
+              </thead>
+              <tbody id="memberAdminTableBody" class="divide-y divide-slate-100 bg-white">
+                <!-- Dynamically populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between shrink-0">
+        <span class="text-xs text-slate-400">권한 변경 시 실시간으로 클라우드 및 세션에 반영됩니다.</span>
+        <button onclick="closeMemberAdminModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+          닫기
+        </button>
+      </div>
+
+    </div>
+  </div>
 </body>
 
 </html>
