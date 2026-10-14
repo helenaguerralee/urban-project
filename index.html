@@ -409,7 +409,7 @@
           <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             도시계획 업무관리시스템
           </h1>
-          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.23.6</span>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.23.7</span>
         </div>
         <div class="flex items-center gap-2 pt-0.5">
           <img id="headerCompanyLogo" src="app_logo.png" alt="Company CI" class="h-6 sm:h-6.5 max-w-[130px] object-contain">
@@ -3744,6 +3744,38 @@
             const remoteTs = cleanRemote.lastLocalUpdate || 0;
             const localTs = store.lastLocalUpdate || 0;
 
+            // Merge projects so master never loses custom projects (dedup by name or id)
+            const mergedProjectsMap = new Map();
+            (cleanRemote.projects || []).forEach(p => { 
+              const key = (p && (p.name || p.id)) ? (p.name || p.id).trim() : null;
+              if (key) mergedProjectsMap.set(key, p); 
+            });
+            let localHadNewProjects = false;
+            (store.projects || []).forEach(p => {
+              const key = (p && (p.name || p.id)) ? (p.name || p.id).trim() : null;
+              if (key && !mergedProjectsMap.has(key)) {
+                mergedProjectsMap.set(key, p);
+                localHadNewProjects = true;
+              }
+            });
+            cleanRemote.projects = Array.from(mergedProjectsMap.values());
+
+            // Merge career logs (dedup by id or title_date)
+            const mergedCareerMap = new Map();
+            (cleanRemote.careerLogs || []).forEach(c => { 
+              const key = (c && (c.id || (c.title + '_' + (c.date || '')))) ? (c.id || (c.title + '_' + (c.date || ''))).trim() : null;
+              if (key) mergedCareerMap.set(key, c); 
+            });
+            let localHadNewCareer = false;
+            (store.careerLogs || []).forEach(c => {
+              const key = (c && (c.id || (c.title + '_' + (c.date || '')))) ? (c.id || (c.title + '_' + (c.date || ''))).trim() : null;
+              if (key && !mergedCareerMap.has(key)) {
+                mergedCareerMap.set(key, c);
+                localHadNewCareer = true;
+              }
+            });
+            cleanRemote.careerLogs = Array.from(mergedCareerMap.values());
+
             const mergedTasksMap = new Map();
             (cleanRemote.dailyTasks || []).forEach(t => { if (t && t.id) mergedTasksMap.set(t.id, t); });
             let localHadNewTasks = false;
@@ -3765,7 +3797,9 @@
             (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
             cleanRemote.workLogs = Array.from(mergedWorkMap.values());
 
-            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHadNewTasks) {
+            const localHasMore = localHadNewTasks || localHadNewProjects || localHadNewCareer;
+
+            if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHasMore) {
               store = cleanRemote;
               store.lastLocalUpdate = Math.max(remoteTs, localTs, Date.now());
               localStorage.setItem(getWorkspaceStorageKey(), JSON.stringify(store));
@@ -3774,7 +3808,7 @@
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
 
-              if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
+              if (localHasMore && isCloudSyncActive && fbDbRef) {
                 fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
               }
             }
@@ -4590,16 +4624,78 @@
         }
       }
 
-      // MASTER RECOVERY GUARANTEE: If master workspace ever has test project or fewer than 3 projects, FORCE RESTORE!
+      // MASTER RECOVERY GUARANTEE: If master workspace has test project, fewer projects, or if a richer historical snapshot exists, RESTORE LATEST RICH SNAPSHOT!
       if (isMaster) {
+        let needsRestore = false;
         const hasTestProject = store.projects && store.projects.some(p => p.name && p.name.includes('테스트 전용'));
         if (!store.projects || store.projects.length < 3 || hasTestProject) {
-          console.warn('Master workspace was missing core projects. Unconditionally restoring 5 master projects!');
+          needsRestore = true;
+        }
+
+        let richSnap = null;
+        try {
+          const rawSnap = localStorage.getItem('urban_snapshot_history_v1');
+          if (rawSnap) {
+            const snaps = JSON.parse(rawSnap);
+            if (Array.isArray(snaps)) {
+              // Find clean snapshots without '테스트 전용'
+              const candidates = snaps.filter(s => s && s.data && Array.isArray(s.data.projects) && s.data.projects.length >= 3 && !s.data.projects.some(p => p.name && p.name.includes('테스트 전용')));
+              // Prioritize snapshots with higher project count (e.g. 7 projects), or higher careerLogs (e.g. 112건), or higher task count
+              candidates.sort((a, b) => {
+                const pA = a.data.projects?.length || 0;
+                const pB = b.data.projects?.length || 0;
+                if (pB !== pA) return pB - pA;
+                const cA = a.data.careerLogs?.length || 0;
+                const cB = b.data.careerLogs?.length || 0;
+                if (cB !== cA) return cB - cA;
+                const tA = a.data.dailyTasks?.length || 0;
+                const tB = b.data.dailyTasks?.length || 0;
+                return tB - tA;
+              });
+              if (candidates.length > 0) {
+                richSnap = candidates[0];
+              }
+            }
+          }
+        } catch(e) {}
+
+        // Also check legacy keys if no rich snapshot in history
+        if (!richSnap) {
+          ['urban_clean_store_v10', 'urban_clean_store_v9'].forEach(k => {
+            try {
+              const raw = localStorage.getItem(k);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && Array.isArray(parsed.projects) && parsed.projects.length >= 5 && !parsed.projects.some(p => p.name && p.name.includes('테스트 전용'))) {
+                  if (!richSnap || (parsed.projects.length > (richSnap.data?.projects?.length || 0))) {
+                    richSnap = { data: parsed };
+                  }
+                }
+              }
+            } catch(e) {}
+          });
+        }
+
+        const currentProjCount = (store.projects || []).length;
+        const currentCareerCount = (store.careerLogs || []).length;
+        if (richSnap && richSnap.data) {
+          const richProjCount = (richSnap.data.projects || []).length;
+          const richCareerCount = (richSnap.data.careerLogs || []).length;
+          // Auto-restore if corrupt/test project, or if rich snapshot has strictly more projects (e.g. 7 vs 5) or more career logs (112 vs 0)
+          if (needsRestore || richProjCount > currentProjCount || (richProjCount >= currentProjCount && richCareerCount > currentCareerCount)) {
+            console.log('Restoring from latest master rich snapshot in history with', richProjCount, 'projects and', richCareerCount, 'career logs!');
+            store = sanitizeStore(richSnap.data);
+            needsRestore = false;
+          }
+        }
+
+        if (needsRestore) {
+          console.warn('No rich snapshot found in history. Restoring 5 master projects!');
           store.projects = getInitialDefaultProjects();
           store.dailyTasks = getInitialDefaultTasks();
           store.calendarEvents = getInitialDefaultEvents();
-          store.lastLocalUpdate = Date.now();
         }
+        store.lastLocalUpdate = Date.now();
       }
 
       // NON-MASTER PURGE: Non-master user must NEVER inherit master projects!
