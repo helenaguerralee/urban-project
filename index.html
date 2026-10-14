@@ -409,7 +409,7 @@
           <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             도시계획 업무관리시스템
           </h1>
-          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.23.9</span>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.24.0</span>
         </div>
         <div class="flex items-center gap-2 pt-0.5">
           <img id="headerCompanyLogo" src="app_logo.png" alt="Company CI" class="h-6 sm:h-6.5 max-w-[130px] object-contain">
@@ -3869,8 +3869,8 @@
     function getInitialDefaultProjects() {
       return [
   {
-    "category": "노후계획도시정비",
-    "desc": "착수 : '24.07.10.\n착수보고회 : '24.08.13.\n기본계획(안) 작성 : '25.03~04.\n주민설명회(공람) : '25.10.~11.\n시의회 의견청취 : '26.02 ~ 완료\n도 심의신청 : '26.07\n도 공동(도시)위원회 : '26.07~'26.08.\n기본계획 승인 : '26.09.\n주민공람 : '26.10.(14일간)\n경기도도시계획위 : '26.11.\n도 보완사항 제출 : '26.12.\n도의회 의견청취 : '27.01.\n도의회 의견청취(재심의)제출 : '27.02.\n국토교통부 승인 : '27.04.\n기본계획 고시 및 보고 : '27.05.\n최종 인쇄 및 준공 : '27.06.\n (계약종료 : '27.06.)",
+    "category": "기본계획",
+    "desc": "∘착수 : '24.07.10.\n∘착수보고 : '24.08.13.\n∘주민설문조사 : '25.03~04.\n∘주민설문조사 : '25.10.~11.\n∘국장보고 : '26.02 ~ 매월\n∘중간보고 : '26.07\n∘관련기관(부서)협의 : '26.07~'26.08.\n∘최종보고 : '26.09.\n∘주민공람 : '26.10.(14일간)\n∘시의회의견청취 : '26.11.\n∘용인시 심의 : '26.12.\n∘도 승인신청 : '27.01.\n∘도 관련기관(부서)협의 : '27.02.\n∘경기도 심의 : '27.04.\n∘국토교통부 협의 : '27.05.\n∘도 승인 및 고시 : '27.06.\n (준공목표 : '27.06.)",
     "endDate": "'27.06",
     "id": "p_yongin_default",
     "name": "용인시 노후계획도시기본계획",
@@ -3881,165 +3881,363 @@
         "id": "m_0",
         "title": "착수",
         "date": "'24.07.10.",
-        "status": "done"
+        "status": null
       },
       {
         "id": "m_1",
-        "title": "착수보고회",
+        "title": "착수보고",
         "date": "'24.08.13.",
-        "status": "done"
+        "status": null
       },
       {
         "id": "m_2",
-        "title": "주민설명회",
+        "title": "주민설문조사",
         "date": "'25.03~04.",
+        "status": null
+      },
+      {
+        "id": "m_3",
+        "title": "주민설문조사",
+        "date": "'25.10.~11.",
+        "status": null
+      },
+      {
+        "id": "m_4",
+        "title": "국장보고",
+        "date": "'26.02 ~ 매월",
+        "status": null
+      },
+      {
+        "id": "m_5",
+        "title": "중간보고",
+        "date": "'26.07",
+        "status": null
+      },
+      {
+        "id": "m_6",
+        "title": "관련기관(부서)협의",
+        "date": "'26.07~'26.08.",
+        "status": null
+      },
+      {
+        "id": "m_7",
+        "title": "최종보고",
+        "date": "'26.09.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "주민공람",
+        "date": "'26.10.(14일간)",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "시의회의견청취",
+        "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_10",
+        "title": "용인시 심의",
+        "date": "'26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_11",
+        "title": "도 승인신청",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_12",
+        "title": "도 관련기관(부서)협의",
+        "date": "'27.02.",
+        "status": null
+      },
+      {
+        "id": "m_13",
+        "title": "경기도 심의",
+        "date": "'27.04.",
+        "status": null
+      },
+      {
+        "id": "m_14",
+        "title": "국토교통부 협의",
+        "date": "'27.05.",
+        "status": null
+      },
+      {
+        "id": "m_15",
+        "title": "도 승인 및 고시",
+        "date": "'27.06.",
+        "status": null
+      }
+    ]
+  },
+  {
+    "category": "노후계획도시 특별정비사업",
+    "desc": "∘착수 : '25.09\n∘접수 : '26.7.1.~7.10.\n∘자문 및 결과통보 : '26.7.\n∘제안서 본안 접수 : '26.9.1.\n∘수용여부 결정 : '26.10.\n∘주민공람·공고 : '26.10.\n∘시의회의견청취 : '26.10.\n∘경기도협의 : '26.11.\n∘성남시 도시계획위원회 심의 및 구역지정 : '26.12.\n∘국토부 보고 : '26.12.",
+    "endDate": "'26.12",
+    "id": "p_bundang_default",
+    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
+    "progress": 20,
+    "startDate": "'25.09",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "착수",
+        "date": "'25.09",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "접수",
+        "date": "'26.7.1.~7.10.",
+        "status": null
+      },
+      {
+        "id": "m_2",
+        "title": "자문 및 결과통보",
+        "date": "'26.7.",
         "status": "done"
       },
       {
         "id": "m_3",
-        "title": "기본계획 승인",
-        "date": "'26.09.",
+        "title": "제안서 본안 접수",
+        "date": "'26.9.1.",
         "status": "done"
       },
       {
         "id": "m_4",
-        "title": "주민공람",
+        "title": "수용여부 결정",
         "date": "'26.10.",
         "status": "in_progress"
       },
       {
         "id": "m_5",
-        "title": "경기도도시계획위",
+        "title": "주민공람·공고",
+        "date": "'26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_6",
+        "title": "시의회의견청취",
+        "date": "'26.10.",
+        "status": "todo"
+      },
+      {
+        "id": "m_7",
+        "title": "경기도협의",
         "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "성남시 도시계획위원회 심의 및 구역지정",
+        "date": "'26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "국토부 보고",
+        "date": "'26.12.",
         "status": "todo"
       }
     ]
   },
   {
-    "category": "노후계획도시정비",
-    "desc": "주민동의율 확보 및 통합재건축 선도지구 공모 신청 준비.\n선도지구 제안서 제출 및 평가 기준 분석.",
-    "endDate": "'25.12",
-    "id": "p_bundang_default",
-    "name": "분당 노후계획도시 47구역(까치마을1), S7구역(구미동2) 통합재건축 정비사업",
-    "progress": 60,
-    "startDate": "'24.05.01",
+    "category": "정비사업(재개발)",
+    "desc": "∘착수 : '25.10.\n∘사전검토신청 : '26.3.16.\n∘관련기관(부서)1차 협의 : '26.3.~'26.7.15\n∘관련기관(부서)2차 협의 : '26.7.~'26.9.\n∘자문단컨설팅 : '26.10.\n∘주민제안서 접수 : '26.11.\n∘관련기관(부서)협의 : '26.11.~12.\n∘주민공람 : '27.01.\n∘주민설명회 : '27.01.\n∘의회의견청취 : '27.02.\n∘시 결정신청 : '27.03.\n∘시 도시경관공동위원회 : '27.04.\n∘고시 : '27.05.",
+    "endDate": "'27.05",
+    "id": "p_incheon_default",
+    "name": "인천시 계산역북측구역 재개발사업",
+    "progress": 10,
+    "startDate": "'25.10",
     "milestones": [
       {
-        "id": "m_b0",
-        "title": "주민동의서 징구",
-        "date": "'24.06.",
+        "id": "m_0",
+        "title": "착수",
+        "date": "'25.10.",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "사전검토신청",
+        "date": "'26.3.16.",
         "status": "done"
       },
       {
-        "id": "m_b1",
-        "title": "선도지구 공모신청서 제출",
-        "date": "'24.09.25.",
+        "id": "m_2",
+        "title": "관련기관(부서)1차 협의",
+        "date": "'26.3.~'26.7.15",
         "status": "done"
       },
       {
-        "id": "m_b2",
-        "title": "선도지구 선정 발표",
-        "date": "'24.11.",
+        "id": "m_3",
+        "title": "관련기관(부서)2차 협의",
+        "date": "'26.7.~'26.9.",
+        "status": null
+      },
+      {
+        "id": "m_4",
+        "title": "자문단컨설팅",
+        "date": "'26.10.",
         "status": "todo"
+      },
+      {
+        "id": "m_5",
+        "title": "주민제안서 접수",
+        "date": "'26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_6",
+        "title": "관련기관(부서)협의",
+        "date": "'26.11.~12.",
+        "status": null
+      },
+      {
+        "id": "m_7",
+        "title": "주민공람",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_8",
+        "title": "주민설명회",
+        "date": "'27.01.",
+        "status": null
+      },
+      {
+        "id": "m_9",
+        "title": "의회의견청취",
+        "date": "'27.02.",
+        "status": null
+      },
+      {
+        "id": "m_10",
+        "title": "시 결정신청",
+        "date": "'27.03.",
+        "status": null
+      },
+      {
+        "id": "m_11",
+        "title": "시 도시경관공동위원회",
+        "date": "'27.04.",
+        "status": null
+      },
+      {
+        "id": "m_12",
+        "title": "고시",
+        "date": "'27.05.",
+        "status": null
       }
     ]
   },
   {
     "category": "재개발사업",
-    "desc": "인천광역시 계양구 계산역 북측 재개발사업 정비계획 수립 및 정비구역 지정 용역.\n관련부서 2차 협의 조치계획서 작성 및 도시계획위원회 심의 준비.",
-    "endDate": "'25.10",
-    "id": "p_incheon_default",
-    "name": "인천시 계산역북측구역 재개발사업",
-    "progress": 45,
-    "startDate": "'23.11.15",
+    "desc": "∘착수 : `26.5.\n∘접수 : `26.9.",
+    "endDate": "미정",
+    "id": "p_gwangmyeong",
+    "name": "광명시 광명동 재개발사업",
+    "progress": 7,
+    "startDate": "'25.05",
     "milestones": [
       {
-        "id": "m_i0",
-        "title": "정비구역 입안제안",
-        "date": "'24.02.",
+        "id": "m_0",
+        "title": "착수",
+        "date": "`26.5.",
         "status": "done"
       },
       {
-        "id": "m_i1",
-        "title": "관련부서 1차 협의",
-        "date": "'24.06.",
+        "id": "m_1",
+        "title": "접수",
+        "date": "`26.9.",
+        "status": null
+      }
+    ]
+  },
+  {
+    "category": "재개발사업",
+    "desc": "∘사전검토신청 : `25.05.30\n∘관련기관(부서)협의 : `25.6.~8.\n∘인천시 사전컨설팅 : `25.10.\n∘주민입안제안 : `26.6.\n∘관련기관(부서)협의 : `26.6.~8.\n∘주민공람 : `26.9.\n∘주민설명회 : `26.10.\n∘의회의견청취 : `26.11.\n∘시 결정신청 : `26.12.\n∘시 도시경관공동위원회 : `26.12.\n∘고시 : `27.1.\n (준공목표 :‘27.1.)",
+    "endDate": "'27.01",
+    "id": "p_jakjeon",
+    "name": "인천 작전역인근 재개발사업",
+    "progress": 10,
+    "startDate": "'25.05.30",
+    "milestones": [
+      {
+        "id": "m_0",
+        "title": "사전검토신청",
+        "date": "`25.05.30",
+        "status": null
+      },
+      {
+        "id": "m_1",
+        "title": "관련기관(부서)협의",
+        "date": "`25.6.~8.",
+        "status": null
+      },
+      {
+        "id": "m_2",
+        "title": "인천시 사전컨설팅",
+        "date": "`25.10.",
+        "status": null
+      },
+      {
+        "id": "m_3",
+        "title": "주민입안제안",
+        "date": "`26.6.",
         "status": "done"
       },
       {
-        "id": "m_i2",
-        "title": "2차 협의 조치계획 작성",
-        "date": "'24.10.",
+        "id": "m_4",
+        "title": "관련기관(부서)협의",
+        "date": "`26.6.~8.",
         "status": "in_progress"
       },
       {
-        "id": "m_i3",
-        "title": "구 도시계획위원회 심의",
-        "date": "'24.12.",
+        "id": "m_5",
+        "title": "주민공람",
+        "date": "`26.9.",
         "status": "todo"
-      }
-    ]
-  },
-  {
-    "category": "재개발사업",
-    "desc": "광명시 광명동 일원 재개발사업 정비계획 수립 및 사전기획 검토.\n토지등소유자 동의서 징구 및 구역계 적합성 분석.",
-    "endDate": "'26.03",
-    "id": "p_gwangmyeong",
-    "name": "광명시 광명동 재개발사업",
-    "progress": 25,
-    "startDate": "'24.04.10",
-    "milestones": [
-      {
-        "id": "m_g0",
-        "title": "사전기획 및 기초조사",
-        "date": "'24.06.",
-        "status": "done"
       },
       {
-        "id": "m_g1",
-        "title": "입안제안 사전협의",
-        "date": "'24.09.24.",
-        "status": "done"
-      },
-      {
-        "id": "m_g2",
-        "title": "정비구역 지정 신청",
-        "date": "'25.01.",
+        "id": "m_6",
+        "title": "주민설명회",
+        "date": "`26.10.",
         "status": "todo"
+      },
+      {
+        "id": "m_7",
+        "title": "의회의견청취",
+        "date": "`26.11.",
+        "status": "todo"
+      },
+      {
+        "id": "m_8",
+        "title": "시 결정신청",
+        "date": "`26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_9",
+        "title": "시 도시경관공동위원회",
+        "date": "`26.12.",
+        "status": "todo"
+      },
+      {
+        "id": "m_10",
+        "title": "고시",
+        "date": "`27.1.",
+        "status": null
       }
     ]
   },
   {
-    "category": "재개발사업",
-    "desc": "인천광역시 계양구 작전역 일원 재개발사업 정비계획 수립 및 타당성 검토.\n추진준비위원회 자문 및 정비기반시설 계획 수립.",
-    "endDate": "'25.08",
-    "id": "p_jakjeon",
-    "name": "인천 작전역인근 재개발사업",
-    "progress": 35,
-    "startDate": "'23.12.01",
-    "milestones": [
-      {
-        "id": "m_j0",
-        "title": "기초현황조사",
-        "date": "'24.03.",
-        "status": "done"
-      },
-      {
-        "id": "m_j1",
-        "title": "작전 추준위 회의",
-        "date": "'24.09.11.",
-        "status": "done"
-      },
-      {
-        "id": "m_j2",
-        "title": "조치계획 접수",
-        "date": "'24.09.15.",
-        "status": "done"
-      }
-    ]
-  },
-  {
-    "category": "재건축사업",
-    "desc": "서울특별시 구로구 오류동 서울가든빌라 재건축 신속통합기획 자문 신청 및 사전도서 작성.\n제2종일반주거지역(7층) 종상향 검토, 온수 지구단위계획 지침 검토, 표고/경사 분석 및 토지·건축물 조서 편철.",
+    "category": "재건축",
+    "desc": "∘기초현황조사 및 노후도 분석 : '24.08.\n∘신통기획 자문 신청(안) 수립 : '24.10.01.\n∘사전도서 작성 및 서울시 협의 : '24.10.\n (준공목표 : '26.12.)",
     "endDate": "'26.12",
     "id": "p_1789603115950",
     "name": "서울시 구로구 서울가든빌라재건축",
@@ -4067,8 +4265,8 @@
     ]
   },
   {
-    "category": "재정비촉진사업",
-    "desc": "서울특별시 노원구 상계5구역 재정비촉진사업(공공재개발) 촉진계획 경미한 변경 및 토지조서 수정.\n기정(2026) vs 변경(2026 측량) 토지조서 정비 및 국·공유지 유·무상협의 지원.",
+    "category": "재정비촉진",
+    "desc": "∘결정신청 최종보완 도서 작성 : '24.07.14.\n∘용적률(건축계획검토) : '24.10.06.\n∘기정(2026) vs 변경(2026 측량) 토지조서 수정 : '24.10.14.\n (준공목표 : '26.06.)",
     "endDate": "'26.06",
     "id": "p_1791937637995",
     "name": "서울시 상계5구역 재정비촉진사업",
@@ -6162,6 +6360,10 @@
         } else {
           for (const p of store.projects) {
             if (!p || !validIds.includes(p.id) || badNames.includes(p.name) || p.name.includes('성남') || p.name.includes('수원') || p.name.includes('테스트')) {
+              needsStrictReset = true;
+              break;
+            }
+            if (!p.desc || !p.desc.includes('∘')) {
               needsStrictReset = true;
               break;
             }
@@ -10467,7 +10669,7 @@
     }
 
     
-    let isAllDatesViewActive = true;
+    let isAllDatesViewActive = false;
     function toggleAllDatesView() {
       isAllDatesViewActive = !isAllDatesViewActive;
       const btn = document.getElementById('btnAllDatesToggle');
