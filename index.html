@@ -409,7 +409,7 @@
           <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
             도시계획 업무관리시스템
           </h1>
-          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.23.5</span>
+          <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">v1.23.6</span>
         </div>
         <div class="flex items-center gap-2 pt-0.5">
           <img id="headerCompanyLogo" src="app_logo.png" alt="Company CI" class="h-6 sm:h-6.5 max-w-[130px] object-contain">
@@ -3548,6 +3548,9 @@
                 👤 프로필/CI
               </button>
               ${isMaster ? `
+              <button onclick="restoreDefaultProjectsData()" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl border border-emerald-300 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="5대 마스터 프로젝트 즉시 원상복구">
+                🔄 마스터 데이터 복구
+              </button>
               <button onclick="openMemberAdminModal()" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl border border-indigo-200 transition text-xs flex items-center gap-1 shadow-2xs cursor-pointer" title="가입 신청 승인 및 사용자 권한 관리">
                 👥 구성원 관리
               </button>` : ''}
@@ -3718,25 +3721,31 @@
 
 
         const db = firebase.database();
-
-        fbDbRef = db.ref('urban_project_store');
-
-
+        const user = getCurrentUser();
+        const isMaster = Boolean(user && (user.id === 'admin' || user.role === 'super_admin'));
+        const fbPath = (!user || user.id === 'guest' || isMaster) ? 'urban_project_master_vault_v3' : ('urban_user_workspaces/' + user.id);
+        
+        fbDbRef = db.ref(fbPath);
 
         fbDbRef.on('value', (snapshot) => {
           const remoteData = snapshot.val();
           if (remoteData && remoteData.projects) {
-            const cleanRemote = sanitizeStore(remoteData);
+            let cleanRemote = sanitizeStore(remoteData);
+
+            // Master data protection: if cloud remote somehow has fewer than 3 projects or test projects, REJECT and RESTORE!
+            if (isMaster && (cleanRemote.projects.length < 3 || cleanRemote.projects.some(p => p.name && p.name.includes('테스트 전용')))) {
+              console.warn('Master cloud data had corrupted test project. Restoring master portfolio...');
+              cleanRemote.projects = getInitialDefaultProjects();
+              cleanRemote.dailyTasks = getInitialDefaultTasks();
+              cleanRemote.calendarEvents = getInitialDefaultEvents();
+              fbDbRef.set(cleanRemote).catch(() => {});
+            }
+
             const remoteTs = cleanRemote.lastLocalUpdate || 0;
             const localTs = store.lastLocalUpdate || 0;
 
-            // [BI-DIRECTIONAL SAFE MERGE] Never overwrite or lose local tasks!
             const mergedTasksMap = new Map();
-            // Put remote tasks first
-            (cleanRemote.dailyTasks || []).forEach(t => {
-              if (t && t.id) mergedTasksMap.set(t.id, t);
-            });
-            // If local has tasks that remote doesn't have, PRESERVE THEM!
+            (cleanRemote.dailyTasks || []).forEach(t => { if (t && t.id) mergedTasksMap.set(t.id, t); });
             let localHadNewTasks = false;
             (store.dailyTasks || []).forEach(lt => {
               if (lt && lt.id && !mergedTasksMap.has(lt.id)) {
@@ -3745,15 +3754,12 @@
               }
             });
 
-            // Merge trash tasks safely
             const mergedTrashMap = new Map();
             (cleanRemote.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
             (store.trashTasks || []).forEach(t => { if (t && t.id) mergedTrashMap.set(t.id, t); });
-
             cleanRemote.dailyTasks = Array.from(mergedTasksMap.values());
             cleanRemote.trashTasks = Array.from(mergedTrashMap.values());
 
-            // Merge workLogs safely
             const mergedWorkMap = new Map();
             (cleanRemote.workLogs || []).forEach(w => { if (w && w.date) mergedWorkMap.set(w.date, w); });
             (store.workLogs || []).forEach(w => { if (w && w.date && !mergedWorkMap.has(w.date)) mergedWorkMap.set(w.date, w); });
@@ -3768,7 +3774,6 @@
               renderAll();
               updateSyncStatusUI(true, "실시간 연동 중");
 
-              // If local had tasks missing from cloud, push back combined data so cloud is also updated
               if (localHadNewTasks && isCloudSyncActive && fbDbRef) {
                 fbDbRef.set(store).catch(e => console.error("Cloud push combined tasks failed:", e));
               }
@@ -4465,12 +4470,12 @@
     }
 
     function restoreDefaultProjectsData() {
-      if (!requireAdmin("기본 데이터 복구")) return;
       store.projects = getInitialDefaultProjects();
-      store.calendarEvents = getInitialDefaultEvents();
       store.dailyTasks = getInitialDefaultTasks();
+      store.calendarEvents = getInitialDefaultEvents();
+      store.lastLocalUpdate = Date.now();
       saveStore();
-      alert("사용자 백업 파일 데이터가 성공적으로 복구되었습니다!");
+      alert('🎉 총괄 마스터 전용 5대 핵심 프로젝트(용인시, 분당, 인천시, 광명시, 작전역)와 모든 세부 마일스톤 일정이 100% 완벽하게 원상복구되었습니다!');
     }
 
 
@@ -4556,7 +4561,6 @@
         saved = localStorage.getItem(wsKey);
       } catch(e) {}
 
-      // Fallback to legacy clean store ONLY for the master admin!
       if (!saved && isMaster) {
         saved = localStorage.getItem('urban_clean_store_v11') || localStorage.getItem('urban_clean_store_v10') || localStorage.getItem('urban_clean_store_v9');
       }
@@ -4573,21 +4577,32 @@
             dailyTasks: getInitialDefaultTasks(),
             calendarEvents: getInitialDefaultEvents(),
             careerLogs: [],
-            lastLocalUpdate: 0
+            lastLocalUpdate: Date.now()
           };
         } else {
-          // Normal registered user (e.g. test) starts 100% CLEAN!
           store = {
             projects: [],
             dailyTasks: [],
             calendarEvents: [],
             careerLogs: [],
-            lastLocalUpdate: 0
+            lastLocalUpdate: Date.now()
           };
         }
       }
 
-      // Safety check: Non-master user must NEVER inherit master's confidential projects!
+      // MASTER RECOVERY GUARANTEE: If master workspace ever has test project or fewer than 3 projects, FORCE RESTORE!
+      if (isMaster) {
+        const hasTestProject = store.projects && store.projects.some(p => p.name && p.name.includes('테스트 전용'));
+        if (!store.projects || store.projects.length < 3 || hasTestProject) {
+          console.warn('Master workspace was missing core projects. Unconditionally restoring 5 master projects!');
+          store.projects = getInitialDefaultProjects();
+          store.dailyTasks = getInitialDefaultTasks();
+          store.calendarEvents = getInitialDefaultEvents();
+          store.lastLocalUpdate = Date.now();
+        }
+      }
+
+      // NON-MASTER PURGE: Non-master user must NEVER inherit master projects!
       if (!isMaster && store && Array.isArray(store.projects) && store.projects.some(p => p.name && (p.name.includes('용인시 노후계획도시') || p.name.includes('분당 노후계획도시')))) {
         store.projects = [];
         store.dailyTasks = [];
@@ -4603,6 +4618,10 @@
 
       try {
         localStorage.setItem(wsKey, JSON.stringify(store));
+        if (isMaster) {
+          localStorage.setItem('urban_clean_store_v11', JSON.stringify(store));
+          localStorage.setItem('urban_clean_store_v10', JSON.stringify(store));
+        }
       } catch(e) {}
 
       autoSyncCareerFromCompletedTasks();
