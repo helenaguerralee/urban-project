@@ -3785,11 +3785,21 @@
             });
             cleanRemote.projects = Array.from(mergedProjectsMap.values());
 
+            // NEVER RESURRECT DELETED TASKS: Collect all trashed IDs from local and remote
+            const trashedTaskIds = new Set([
+              ...((store && store.trashTasks) || []).map(t => t && t.id),
+              ...((cleanRemote && cleanRemote.trashTasks) || []).map(t => t && t.id)
+            ]);
+
             const mergedTasksMap = new Map();
-            (cleanRemote.dailyTasks || []).forEach(t => { if (t && t.id) mergedTasksMap.set(t.id, t); });
+            (cleanRemote.dailyTasks || []).forEach(t => {
+              if (t && t.id && !trashedTaskIds.has(t.id)) {
+                mergedTasksMap.set(t.id, t);
+              }
+            });
             let localHadNewTasks = false;
             (store.dailyTasks || []).forEach(lt => {
-              if (lt && lt.id && !mergedTasksMap.has(lt.id) && !lt.title.includes('최근 업무')) {
+              if (lt && lt.id && !trashedTaskIds.has(lt.id) && !mergedTasksMap.has(lt.id) && !lt.title.includes('최근 업무')) {
                 mergedTasksMap.set(lt.id, lt);
                 localHadNewTasks = true;
               }
@@ -5199,50 +5209,6 @@
     "role": "[실무 총괄] 일반 수행 업무 - 선도지구 제안서 및 평가기준 검토 및 단위 과업 완성도 제고"
   },
   {
-    "autoTaskId": "t_yi_20260905_01",
-    "category": "주요 성과",
-    "content": "[단위 업무 성과 요약]\n• 과업명: 일반 수행 업무\n• 완료일자: 2026-09-05\n• 수행 영역: 최종보고서 작성 및 주민공람 준비\n• 세부 실적: 노후계획도시기본계획 최종보고서 도서 검토, 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성\n• 핵심 가치: 실무 공정 안정화 및 무결점 단위 과업 완료.",
-    "date": "2026-09-05",
-    "id": "c_auto_t_yi_20260905_01_perf_mmn",
-    "isAuto": true,
-    "metric": "단위 과업 완료 | 납기 100% 준수 (2026-09-05)",
-    "projId": "p_yongin_default",
-    "role": "[실적 달성] 일반 수행 업무 - 노후계획도시기본계획 최종보고서 도서 검토"
-  },
-  {
-    "autoTaskId": "t_yi_20260905_01",
-    "category": "면접/자소서 소스",
-    "content": "[예상 면접 질문 (Q)]\n\"담당 프로젝트에서 중요한 단위 과업을 수행할 때 본인만의 품질 관리 및 완수 방식은 무엇입니까?\"\n\n[실무 기반 모범 답변 (A)]\n\"저는 '일반 수행 업무' 과업에서 '노후계획도시기본계획 최종보고서 도서 검토'을 수행하며, 사소한 항목이라도 인허가 전체에 미치는 영향을 고려하여 다각도로 검증했습니다. 기준을 선제적으로 확인하고 데이터의 정합성을 교차 검증함으로써 오차 없는 완벽한 성과품을 적기에 완성했습니다.\"\n\n[자기소개서 어필 문장]\n\"주어진 과업의 본질을 정확히 꿰뚫고, 철저한 검증으로 결과물의 신뢰도를 극대화하는 실무형 인재입니다.\"",
-    "date": "2026-09-05",
-    "id": "c_auto_t_yi_20260905_01_interview_phd",
-    "isAuto": true,
-    "metric": "핵심 역량: #최종보고서작성및주민공람준비 #품질무결점 #책임완결력",
-    "projId": "p_yongin_default",
-    "role": "[면접 핵심 역량] 최종보고서 작성 및 주민공람 준비 - 철저한 공정 관리와 신뢰도 높은 도서 편철"
-  },
-  {
-    "autoTaskId": "t_yi_20260905_01",
-    "category": "STAR 에피소드",
-    "content": "[Situation (상황)]\n• 일반 수행 업무 추진 중 '노후계획도시기본계획 최종보고서 도서 검토' 과업의 엄격한 기한 준수 및 고품질 도서 편철 요구.\n\n[Task (과제)]\n• 한정된 일정 내에 법적·기술적 요구 조건을 모두 만족하며 검토자의 신뢰를 얻을 수 있는 완성도 높은 성과물 도출 필요.\n\n[Action (행동)]\n• 선행 사례 및 표준 가이드라인을 면밀히 분석하고, 단계별 교차 검수 체크리스트를 적용하여 오류 가능성을 사전 제거.\n• '노후계획도시기본계획 최종보고서 도서 검토, 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성' 세부 항목을 체계적으로 이행하여 완성도 극대화.\n\n[Result (성과)]\n• 일정 지연 없이 단위 과업을 100% 완료하고, 관계자 검토 과정에서 수정 요구 없이 원안 승인 유도.",
-    "date": "2026-09-05",
-    "id": "c_auto_t_yi_20260905_01_star_eaq",
-    "isAuto": true,
-    "metric": "목표 공정률 100% 달성 | 계획 오류 사전 예방",
-    "projId": "p_yongin_default",
-    "role": "[STAR 실무역량] 일반 수행 업무 - 최종보고서 작성 및 주민공람 준비 관련 복합 과제 해결 및 품질 관리"
-  },
-  {
-    "autoTaskId": "t_yi_20260905_01",
-    "category": "경력기술서",
-    "content": "[과업 개요 및 수행 배경]\n• 과업명: 일반 수행 업무\n• 수행 일자: 2026-09-05\n• 수행 영역: [최종보고서 작성 및 주민공람 준비]\n\n[핵심 실무 수행 내역]\n• 단위 과업 수행: 노후계획도시기본계획 최종보고서 도서 검토\n• 관계 규정 및 지침 정합성 검토: 상위계획 및 관련 법령·조례 기준 부합 여부 면밀 검토\n• 도서 품질 관리: 노후계획도시기본계획 최종보고서 도서 검토, 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성 관련 산출 도서 및 도면의 수치 정합성을 체계적으로 검증 편철\n\n[정량/정성 성과]\n• 정해진 공정 일정 내 단위 과업을 100% 무결점으로 완료하여 후속 인허가 단계 안정화에 기여.",
-    "date": "2026-09-05",
-    "id": "c_auto_t_yi_20260905_01_resume_p70",
-    "isAuto": true,
-    "metric": "법적 기준 충족율 100% | 단위 과업 적기 완료 (2026-09-05)",
-    "projId": "p_yongin_default",
-    "role": "[실무 총괄] 일반 수행 업무 - 최종보고서 작성 및 주민공람 준비 및 단위 과업 완성도 제고"
-  },
-  {
     "autoTaskId": "t_gm_20260908_02",
     "category": "주요 성과",
     "content": "[단위 업무 성과 요약]\n• 과업명: 일반 수행 업무\n• 완료일자: 2026-09-08\n• 수행 영역: 기초현황조사 및 노후도 분석\n• 세부 실적: 대상지 내 노후·불량건축물 수 및 연면적 비율 전수조사, 과소필지 및 접도율 현황 분석표 작성\n• 핵심 가치: 실무 공정 안정화 및 무결점 단위 과업 완료.",
@@ -5819,26 +5785,6 @@
   },
   {
     "completed": true,
-    "date": "2026-09-05",
-    "id": "t_yi_20260905_01",
-    "items": [
-      {
-        "completed": true,
-        "id": "it_yi_1",
-        "text": "노후계획도시기본계획 최종보고서 도서 검토"
-      },
-      {
-        "completed": true,
-        "id": "it_yi_2",
-        "text": "10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-      }
-    ],
-    "projId": "p_yongin_default",
-    "theme": "최종보고서 작성 및 주민공람 준비",
-    "title": "노후계획도시기본계획 최종보고서 도서 검토 10월 주민공람(14일간) 공람도서 및 공고문 초안 작성"
-  },
-  {
-    "completed": true,
     "date": "2026-09-04",
     "id": "t_bd_20260904_01",
     "items": [
@@ -6390,7 +6336,7 @@
           }
         }
 
-        if (!store || !Array.isArray(store.dailyTasks) || store.dailyTasks.length < 30 || store.dailyTasks.some(t => t && t.title && t.title.includes('최근 업무'))) {
+        if (!store || !Array.isArray(store.dailyTasks) || store.dailyTasks.some(t => t && t.title && t.title.includes('최근 업무'))) {
           needsStrictReset = true;
         }
 
@@ -11066,7 +11012,11 @@ function inspectMemberWorkspace(userId) {
         }
       }
       store.dailyTasks = store.dailyTasks.filter(x => x.id !== id);
+      store.lastLocalUpdate = Date.now();
       saveStore();
+      if (typeof fbDbRef !== 'undefined' && fbDbRef) {
+        fbDbRef.set(store).catch(e => console.warn('Instant delete sync failed:', e));
+      }
       renderDailyTasks();
       renderProjectSummaryBoard();
     }
