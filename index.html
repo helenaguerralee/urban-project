@@ -3815,7 +3815,19 @@
             });
             cleanRemote.careerLogs = Array.from(mergedCareerMap.values());
 
-            const localHasMore = localHadNewTasks || localHadNewProjects;
+            // MERGE CALENDAR EVENTS: Never wipe out locally added events!
+            const mergedEventsMap = new Map();
+            (cleanRemote.calendarEvents || []).forEach(e => { if (e && e.id) mergedEventsMap.set(e.id, e); });
+            let localHadNewEvents = false;
+            (store.calendarEvents || []).forEach(le => {
+              if (le && le.id && !mergedEventsMap.has(le.id)) {
+                mergedEventsMap.set(le.id, le);
+                localHadNewEvents = true;
+              }
+            });
+            cleanRemote.calendarEvents = Array.from(mergedEventsMap.values());
+
+            const localHasMore = localHadNewTasks || localHadNewProjects || localHadNewEvents;
 
             if (remoteTs > localTs || !localTs || !store.projects || store.projects.length === 0 || localHasMore) {
               store = cleanRemote;
@@ -11737,7 +11749,10 @@ function inspectMemberWorkspace(userId) {
 
         // 3. 🗓️ Calendar Events (월간 일정)
         dayEvents.forEach(e => {
-          let isMyTrip = e.type === '출장' && (e.attendees || []).includes('나');
+          const currentUser = getCurrentUser();
+          const myName = currentUser ? (currentUser.name || currentUser.id) : '';
+          const att = e.attendees || [];
+          let isMyTrip = e.type === '출장' && (att.includes('나') || (myName && att.some(a => a.includes(myName) || myName.includes(a))));
           let colorClass = 'bg-slate-100 text-slate-800 border border-slate-200';
           let icon = '📌';
 
@@ -11864,12 +11879,6 @@ function inspectMemberWorkspace(userId) {
         document.getElementById('calEventDate').value = getTodayDateStr();
       }
 
-      document.getElementById('att_me').checked = true;
-      document.getElementById('att_kim').checked = false;
-      document.getElementById('att_jang').checked = false;
-      document.getElementById('att_choi').checked = false;
-      document.getElementById('att_lee').checked = false;
-
       document.getElementById('addCalendarEventModal').classList.remove('hidden');
     }
 
@@ -11974,11 +11983,13 @@ function inspectMemberWorkspace(userId) {
       let selectedAttendees = [];
 
       if (type === '출장') {
-        if (document.getElementById('att_me').checked) selectedAttendees.push('나');
-        if (document.getElementById('att_kim').checked) selectedAttendees.push('김아현 이사님');
-        if (document.getElementById('att_jang').checked) selectedAttendees.push('장민선 과장님');
-        if (document.getElementById('att_choi').checked) selectedAttendees.push('최지율 주임님');
-        if (document.getElementById('att_lee').checked) selectedAttendees.push('이상호 주임님');
+        const checkedBoxes = document.querySelectorAll('input[name="calAttendeesCheckbox"]:checked');
+        checkedBoxes.forEach(cb => {
+          if (cb.value) selectedAttendees.push(cb.value);
+        });
+        if (selectedAttendees.length === 0) {
+          selectedAttendees.push('나');
+        }
       }
 
       if (!store.calendarEvents) store.calendarEvents = [];
@@ -12010,9 +12021,15 @@ function inspectMemberWorkspace(userId) {
       if (type === '연차' && selectedAttendees.includes('나')) {
         syncLeaveFromCalendar(document.getElementById('calEventDate').value, title);
       }
-saveStore();
+store.lastLocalUpdate = Date.now();
+      saveStore();
+      if (typeof fbDbRef !== 'undefined' && fbDbRef) {
+        fbDbRef.set(store).catch(e => console.warn('Instant calendar sync failed:', e));
+      }
       closeAddCalendarEventModal();
       renderCalendar();
+      if (typeof updateSummaryHeader === 'function') updateSummaryHeader();
+      alert('🎉 캘린더 일정이 성공적으로 등록/저장되었습니다!');
     }
 
     function deleteCalendarEvent() {
@@ -12021,9 +12038,15 @@ saveStore();
       if (!confirm("정말 이 일정을 삭제하시겠습니까?")) return;
 
       store.calendarEvents = (store.calendarEvents || []).filter(e => e.id !== currentEditingCalendarEventId);
+      store.lastLocalUpdate = Date.now();
       saveStore();
+      if (typeof fbDbRef !== 'undefined' && fbDbRef) {
+        fbDbRef.set(store).catch(e => console.warn('Instant calendar sync failed:', e));
+      }
       closeAddCalendarEventModal();
       renderCalendar();
+      if (typeof updateSummaryHeader === 'function') updateSummaryHeader();
+      alert('🎉 캘린더 일정이 성공적으로 등록/저장되었습니다!');
     }
 
     // 5. CAREER MANAGEMENT LOGS & RESUME SOURCES
@@ -12396,7 +12419,13 @@ grid.innerHTML = '';
 
 
 
-      const myTripsCount = (store.calendarEvents || []).filter(e => e.type === '출장' && (e.attendees || []).includes('나')).length;
+      const currentUser = getCurrentUser();
+      const myName = currentUser ? (currentUser.name || currentUser.id) : '';
+      const myTripsCount = (store.calendarEvents || []).filter(e => {
+        if (e.type !== '출장') return false;
+        const att = e.attendees || [];
+        return att.includes('나') || (myName && att.some(a => a.includes(myName) || myName.includes(a)));
+      }).length;
 
       document.getElementById('summaryMyTrips').innerText = `${myTripsCount} 건`;
 
